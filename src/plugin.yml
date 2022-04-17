@@ -1,0 +1,9 @@
+name: ConfigCommands
+version: 1.0.0
+author: willkroboth
+main: me.willkroboth.ConfigCommands.ConfigCommands
+api-version: 1.18
+depend:
+  - CommandAPI
+libraries:
+  - org.reflections:reflections:0.10.2
