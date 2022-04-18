@@ -145,7 +145,7 @@ Variables can be referenced using `< >` around thier name. When parsing, the plu
 
 There are two types of functions and so two ways to call functions. Static functions are called using the name of the class they belong to, while non-static functions can be called on another `[Expression]`. `[parameters]` is a list of expressions, separated by `, `, that are used as the arguments to the function. Since calling a function is also an expression, you can chain function calls together in the same line. When parsing, the plugin will make sure the requested function with the given parameters exists.
 
-The ConfigCommands plugin provides the command `/configcommandhelp` to help users see what functions are avaliable to them. You can explore the avaliable options in a guided menu system by just running `/configcommandhelp`, or through tab-complete suggestions. You can find the aliases of a function aswell as the possible parameters and outputs.
+The functions and class names that can be used in Expressions are defined by [InternalArguments](Plugin%20Description.md#internal-arguments) and you can read about the InternalArguments in each PluginDescription. The ConfigCommands plugin also provides the command `/configcommandhelp` to help users see what functions are currently avaliable on thier server. You can explore the avaliable options in a guided menu system by just running `/configcommandhelp`, or through tab-complete suggestions. You can find the aliases of a function aswell as the possible parameters and outputs.
 
 Examples:
 - `<sender>.sendMessage("Hello World")`
