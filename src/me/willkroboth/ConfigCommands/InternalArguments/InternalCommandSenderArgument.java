@@ -39,6 +39,8 @@ public class InternalCommandSenderArgument extends InternalArgument {
                                 new Function(this::getSenderName, InternalStringArgument.class)),
                         entry(new Definition("getType", args()),
                                 new Function(this::getType, InternalStringArgument.class)),
+                        entry(new Definition("hasPermission", args(InternalStringArgument.class)),
+                                new Function(this::hasPermission, InternalBooleanArgument.class)),
                         entry(new Definition("isCommandBlock", args()),
                                 new Function(this::isCommandBlock, InternalBooleanArgument.class)),
                         entry(new Definition("isConsole", args()),
@@ -97,6 +99,10 @@ public class InternalCommandSenderArgument extends InternalArgument {
             throw new CommandRunException("CommandSender " + targetCommandSender + " is of unknown class " + targetCommandSender.getClass());
 
         return new InternalStringArgument(result);
+    }
+
+    private InternalArgument hasPermission(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getCommandSender(target).hasPermission((String) parameters.get(0).getValue()));
     }
 
     private InternalArgument isCommandBlock(InternalArgument target, List<InternalArgument> parameters) {
