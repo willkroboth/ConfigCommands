@@ -1,14 +1,12 @@
 package me.willkroboth.ConfigCommands.Functions;
 
-import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-
-import java.util.List;
+import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
 
 public class Definition {
     private final String name;
-    private final List<Class<? extends InternalArgument>> parameters;
+    private final ArgList parameters;
 
-    public Definition(String name, List<Class<? extends InternalArgument>> parameters) {
+    public Definition(String name, ArgList parameters) {
         this.name = name;
         this.parameters = parameters;
     }
@@ -25,7 +23,7 @@ public class Definition {
          return name;
     }
 
-    public List<Class<? extends InternalArgument>> getParameters(){
+    public ArgList getParameters(){
         return parameters;
     }
 
