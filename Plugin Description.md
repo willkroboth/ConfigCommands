@@ -225,6 +225,14 @@ Result: InternalStringArgument
   
 Description: Returns a String representing the type of the target CommandSender. Either `"player"`, `"entity"`, `"commandBlock"`, `"console"`, or `"proxy"`.
   
+- hasPermission
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the target CommandSender has a permission represented by the given string, and false otherwise
+  
 - isCommandBlock
   
 Parameters: None
