@@ -47,12 +47,124 @@ public class InternalStringArgument extends InternalArgument {
         return merge(
                 super.getFunctions(),
                 entries(
+                        entry(new Definition("charAt", args(InternalIntegerArgument.class)),
+                                new Function(this::charAt, InternalStringArgument.class)),
+                        entry(new Definition("contains", args(InternalStringArgument.class)),
+                                new Function(this::contains, InternalBooleanArgument.class)),
+                        entry(new Definition("endsWith", args(InternalStringArgument.class)),
+                                new Function(this::endsWith, InternalBooleanArgument.class)),
+                        entry(new Definition("equals", args(InternalStringArgument.class)),
+                                new Function(this::stringEquals, InternalBooleanArgument.class)),
+                        entry(new Definition("equalsIgnoreCase", args(InternalStringArgument.class)),
+                                new Function(this::stringEqualsIgnoreCase, InternalBooleanArgument.class)),
+                        entry(new Definition("isEmpty", args()),
+                                new Function(this::isEmpty, InternalBooleanArgument.class)),
+                        entry(new Definition("length", args()),
+                                new Function(this::length, InternalIntegerArgument.class)),
+                        entry(new Definition("replace", args(InternalStringArgument.class, InternalStringArgument.class)),
+                                new Function(this::replace, InternalStringArgument.class)),
+                        entry(new Definition("startsWith", args(InternalStringArgument.class)),
+                                new Function(this::startsWith, InternalBooleanArgument.class)),
                         entry(new Definition("toInt", args()),
                                 new Function(this::toInt, InternalIntegerArgument.class))
                 ),
+                expandDefinition(strings("indexOf"),
+                        args(
+                                args(InternalStringArgument.class),
+                                args(InternalStringArgument.class, InternalIntegerArgument.class)
+                        ), new Function(this::indexOf, InternalIntegerArgument.class)
+                ),
                 expandDefinition(strings("join"), AllInternalArguments.get(),
-                        new Function(this::join, InternalStringArgument.class))
+                        new Function(this::join, InternalStringArgument.class)
+                ),
+                expandDefinition(strings("lastIndexOf"),
+                        args(
+                                args(InternalStringArgument.class),
+                                args(InternalStringArgument.class, InternalIntegerArgument.class)
+                        ), new Function(this::lastIndexOf, InternalIntegerArgument.class)
+                ),
+                expandDefinition(strings("substring"),
+                        args(
+                                args(InternalIntegerArgument.class),
+                                args(InternalIntegerArgument.class, InternalIntegerArgument.class)
+                        ), new Function(this::substring, InternalStringArgument.class)
+                )
+
         );
+    }
+    
+    private String getString(InternalArgument target){
+        return (String) target.getValue();
+    }
+    
+    private int getInt(InternalArgument target){
+        return (int) target.getValue();
+    }
+
+    private InternalArgument substring(InternalArgument target, List<InternalArgument> parameters) {
+        String result;
+        if(parameters.size() == 1){
+            result = getString(target).substring(getInt(parameters.get(0)));
+        } else {
+            result = getString(target).substring(getInt(parameters.get(0)), getInt(parameters.get(1)));
+        }
+        return new InternalStringArgument(result);
+    }
+
+    private InternalArgument lastIndexOf(InternalArgument target, List<InternalArgument> parameters) {
+        int result;
+        if(parameters.size() == 1){
+            result = getString(target).lastIndexOf(getString(parameters.get(0)));
+        } else {
+            result = getString(target).lastIndexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
+        }
+        return new InternalIntegerArgument(result);
+    }
+
+    private InternalArgument indexOf(InternalArgument target, List<InternalArgument> parameters) {
+        int result;
+        if(parameters.size() == 1){
+            result = getString(target).indexOf(getString(parameters.get(0)));
+        } else {
+            result = getString(target).indexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
+        }
+        return new InternalIntegerArgument(result);
+    }
+
+    private InternalArgument startsWith(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).startsWith(getString(parameters.get(0))));
+    }
+
+    private InternalArgument replace(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalStringArgument(getString(target).replace(getString(parameters.get(0)), getString(parameters.get(1))));
+    }
+
+    private InternalArgument length(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalIntegerArgument(getString(target).length());
+    }
+
+    private InternalArgument isEmpty(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).isEmpty());
+    }
+
+    private InternalArgument stringEqualsIgnoreCase(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).equalsIgnoreCase(getString(parameters.get(0))));
+    }
+
+    private InternalArgument stringEquals(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).equals(getString(parameters.get(0))));
+    }
+
+    private InternalArgument endsWith(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).endsWith(getString(parameters.get(0))));
+    }
+
+    private InternalArgument contains(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalBooleanArgument(getString(target).contains(getString(parameters.get(0))));
+    }
+
+    private InternalArgument charAt(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalStringArgument("" + getString(target).charAt(getInt(parameters.get(0))));
     }
 
     public InternalIntegerArgument toInt(InternalArgument target, List<InternalArgument> parameters) {
