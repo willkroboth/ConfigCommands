@@ -335,13 +335,62 @@ subtype: None / `string` / `text` / `greedy`
 See the CommandAPI documentation for a great description of the different [StringArgument](https://commandapi.jorel.dev/7.0.0/stringarguments.html) types
 #### Java Class: [String](https://docs.oracle.com/javase/7/docs/api/java/lang/String.html)
 #### Functions:
-- toInt
   
-Parameters: None
+- charAt
+  
+Parameters: InternalIntegerArgument
+  
+Result: InternalStringArgument
+  
+Description: Returns the character found at the given index in the target string
+  
+- contians
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the given string is found within the target string and false otherwise
+  
+- endsWith
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the target string ends with the given string and false otherwise
+  
+- equals
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the given string is the same as the target string and false otherwise
+  
+- equalsIgnoreCase
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the given string is the same as the target string, ignoring differences in capitalization, and false otherwise 
+  
+- indexOf
+  
+Parameters: InternalStringArgument / InternalStringArgument, InternalIntegerArgument
   
 Result: InternalIntegerArgument
   
-Description: Returns the Integer represented by the target String
+Description: If only a string is input, returns the index of the first character of the first instance of the given string in the target string. If a string and an int are input, the first instance of the given string in the target string must be after the given index. If an index is not found, returns -1.
+  
+- isEmpty
+  
+Parameters: None
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the target string has a length of 0 and false otherwise
   
 - join
   
@@ -350,6 +399,54 @@ Parameters: AllInternalArguments
 Result: InternalStringArgument
   
 Description: Returns the result of concatenating the target String with the given InternalArgument. It uses the `forCommand()` method to convert the InternalArgument to a String.
+  
+- lastIndexOf
+  
+Parameters: InternalStringArgument / InternalStringArgument, InternalIntegerArgument
+  
+Result: InternalIntegerArgument
+  
+Description: If only a string is input, returns the index of the first character of the last instance of the given string in the target string. If a string and an int are input, the las instance of the given string in the target string must be before the given index. If an index is not found, returns -1.
+  
+- length
+  
+Parameters: None
+  
+Result: InternalIntegerArgument
+  
+Description: Returns the number of characters in the target string
+  
+- replace
+  
+Parameters: InternalStringArgument, InternalStringArgument
+  
+Result: InternalStringArgument
+  
+Description: Returns the result of replacing all instances of the first given string in the target string with the second given string
+  
+- startsWith
+  
+Parameters: InternalStringArgument
+  
+Result: InternalBooleanArgument
+  
+Description: Returns true if the target string starts with the given string and false otherwise
+  
+- substring
+  
+Parameters: InternalIntegerArgument / InternalIntegerArgument, InternalIntegerArgument
+  
+Result: InternalStringArgument
+  
+Description: If only one int is given, returns a string made up of the characters found after the given index inclusive. If two ints are given, returns a string made up of the characters starting at the first index inclusive until the last index exclusive.
+  
+- toInt
+  
+Parameters: None
+  
+Result: InternalIntegerArgument
+  
+Description: Returns the Integer represented by the target String
 
 #### Static Class Name: String
 #### Static Functions:
