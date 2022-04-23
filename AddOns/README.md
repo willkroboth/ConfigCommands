@@ -155,7 +155,7 @@ public class InternalBooleanArgument extends InternalArgument {
 This implementation adds a new BooleanArgument to the backing CommandAPICommand, represented by `command`; adds `name` to the list of `argument_keys` this command will be able to use in its expressions; and maps the `name` to the its class in the `argument_variable_classes` map.
 
 A more complicated behavior is presented by [InternalStringArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java):
-```
+```java
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
@@ -273,7 +273,7 @@ void registerSetOfType(Set<Class<? extends Type>> classes, String pluginName, bo
 The only difference between these and the package methods is that the package methods find a set of classes to register, while you define a set of classes to register here. All the other parameters act the same as before.
 
 ### Building Functions
-The most important function of InternalArguments and FunctionAdders is returning a list of static or non static functions. All of the classes and interfaces used to create functions are found in the package [me.willkroboth.ConfigCommands.Functions](/src/me/willkroboth/ConfigCommands/Functions/). The most important part of this collection is the [FunctionCreator](/src/me/willkroboth/ConfigCommands/Functions/FunctionCreator.java) interface, which provides a few methods that make creating functions easier. Any class that needs to create functions should implement the FunctionCreator interface. The parent classes for InternalArguments and FunctionAdders already implement this interface, so the methods are automatically avaliable.
+The most important function of InternalArguments and FunctionAdders is returning a list of static or non static functions. All of the classes and interfaces used to create functions are found in the package [me.willkroboth.ConfigCommands.Functions](/src/me/willkroboth/ConfigCommands/Functions/). The most important part of this collection is the [FunctionCreator](/src/me/willkroboth/ConfigCommands/Functions/FunctionCreator.java) interface, which provides a few methods that make creating functions easier. Any class that needs to create functions should implement the FunctionCreator interface. The parent classes for InternalArguments and FunctionAdders already implement this interface, so the methods are automatically avaliable to thier subclasses.
 
 The methods defined by FunctionCreator can be combined into thier own sort of syntax, defined by the types taken in and returned by each method. This syntax is best explained by showing all the methods that might be used together.
 ```java
