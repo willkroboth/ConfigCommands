@@ -3,10 +3,7 @@ package me.willkroboth.ConfigCommands.InternalArguments;
 import dev.jorel.commandapi.CommandAPICommand;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.*;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionEntry;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionEntry;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
+import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.HelperClasses.Expression;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AddThisArgumentConsumer;
@@ -426,24 +423,24 @@ public abstract class InternalArgument implements FunctionCreator {
     }
 
     // interacts with functions
-    public final boolean hasFunction(String function, List<Class<? extends InternalArgument>> parameterTypes){
+    public final boolean hasFunction(String function, ArgList parameterTypes){
         return functions.get(myClass()).containsKey(new Definition(function, parameterTypes));
     }
 
-    public final boolean hasStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes){
+    public final boolean hasStaticFunction(String function, ArgList parameterTypes){
         return staticFunctions.get(myClass()).containsKey(new Definition(function, parameterTypes));
     }
 
-    public final Class<? extends InternalArgument> getReturnTypeForFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+    public final Class<? extends InternalArgument> getReturnTypeForFunction(String function, ArgList parameterTypes) {
         return functions.get(myClass()).get(new Definition(function, parameterTypes)).getReturnType();
     }
 
-    public final Class<? extends InternalArgument> getReturnTypeForStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+    public final Class<? extends InternalArgument> getReturnTypeForStaticFunction(String function, ArgList parameterTypes) {
         return staticFunctions.get(myClass()).get(new Definition(function, parameterTypes)).getReturnType();
     }
 
     public final InternalArgument runFunction(String function, List<InternalArgument> parameters) {
-        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
+        ArgList parameterTypes = new ArgList();
         for(InternalArgument p:parameters){
             parameterTypes.add(p.getClass());
         }
@@ -452,7 +449,7 @@ public abstract class InternalArgument implements FunctionCreator {
     }
 
     public final InternalArgument runStaticFunction(String function, List<InternalArgument> parameters) {
-        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
+        ArgList parameterTypes = new ArgList();
         for(InternalArgument p:parameters){
             parameterTypes.add(p.getClass());
         }
