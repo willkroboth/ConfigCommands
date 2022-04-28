@@ -47,7 +47,7 @@ public class InternalArrayListArgument extends InternalArgument {
                 entries(
                         entry(new Definition("addAll", args(InternalArrayListArgument.class)),
                                 new Function(this::addAll, InternalVoidArgument.class)),
-                        entry(new Definition("remove", args()),
+                        entry(new Definition("remove", args(InternalIntegerArgument.class)),
                                 new Function(this::remove, InternalVoidArgument.class)),
                         entry(new Definition("size", args()),
                                 new Function(this::size, InternalIntegerArgument.class)),
