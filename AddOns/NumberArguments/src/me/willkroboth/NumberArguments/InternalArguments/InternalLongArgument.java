@@ -2,14 +2,14 @@ package me.willkroboth.NumberArguments.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.LongArgument;
+import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalBooleanArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -107,12 +107,7 @@ public class InternalLongArgument extends InternalArgument implements NumberFunc
 
     public StaticFunctionList getStaticFunctions() {
         return staticMerge(super.getStaticFunctions(),
-                staticEntries(
-                        staticEntry(new Definition("maxValue", args()),
-                                new StaticFunction(this::maxValue, InternalLongArgument.class)),
-                        staticEntry(new Definition("minValue", args()),
-                                new StaticFunction(this::minValue, InternalLongArgument.class))
-                )
+                generateStaticFunctions()
         );
     }
 
@@ -122,6 +117,22 @@ public class InternalLongArgument extends InternalArgument implements NumberFunc
 
     public InternalLongArgument minValue(List<InternalArgument> parameters){
         return new InternalLongArgument(Long.MIN_VALUE);
+    }
+
+    public InternalLongArgument initialize(List<InternalArgument> parameters) {
+        long result = 0;
+        if (parameters.size() == 1) {
+            InternalStringArgument arg = (InternalStringArgument) parameters.get(0);
+            String word = (String)arg.getValue();
+
+            try {
+                result = Long.parseLong(word);
+            } catch (NumberFormatException var6) {
+                throw new CommandRunException("Word: \"" + word + "\" cannot be parsed as long.");
+            }
+        }
+
+        return new InternalLongArgument(result);
     }
 
     // value
