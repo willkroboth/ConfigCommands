@@ -1,6 +1,7 @@
 package me.willkroboth.ConfigCommands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
@@ -206,10 +207,10 @@ public class ConfigCommands extends ConfigCommandAddOn {
         new CommandAPICommand("configCommandHelp")
                 .withPermission("configcommands.help")
                 .withArguments(
-                        new StringArgument("addOn").replaceSuggestions(HelpCommandHandler::getAddOns),
-                        new StringArgument("internalArgument").replaceSuggestions(HelpCommandHandler::getInternalArguments),
+                        new StringArgument("addOn").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getAddOns)),
+                        new StringArgument("internalArgument").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getInternalArguments)),
                         new MultiLiteralArgument("static", "nonStatic"),
-                        new GreedyStringArgument("function").replaceSuggestions(HelpCommandHandler::getFunctions)
+                        new GreedyStringArgument("function").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getFunctions))
                 )
                 .executesPlayer(HelpCommandHandler::displayInformation)
                 .executesConsole(HelpCommandHandler::displayInformation)
