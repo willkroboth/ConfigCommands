@@ -62,6 +62,21 @@ If you need more control over how your InternalArguments and FunctionAdders are 
 ### Creating InternalArguments
 InternalArguments are the equivalent of classes in the ConfigCommand system, defining staic and non static functions that users can use in thier commands. InternalArguments can also be added to commands to allow input from players. Each InternalArgument you make should extend the abstract class [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java), and the idea is that each InternalArgument is responsible for representing a certain Java class in the Expression system, like an Integer or CommandSender. By implementing various methods described below, you can translate the behavior of each class into the system.
 
+#### Constructor
+In order to find and use your InternalArgument, you must define a default constructor for your class. This constructor dosen't need to and probably shouldn't do anything, but if dosen't exsist your InternalArgument will fail to register and be ignored. You are free to add any other constructors you need. I suggest creating a constructor that takes in an object of the type you store as the InternalArgument's `value`, which makes it easier to give new IternalArguments with a value in one line. An simple example of both these constructors is seen in [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
+```java
+public class InternalIntegerArgument extends InternalArgument{
+    private int value;
+
+    public InternalIntegerArgument() {
+    }
+
+    public InternalIntegerArgument(int value) {
+        super(value);
+    }
+}
+```
+
 #### getValue(), setValue(Object arg), setValue(InternalArgument arg), forCommand()
 These 4 methods must be implemented and allow other systems to set and access an instance of the class that an instance of an InternalArgument holds. Here is an simple example of implementing these methods from [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
 ```java
