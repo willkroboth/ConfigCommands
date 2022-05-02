@@ -1,12 +1,12 @@
 # ConfigCommands
 
 ## A Bukkit/Spigot plugin for creating commands in-game
-The ConfigCommands plugin allows users to quickly and simply add commands to thier server -- no custom plugins needed! This plugin removes the hassel of learning Java and/or a plugin API and lets beggining server owners go directly to creating custom commands to thier liking (though more complicated features such as [Expressions](https://github.com/willkroboth/ConfigCommands/edit/main/README.md#expressions) may take significant learning anyways). For those who have made a plugin before, this plugin can still help them quickly add simple commands without creating a whole new plugin. This is an extension of my [customcommands](https://github.com/willkroboth/Minecraft-Plugins/tree/main/custom%20commands) project and builds off of the [CommandAPI](https://commandapi.jorel.dev/) developed by [JorelAli](https://github.com/JorelAli) to provide features such as type-safe arguments, custom `/help` menu descriptions, and compatibility with `/execute`. The base plugin only supports using Integers, Strings, and Booleans in commands, but this can be built upon using the AddOn system, which is further described in the [AddOns folder](/AddOns/) of this repository.
+The ConfigCommands plugin allows users to quickly and simply add commands to thier server -- no custom plugins needed! This plugin removes the hassel of learning Java and/or a plugin API and lets beggining server owners go directly to creating custom commands to thier liking (though more complicated features such as [Expressions](#expressions) may take significant learning anyways). For those who have made a plugin before, this plugin can still help them quickly add simple commands without creating a whole new plugin. This is an extension of my [customcommands](https://github.com/willkroboth/Minecraft-Plugins/tree/main/custom%20commands) project and builds off of the [CommandAPI](https://commandapi.jorel.dev/) developed by [JorelAli](https://github.com/JorelAli) to provide features such as type-safe arguments, custom `/help` menu descriptions, and compatibility with `/execute`. The base plugin only supports using Integers, Strings, and Booleans in commands, but this can be built upon using the AddOn system, which is further described in the [AddOns folder](/AddOns/) of this repository.
 
 Note that this project is still in early development and might see major changes to it's systems. If you find any bugs or have feature sugesestions, don't hesitate to make a report in the issues section of this repository.
 
 ## Creating Commands
-Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommandbuild` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](https://github.com/willkroboth/ConfigCommands/blob/main/README.md#command-features).
+Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommandbuild` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](#command-features).
 
 ## Command Features
 The features of a command are best introduced using an example. The config.yml file is automatically populated with such an example, the echo command:
@@ -97,9 +97,9 @@ Examples:
 - `/say Hello World`
 - `/kill @e[type=!player]`
 
-`[Variable]` refers to the name of a variable. Variables are described in more detail [below](https://github.com/willkroboth/ConfigCommands/blob/main/README.md#variables).
+`[Variable]` refers to the name of a variable. Variables are described in more detail [below](#variables).
 
-`[Expression]` can be any Expression, described in more detail [below](https://github.com/willkroboth/ConfigCommands/blob/main/README.md#expressions).
+`[Expression]` can be any Expression, described in more detail [below](#expressions).
 
 `"name of tag"` can be any text
 
