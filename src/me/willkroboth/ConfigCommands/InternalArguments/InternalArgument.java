@@ -147,8 +147,8 @@ public abstract class InternalArgument implements FunctionCreator {
                 }
                 out.delete(out.length() - 2, out.length());
             }
-            out.append(") -> ");
-            out.append(classToObject.get(function.getReturnType()).getName());
+            Class<? extends InternalArgument> clazz = function.getReturnType();
+            out.append(clazz.isAssignableFrom(InternalVoidArgument.class)? "Void" : classToObject.get(clazz).getName());
         }
 
         return out.toString();
@@ -173,7 +173,8 @@ public abstract class InternalArgument implements FunctionCreator {
                 out.delete(out.length() - 2, out.length());
             }
             out.append(") -> ");
-            out.append(classToObject.get(function.getReturnType()).getName());
+            Class<? extends InternalArgument> clazz = function.getReturnType();
+            out.append(clazz.isAssignableFrom(InternalVoidArgument.class)? "Void" : classToObject.get(clazz).getName());
         }
 
         return out.toString();
@@ -224,6 +225,8 @@ public abstract class InternalArgument implements FunctionCreator {
 
     private static final Map<String, AddThisArgumentConsumer> argumentMap = new HashMap<>();
     private static void registerInternalArgument(Class<? extends InternalArgument> clazz, String pluginName, boolean debugMode, Logger logger){
+        if(clazz.isAssignableFrom(InternalVoidArgument.class)) return;
+
         InternalArgument object;
         try {
             object = getInternalArgument(clazz);

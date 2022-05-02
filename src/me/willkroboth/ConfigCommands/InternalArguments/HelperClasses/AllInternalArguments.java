@@ -10,7 +10,6 @@ public final class AllInternalArguments{
     private static final ArgList flatClasses = new ArgList();
 
     public static void addToAllClasses(Class<? extends InternalArgument> clazz){
-        if(clazz.isAssignableFrom(InternalVoidArgument.class)) return;
         ArgList single = new ArgList();
         single.add(clazz);
         allClasses.add(single);
