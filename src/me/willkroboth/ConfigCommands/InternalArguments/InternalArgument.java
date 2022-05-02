@@ -147,6 +147,7 @@ public abstract class InternalArgument implements FunctionCreator {
                 }
                 out.delete(out.length() - 2, out.length());
             }
+            out.append(") -> ");
             Class<? extends InternalArgument> clazz = function.getReturnType();
             out.append(clazz.isAssignableFrom(InternalVoidArgument.class)? "Void" : classToObject.get(clazz).getName());
         }
