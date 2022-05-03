@@ -739,7 +739,7 @@ public class BuildCommandHandler implements Listener {
             } else {
                 sender.sendMessage("  Commands:");
                 for (int i = 0; i < commandsToRun.size(); i++){
-                    sender.sendMessage("    " + (i+1) + ". "  + commandsToRun.get(0));
+                    sender.sendMessage("    " + (i+1) + ". "  + commandsToRun.get(i));
                 }
             }
 
