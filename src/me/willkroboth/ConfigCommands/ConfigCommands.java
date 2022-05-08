@@ -1,6 +1,7 @@
 package me.willkroboth.ConfigCommands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.CommandTree;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
@@ -198,28 +199,36 @@ public class ConfigCommands extends ConfigCommandAddOn {
         }
 
         // set up help command
-        new CommandAPICommand("configCommandHelp")
+        new CommandTree("configcommandhelp")
+                .withHelp("Displays information for available ConfigCommand functions",
+                        "Displays information about the available ConfigCommands functions. Using just " +
+                                "/configcommandhelp brings up a guided menu. You can also use tab complete suggestions " +
+                                "to explore the functions the same way.")
                 .withPermission("configcommands.help")
                 .executesPlayer(HelpCommandHandler::addUser)
                 .executesConsole(HelpCommandHandler::addUser)
-                .register();
-
-        new CommandAPICommand("configCommandHelp")
-                .withPermission("configcommands.help")
-                .withArguments(
-                        new StringArgument("addOn").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getAddOns)),
-                        new StringArgument("internalArgument").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getInternalArguments)),
-                        new MultiLiteralArgument("static", "nonStatic"),
-                        new GreedyStringArgument("function").replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getFunctions))
+                .then(new StringArgument("addOn")
+                        .replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getAddOns))
+                        .then(new StringArgument("internalArgument")
+                                .replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getInternalArguments))
+                                .then(new MultiLiteralArgument("static", "nonStatic")
+                                        .then(new GreedyStringArgument("function")
+                                                .replaceSuggestions(ArgumentSuggestions.strings(HelpCommandHandler::getFunctions))
+                                                .executesPlayer(HelpCommandHandler::displayInformation)
+                                                .executesConsole(HelpCommandHandler::displayInformation)
+                                        )
+                                )
+                        )
                 )
-                .executesPlayer(HelpCommandHandler::displayInformation)
-                .executesConsole(HelpCommandHandler::displayInformation)
                 .register();
 
         getServer().getPluginManager().registerEvents(new HelpCommandHandler(), this);
 
         // set up build command
-        new CommandAPICommand("configCommandBuild")
+        new CommandAPICommand("configcommandbuild")
+                .withHelp("Helps users create new commands",
+                        "Opens a menu that guides users through creating a new command. Enables creating, " +
+                                "editing, and deleting commands.")
                 .withPermission("configcommands.build")
                 .executesPlayer(BuildCommandHandler::addUser)
                 .executesConsole(BuildCommandHandler::addUser)
