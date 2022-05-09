@@ -8,7 +8,6 @@ import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionL
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalBooleanArgument;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
