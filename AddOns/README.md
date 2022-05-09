@@ -11,7 +11,7 @@ Adding AddOns to the ConfigCommands base is as easy as adding any other plugin b
 
 ## Addons for Developers
 
-The following section serves to describe how one might go about creating thier own ConfigCommand AddOn. It assumes a basic experience with creating plugins and using Java, and is split up into 5 sections: [Plugin Class](README.md#plugin-class), [Creating InternalArguments](README.md#creating-internalarguments), [Creating FunctionAdders](README.md#creating-functionadders), [Registering InternalArguments and FunctionAdders](README.md#registering-internalarguments-and-functionadders), and [Building Functions](README.md#building-functions). For a full example of creating an AddOn with new InternalArguments and FunctionAdders, see the [NumberArguments](./NumberArguments/) AddOn.
+The following section serves to describe how one might go about creating thier own ConfigCommand AddOn. It assumes a basic experience with creating plugins and using Java, and is split up into 5 sections: [Plugin Class](#plugin-class), [Creating InternalArguments](#creating-internalarguments), [Creating FunctionAdders](#creating-functionadders), [Registering InternalArguments and FunctionAdders](#registering-internalarguments-and-functionadders), and [Building Functions](#building-functions). For a full example of creating an AddOn with new InternalArguments and FunctionAdders, see the [NumberArguments](./NumberArguments/) AddOn.
 
 ### Plugin Class
 #### TLDR; Extend ConfigCommandAddOn instead of JavaPlugin, make `getPackageName()` return the name of your package.
@@ -61,6 +61,21 @@ If you need more control over how your InternalArguments and FunctionAdders are 
 
 ### Creating InternalArguments
 InternalArguments are the equivalent of classes in the ConfigCommand system, defining staic and non static functions that users can use in thier commands. InternalArguments can also be added to commands to allow input from players. Each InternalArgument you make should extend the abstract class [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java), and the idea is that each InternalArgument is responsible for representing a certain Java class in the Expression system, like an Integer or CommandSender. By implementing various methods described below, you can translate the behavior of each class into the system.
+
+#### Constructor
+In order to find and use your InternalArgument, you must define a default constructor for your class. This constructor dosen't need to and probably shouldn't do anything, but if dosen't exsist your InternalArgument will fail to register and be ignored. You are free to add any other constructors you need. I suggest creating a constructor that takes in an object of the type you store as the InternalArgument's `value`, which makes it easier to give new IternalArguments with a value in one line. An simple example of both these constructors is seen in [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
+```java
+public class InternalIntegerArgument extends InternalArgument{
+    private int value;
+
+    public InternalIntegerArgument() {
+    }
+
+    public InternalIntegerArgument(int value) {
+        super(value);
+    }
+}
+```
 
 #### getValue(), setValue(Object arg), setValue(InternalArgument arg), forCommand()
 These 4 methods must be implemented and allow other systems to set and access an instance of the class that an instance of an InternalArgument holds. Here is an simple example of implementing these methods from [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
@@ -296,7 +311,7 @@ args(Class<? extends InternalArgument>...) -> ArgList;
 
 new Definition(String, ArgList) -> Definition;
 new Function(InternalArgumentFunction, Class<? extends InternalArgument>) -> Function;
-new StaticFunction(InternalArgumentStaticFunction, Class<? extends InternalArgument>) -> Function;
+new StaticFunction(InternalArgumentStaticFunction, Class<? extends InternalArgument>) -> StaticFunction;
 ```
 For InternalArguments, you would use these methods inside the `getFunctions()` and `getStaticFunctions()` methods, which want to return a FunctionList or StaticFunctionList respectively. You can also call `super.getFunctions()` or `super.getStaticFunctions()` which will return the FunctionLists of the parent class.
 
@@ -316,9 +331,104 @@ As you can see, many methods are split into static and non static variants, and 
 
 `args(Class<? extends InternalArgument>...)` is used to create an ArgList. An ArgList stores the parameters of a Definition object.
 
-Definition objects record a name and list of paramaters that identifies a Function.
+Definition objects record a name and ArgList of paramaters that characterizes how a Function should be called.
 
-Function objects record a method to call to perform thier function and a class that they return.
+Function objects record a method to call to perform thier function and a class that they return. The method passed into a function, [InternalArgumentFunction](/src/me/willkroboth/ConfigCommands/Functions/InternalArgumentFunction.java), is a functional interface with the signature 
+```
+InternalArgument apply(InternalArgument target, List<InternalArgument> parameters)
+```
+You can fill this in with an appropriate lambda expression, or a reference to a method in your class. `target` represents the object on which the Function is being called and is garunteed to be an instance of the class you are building functions for. `parameters` represents the objects being passed into the Function and is garunteed to be filled with instances of the types put into the ArgList of the corresponding Definition. You should only need to check the state of your inputs if you assign multiple Definitions to the same function. InternalArgumentStaticFunction is almost the same, it just dosen't have a `target` object.
 
+#### Example
+I think the best way to clarify the above descriptions is to look at an example. All InternalArguments and FunctionAdders should build at least a couple functions, so any one is a good choice to see a real application of these methods. However, just blindly looking at someone else's code isn't a very good way to get started, so I will explain an example from [InternalArrayListArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArrayListArgument.java)
+```java
+public class InternalArrayListArgument extends InternalArgument {
+    public FunctionList getFunctions() {
+        return merge(super.getFunctions(),
+                generateGets(),
+                generateSets(),
+                expandDefinition(
+                        strings("add"), AllInternalArguments.get(),
+                        new Function(this::add, InternalVoidArgument.class)
+                ),
+                entries(
+                        entry(new Definition("size", args()),
+                                new Function(this::size, InternalIntegerArgument.class)),
+                        entry(new Definition("subList", args(InternalIntegerArgument.class, InternalIntegerArgument.class)),
+                                new Function(this::subList, InternalArrayListArgument.class))
+                )
+        );
+    }
 
-I think the best way to clarify the above descriptions is to look at an example. All InternalArguments and FunctionAdders should build at least a couple functions, so any one is a good choice to see a real application of these methods.
+    private FunctionList generateGets() {
+        FunctionList gets = new FunctionList();
+        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
+            gets.add(entry(new Definition("get", args(InternalIntegerArgument.class, clazz)),
+                    new Function(this::get, clazz)));
+        }
+        return gets;
+    }
+
+    private FunctionList generateSets() {
+        FunctionList sets = new FunctionList();
+        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
+            sets.add(entry(new Definition("set", args(InternalIntegerArgument.class, clazz)),
+                    new Function(this::set, InternalVoidArgument.class)));
+        }
+        return sets;
+    }
+
+    private ArrayList<InternalArgument> getList(InternalArgument target) {
+        return (ArrayList<InternalArgument>) target.getValue();
+    }
+    
+    public InternalVoidArgument add(InternalArgument target, List<InternalArgument> parameters) {
+        getList(target).add(parameters.get(0));
+        return InternalVoidArgument.getInstance();
+    }
+
+    public InternalArgument get(InternalArgument target, List<InternalArgument> parameters) {
+        InternalIntegerArgument index = (InternalIntegerArgument) parameters.get(0);
+        InternalArgument classReference = parameters.get(1);
+
+        InternalArgument out = getList(target).get((int) index.getValue());
+        if (!out.getClass().equals(classReference.getClass()))
+            throw new CommandRunException("Tried to get " + classReference.getClass() + " from index " + index.getValue() + " but found " + out.getClass());
+        return out;
+    }
+
+    private InternalArgument set(InternalArgument target, List<InternalArgument> parameters) {
+        getList(target).set((int) parameters.get(0).getValue(), parameters.get(1));
+        return InternalVoidArgument.getInstance();
+    }
+    
+    private InternalArgument size(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalIntegerArgument(getList(target).size());
+    }
+
+    private InternalArgument subList(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalArrayListArgument(getList(target).subList((int) parameters.get(0).getValue(), (int) parameters.get(1).getValue()));
+    }
+
+    public StaticFunctionList getStaticFunctions() {
+        return staticMerge(super.getStaticFunctions(),
+                staticExpandDefinition(
+                        strings("", "new"), args(args()),
+                        new StaticFunction(this::initialize, InternalArrayListArgument.class)
+                )
+        );
+    }
+
+    public InternalArgument initialize(List<InternalArgument> parameters) {
+        return new InternalArrayListArgument(new ArrayList<>());
+    }
+}
+```
+
+The most notable feature of InternalArrayListArgument are the two methods `generateGets` and `generateSets`. The get and set functions had multiple possible input-output combinations that couldn't easily be generated by given methods like `expandDefinition`, so that part was outsourced to unique function calls. This is perfectly valid; you can build FunctionLists however you want, so if exsisting methods don't work, make your own way. Another example of a unique way of building functions is found in NumberArguments, which uses the interface [NumberFunctions](./NumberArguments/src/me/willkroboth/NumberArguments/InternalArguments/NumberFunctions.java) to build a repetitive set of math functions.
+
+Another important feature on display is the class [AllInternalArguments](/src/me/willkroboth/ConfigCommands/InternalArguments/HelperClasses/AllInternalArguments.java). This class provides two methods for function building, `NestedArgList get()` and `ArgList getFlat()`. When ConfigCommands registers all the InternalArguments, it automatically populates this class with the classes it finds. If you want your function to accept any InternalArgument type, like the add function, you can pass the given `NestedArgList` into a call to `expandDefinition`.
+
+Functions that don't have anything to return should return a [InternalVoidArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). Since this object dosen't hold a value, you can access a shared singleton instance using `InternalVoidArgument.getInstance()`.
+
+If you want your method to throw a custom exception, I suggest throwing a `CommandRunException`, as the get function does when the requested class dose not match the given class. Other RuntimeExceptions are currently not caught.
