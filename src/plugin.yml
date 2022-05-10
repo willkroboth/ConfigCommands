@@ -1,5 +1,5 @@
 name: ConfigCommands
-version: 1.0.0
+version: 1.0.1
 author: willkroboth
 main: me.willkroboth.ConfigCommands.ConfigCommands
 api-version: 1.18
