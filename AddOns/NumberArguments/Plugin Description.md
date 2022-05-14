@@ -3,7 +3,7 @@
 ## Dependencies
 [CommandAPI](https://commandapi.jorel.dev/) v 7.0.0 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/7.0.0/CommandAPI-7.0.0.jar))
 
-[ConfigCommands](/../../) v 1.0.0
+[ConfigCommands](/ConfigCommands.jar) v 1.0.1
 
 For server owners: Make sure to put both the CommandAPI.jar and ConfigCommand.jar files in your plugins folder.
 
