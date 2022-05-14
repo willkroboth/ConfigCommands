@@ -1,4 +1,4 @@
-# NumberArguments v 1.0.0
+# NumberArguments v 1.0.1
 ## Spigot api-version: 1.18
 ## Dependencies
 [CommandAPI](https://commandapi.jorel.dev/) v 7.0.0 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/7.0.0/CommandAPI-7.0.0.jar))
