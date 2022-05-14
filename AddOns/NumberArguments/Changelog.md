@@ -1,4 +1,5 @@
 ## [NumberArguments v 1.0.1](NumberArguments.jar) (current)
+Compatible ConfigCommands version: [1.0.1+](/ConfigCommands.jar)
 - Added static functions to initialize doubles, floats, and longs
 - Added functions to convert numbers to other types
 
