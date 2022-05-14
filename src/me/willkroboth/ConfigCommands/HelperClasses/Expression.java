@@ -3,6 +3,7 @@ package me.willkroboth.ConfigCommands.HelperClasses;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.ParseException;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
@@ -164,7 +165,7 @@ public abstract class Expression {
                                     }
                                 }
 
-                                List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
+                                ArgList parameters = new ArgList();
                                 for (Expression parameterExpression : parameterExpressions) {
                                     parameters.add(parameterExpression.getEvaluationType(argumentVariables));
                                 }
@@ -287,7 +288,7 @@ class FunctionCall extends Expression{
     public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
         InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argument_variables));
 
-        List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
+        ArgList parameters = new ArgList();
         for(Expression parameterExpression: parameterExpressions){
             parameters.add(parameterExpression.getEvaluationType(argument_variables));
         }
@@ -338,7 +339,7 @@ class StaticFunctionCall extends Expression{
     }
 
     public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
-        List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
+        ArgList parameters = new ArgList();
         for(Expression parameterExpression: parameterExpressions){
             parameters.add(parameterExpression.getEvaluationType(argument_variables));
         }

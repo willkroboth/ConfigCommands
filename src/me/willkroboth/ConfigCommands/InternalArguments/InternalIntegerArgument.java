@@ -19,7 +19,7 @@ public class InternalIntegerArgument extends InternalArgument{
     public InternalIntegerArgument() {
     }
 
-    public InternalIntegerArgument(Object value) {
+    public InternalIntegerArgument(int value) {
         super(value);
     }
 
