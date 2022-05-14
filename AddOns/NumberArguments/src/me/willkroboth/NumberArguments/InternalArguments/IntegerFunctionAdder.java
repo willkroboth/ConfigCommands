@@ -60,9 +60,9 @@ public class IntegerFunctionAdder extends FunctionAdder implements NumberFunctio
         return staticMerge(
                 staticEntries(
                         staticEntry(new Definition("maxValue", args()),
-                                new StaticFunction(this::maxValue, InternalIntegerArgument.class)),
+                                new StaticFunction(this::maxValue, myClass())),
                         staticEntry(new Definition("minValue", args()),
-                                new StaticFunction(this::minValue, InternalIntegerArgument.class))
+                                new StaticFunction(this::minValue, myClass()))
                 )
         );
     }
@@ -73,5 +73,9 @@ public class IntegerFunctionAdder extends FunctionAdder implements NumberFunctio
 
     public InternalIntegerArgument minValue(List<InternalArgument> parameters){
         return new InternalIntegerArgument(Integer.MIN_VALUE);
+    }
+
+    public InternalArgument initialize(List<InternalArgument> parameters) {
+        return new InternalIntegerArgument().initialize(parameters);
     }
 }

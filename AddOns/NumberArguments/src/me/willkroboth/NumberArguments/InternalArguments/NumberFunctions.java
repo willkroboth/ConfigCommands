@@ -1,11 +1,15 @@
 package me.willkroboth.NumberArguments.InternalArguments;
 
+import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
+import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalBooleanArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.List;
 
@@ -111,6 +115,26 @@ public interface NumberFunctions extends FunctionCreator {
                                 args(InternalLongArgument.class)
                         ),
                         new Function(this::divide, myClass())
+                ),
+                expandDefinition(
+                        strings("toDouble"),
+                        args(args()),
+                        new Function(this::toDouble, InternalDoubleArgument.class)
+                ),
+                expandDefinition(
+                        strings("toFloat"),
+                        args(args()),
+                        new Function(this::toFloat, InternalFloatArgument.class)
+                ),
+                expandDefinition(
+                        strings("toInt"),
+                        args(args()),
+                        new Function(this::toInt, InternalIntegerArgument.class)
+                ),
+                expandDefinition(
+                        strings("toLong"),
+                        args(args()),
+                        new Function(this::toLong, InternalLongArgument.class)
                 )
             );
     }
@@ -134,6 +158,46 @@ public interface NumberFunctions extends FunctionCreator {
     InternalArgument multiply(InternalArgument target, List<InternalArgument> parameters);
 
     InternalArgument divide(InternalArgument target, List<InternalArgument> parameters);
+
+    default InternalDoubleArgument toDouble(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalDoubleArgument((Double) target.getValue());
+    }
+
+    default InternalFloatArgument toFloat(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalFloatArgument((Float) target.getValue());
+    }
+
+    default InternalIntegerArgument toInt(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalIntegerArgument((Integer) target.getValue());
+    }
+
+    default InternalLongArgument toLong(InternalArgument target, List<InternalArgument> parameters) {
+        return new InternalLongArgument((Long) target.getValue());
+    }
+
+    default StaticFunctionList generateStaticFunctions(){
+        return staticMerge(
+                staticEntries(
+                        staticEntry(new Definition("maxValue", args()),
+                                new StaticFunction(this::maxValue, myClass())),
+                        staticEntry(new Definition("minValue", args()),
+                                new StaticFunction(this::minValue, myClass()))
+                ),
+                staticExpandDefinition(strings("", "new"),
+                        args(
+                                args(),
+                                args(InternalStringArgument.class)
+                        ),
+                        new StaticFunction(this::initialize, myClass())
+                )
+        );
+    }
+
+    InternalArgument initialize(List<InternalArgument> parameters);
+
+    InternalArgument minValue(List<InternalArgument> parameters);
+
+    InternalArgument maxValue(List<InternalArgument> parameters);
 }
 
 

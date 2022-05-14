@@ -1,4 +1,4 @@
-# NumberArguments v 1.0.0
+# NumberArguments v 1.0.1
 ## Spigot api-version: 1.18
 ## Dependencies
 [CommandAPI](https://commandapi.jorel.dev/) v 7.0.0 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/7.0.0/CommandAPI-7.0.0.jar))
@@ -110,6 +110,64 @@ Result: Target class
 
 Description: Returns the result of dividing the target number by the given number
 
+- toDouble
+
+Parameters: None
+
+Result: InternalDoubleArgument
+
+Description: Returns the target number as a double
+
+- toFloat
+
+Parameters: None
+
+Result: InternalFloatArgument
+
+Description: Returns the target number as a float
+
+- toInt
+
+Parameters: None
+
+Result: InternalIntegerArgument
+
+Description: Returns the target number as an int
+
+- toLong
+
+Parameters: None
+
+Result: InternalLongArgument
+
+Description: Returns the target number as a long
+
+#### StaticFunctions:
+
+- maxValue
+
+Parameters: None
+
+Result: Target class
+
+Description: Returns the greatest value that can be stored in a number of the target type
+
+- minValue
+
+Parameters: None
+
+Result: Target class
+
+Description: Returns the most negative value that can be stored in a number of the target type
+
+- "" / new
+
+Parameters: None / InternalStringArgument
+
+Result: Target class
+
+Description: Creates a new number. If no arguments are given, the default value is 0. If a string is given, the base 10 value it represents is used.
+
 
 ## Function Adders
 ### [IntegerFunctionAdder](./src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java)
@@ -118,22 +176,7 @@ Description: Returns the result of dividing the target number by the given numbe
 [NumberFunctions](#numberfunctions)
 
 #### Added static functions:
-
-- maxValue
-
-Parameters: None
-
-Result: InternalIntegerArgument
-
-Description: Returns the maximum value that can be stored in an int
-
-- minValue
-
-Parameters: None
-
-Result: InternalIntegerArgument
-
-Description: Returns the minimum value that can be stored in an int
+[NumberFunctions](#numberfunctions)
 
 ## Internal Arguments
 ### [InternalDoubleArgument](./src/me/willkroboth/NumberArguments/InternalArguments/InternalDoubleArgument.java)
@@ -153,22 +196,7 @@ Description: Returns a string representation of the target double in decimal
 
 #### Static Class Name: Double
 #### Static Functions:
-
-- maxValue
-
-Parameters: None
-
-Result: InternalDoubleArgument
-
-Description: Returns a double contianing the value positive infinity
-
-- minValue
-
-Parameters: None
-
-Result: InternalDoubleArgument
-
-Description: Returns a double containing the value negative infinity
+[NumberFunctions](#numberfunctions)
 
 ### [InternalFloatArgument](./src/me/willkroboth/NumberArguments/InternalArguments/InternalFloatArgument.java)
 #### Adding to command:
@@ -192,22 +220,7 @@ Description: Returns a string representation of the target float in decimal.
 
 #### Static Class Name: Float
 #### Static Functions:
-
-- maxValue
-
-Parameters: None
-
-Result: InternalFloatArgument
-
-Description: Returns a float containing the value positive infinity
-
-- minValue
-
-Parameters: None
-
-Result: InternalFloatArgument
-
-Description: Returns a float containing the value negative infinity
+[NumberFunctions](#numberfunctions)
 
 ### [InternalFloatRangeArgument](./src/me/willkroboth/NumberArguments/InternalArguments/InternalFloatRangeArgument.java)
 #### Adding to command:
@@ -376,19 +389,4 @@ Description: Returns a string representation of the target long in decimal
 
 #### Static Class Name: Long
 #### Static Functions:
-
-- maxValue
-
-Parameters: None
-
-Result: InternalLongArgument
-
-Description: Returns a long with the greatest value a long can store
-
-- minValue
-
-Parameters: None
-
-Result: InternalLongArgument
-
-Description: Returns a long with the largest negative value a long can store.
+[NumberFunctions](#numberfunctions)

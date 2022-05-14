@@ -2,14 +2,14 @@ package me.willkroboth.NumberArguments.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.FloatArgument;
+import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalBooleanArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,12 +106,7 @@ public class InternalFloatArgument extends InternalArgument implements NumberFun
 
     public StaticFunctionList getStaticFunctions() {
         return staticMerge(super.getStaticFunctions(),
-                staticEntries(
-                        staticEntry(new Definition("maxValue", args()),
-                                new StaticFunction(this::maxValue, InternalFloatArgument.class)),
-                        staticEntry(new Definition("minValue", args()),
-                                new StaticFunction(this::minValue, InternalFloatArgument.class))
-                )
+                generateStaticFunctions()
         );
     }
 
@@ -121,6 +116,22 @@ public class InternalFloatArgument extends InternalArgument implements NumberFun
 
     public InternalFloatArgument minValue(List<InternalArgument> parameters){
         return new InternalFloatArgument(Float.NEGATIVE_INFINITY);
+    }
+
+    public InternalFloatArgument initialize(List<InternalArgument> parameters) {
+        float result = 0;
+        if (parameters.size() == 1) {
+            InternalStringArgument arg = (InternalStringArgument) parameters.get(0);
+            String word = (String)arg.getValue();
+
+            try {
+                result = Float.parseFloat(word);
+            } catch (NumberFormatException var6) {
+                throw new CommandRunException("Word: \"" + word + "\" cannot be parsed as float.");
+            }
+        }
+
+        return new InternalFloatArgument(result);
     }
 
     // value
