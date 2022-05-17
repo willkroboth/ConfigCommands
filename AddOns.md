@@ -1,13 +1,13 @@
 # ConfigCommands AddOns
 
-The base ConfigCommands plugin only supports [5 InternalArguments](../Plugin%20Description.md#internalarguments-provided-by-configcommands), but it also features an AddOn system for adding new InternalArguments and Functions. There are two sides of AddOns, development and usage, described below.
+The base ConfigCommands plugin only supports [5 InternalArguments](Plugin%20Description.md#internalarguments-provided-by-configcommands), but it also features an AddOn system for adding new InternalArguments and Functions. There are two sides of AddOns, development and usage, described below.
 
 ## Addons for Server Owners
 
 Adding AddOns to the ConfigCommands base is as easy as adding any other plugin because each AddOn is literally a plugin. Just download the Addon and put it in your plugins folder! It will be automatically detected and integrated into every feature of ConfigCommands: adding arguments, creating expressions, and using `/configcommandhelp`.
 
 ### Known Addons:
-1. [NumberArguments](./NumberArguments/)
+1. [NumberArguments]([./NumberArguments/](https://github.com/willkroboth/NumberArguments))
 
 ## Addons for Developers
 
@@ -20,7 +20,7 @@ As mentioned earlier, all AddOns are plugins, so your project can be set up much
 ConfigCommandAddOn provides a couple of default methods that make registering your AddOn's InternalArguments and FunctionAdders very easy, while also providing the opportunity to handle everything yourself if you choose.
 
 #### getPackageName()
-If you like the simple route, the only thing you need to do is implement the method `getPackageName()` and make it return the name of the package containing the classes of your plugin. Everything else is already taken care of, and you can move on to creating InternalArguments and FunctionAdders. A good example of this is the [NumberArguments](/AddOns/NumberArguments/src/me/willkroboth/NumberArguments/NumberArguments.java) AddOn, whose main class has only 9 lines of code:
+If you like the simple route, the only thing you need to do is implement the method `getPackageName()` and make it return the name of the package containing the classes of your plugin. Everything else is already taken care of, and you can move on to creating InternalArguments and FunctionAdders. A good example of this is the [NumberArguments](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/NumberArguments.java) AddOn, whose main class has only 9 lines of code:
 ```java
 package me.willkroboth.NumberArguments;
 
@@ -207,10 +207,10 @@ InternalStringArgument supports adding the `subtype` parameter to choose between
 These methods define the functions available for static and non-static references to your InternalArgument class in Expressions. The default implementation of `getFunctions()` references functions added to your class by FunctionAdders as well as `forCommand(None)`, which allows the `forCommand()` method mentioned earlier to be accessed in Expressions. The default implementation of `getStaticFunctions()` just references the static functions added by FunctionAdders. By creating your own implementation for these methods, you can add new static and non statics functions using the processes described in the section on [Building Functions](README.md#building-functions).
 
 ### Creating FunctionAdders
-The purpose of FunctionAdders is to add both static and non-static functions to existing InternalArguments. You might want to do this if your AddOn adds InternalArguments that give existing InternalArguments new functionality. For example, the [NumberArguments](./NumberArguments/) AddOn adds InternalArguments for other numbers like the float, long, and double, and so has the [IntegerFunctionAdder](./NumberArguments/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) to add operations like addition, multiplication, and subtraction between the already existing ints and the new floats, longs, and doubles. Each FunctionAdder you make should extend the abstract class [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java), and implement some of the following methods:
+The purpose of FunctionAdders is to add both static and non-static functions to existing InternalArguments. You might want to do this if your AddOn adds InternalArguments that give existing InternalArguments new functionality. For example, the [NumberArguments](https://github.com/willkroboth/NumberArguments) AddOn adds InternalArguments for other numbers like the float, long, and double, and so has the [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) to add operations like addition, multiplication, and subtraction between the already existing ints and the new floats, longs, and doubles. Each FunctionAdder you make should extend the abstract class [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java), and implement some of the following methods:
 
 #### getClassToAddTo()
-The `getClassToAddTo()` method must be implemented by all FunctionAdders and indicates which InternalArgument the FunctionAdder will be adding functions to. For example, [IntegerFunctionAdder](./NumberArguments/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) wants to add functions to [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java), so it makes `getClassToAddTo()` return `InternalIntegerArgument.class`, like so:
+The `getClassToAddTo()` method must be implemented by all FunctionAdders and indicates which InternalArgument the FunctionAdder will be adding functions to. For example, [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) wants to add functions to [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java), so it makes `getClassToAddTo()` return `InternalIntegerArgument.class`, like so:
 ```java
 import me.willkroboth.ConfigCommands.InternalArguments.FunctionAdder;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
@@ -425,7 +425,7 @@ public class InternalArrayListArgument extends InternalArgument {
 }
 ```
 
-The most notable feature of InternalArrayListArgument are the two methods `generateGets` and `generateSets`. The get and set functions had multiple possible input-output combinations that couldn't easily be generated by given methods like `expandDefinition`, so that part was outsourced to unique function calls. This is perfectly valid; you can build FunctionLists however you want, so if existing methods don't work, make your own way. Another example of a unique way of building functions is found in NumberArguments, which uses the interface [NumberFunctions](./NumberArguments/src/me/willkroboth/NumberArguments/InternalArguments/NumberFunctions.java) to build a repetitive set of math functions.
+The most notable feature of InternalArrayListArgument are the two methods `generateGets` and `generateSets`. The get and set functions had multiple possible input-output combinations that couldn't easily be generated by given methods like `expandDefinition`, so that part was outsourced to unique function calls. This is perfectly valid; you can build FunctionLists however you want, so if existing methods don't work, make your own way. Another example of a unique way of building functions is found in NumberArguments, which uses the interface [NumberFunctions](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/NumberFunctions.java) to build a repetitive set of math functions.
 
 Another important feature on display is the class [AllInternalArguments](/src/me/willkroboth/ConfigCommands/InternalArguments/HelperClasses/AllInternalArguments.java). This class provides two methods for function building, `NestedArgList get()` and `ArgList getFlat()`. When ConfigCommands registers all the InternalArguments, it automatically populates this class with the classes it finds. If you want your function to accept any InternalArgument type, like the add function, you can pass the given `NestedArgList` into a call to `expandDefinition`.
 
