@@ -1,8 +1,0 @@
-name: NumberArguments
-version: 1.0.1
-author: willkroboth
-main: me.willkroboth.NumberArguments.NumberArguments
-api-version: 1.18
-depend:
-  - ConfigCommands
-  - CommandAPI

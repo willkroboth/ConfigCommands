@@ -23,7 +23,7 @@ Result: InternalStringArgument
   
 Description: Varies by implementation. Should return a string that represents the value in the context of a command.
 
-Subclasses of the [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](/AddOns/README.md).
+Subclasses of the [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](AddOns.md).
 
 The main plugin provides 5 InternalArguments, described below, as well as the [InternalVoidArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). The InternalVoidArgument does not have any static or non-static functions and should not be a parameter of any other function. It is returned by functions that shouldn't return anything.
 
