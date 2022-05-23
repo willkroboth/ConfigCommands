@@ -3,7 +3,7 @@
 ## Dependencies
 [CommandAPI](https://commandapi.jorel.dev/) v 7.0.0 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/7.0.0/CommandAPI-7.0.0.jar))
 
-For server owners: Make sure to put the CommandAPI.jar file in your plugins folder aswell.
+For server owners: Make sure to put the CommandAPI.jar file in your plugins folder as well.
 
 ## Other libraries
 [Reflections](https://github.com/ronmamo/reflections) by [ronmamo](https://github.com/ronmamo) maven release [org.reflections:reflections:0.10.2](https://github.com/ronmamo/reflections/releases/tag/0.10.2)
@@ -11,7 +11,7 @@ For server owners: Make sure to put the CommandAPI.jar file in your plugins fold
 For server owners: No need to worry about this one, it is automatically imported using the Spigot library loader.
 
 ## Internal Arguments
-InternalArguments define the classes and functions avaliable in [Expressions](README.md#expressions), and the main purpose of [AddOns](/AddOns/) is to add more InternalArguments and functions. All InternalArguments extend the abstract class [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) and define a set of functions and static functions. 
+InternalArguments define the classes and functions available in [Expressions](README.md#expressions), and the main purpose of [AddOns](/AddOns/) is to add more InternalArguments and functions. All InternalArguments extend the abstract class [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) and define a set of functions and static functions. 
 
 The InternalArgument class provides one non-static method to all subarguments by default:
   
@@ -23,9 +23,9 @@ Result: InternalStringArgument
   
 Description: Varies by implementation. Should return a string that represents the value in the context of a command.
 
-Subclasses of the [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](/AddOns/README.md).
+Subclasses of the [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](AddOns.md).
 
-The main plugin provides 5 InternalArguments, described below, as well as the [InternalVoidArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). The InternalVoidArgument does not have any static or non static functions and should not be a parameter of any other function. It is returned by functions that shouldn't return anything.
+The main plugin provides 5 InternalArguments, described below, as well as the [InternalVoidArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). The InternalVoidArgument does not have any static or non-static functions and should not be a parameter of any other function. It is returned by functions that shouldn't return anything.
 
 ### InternalArguments provided by ConfigCommands:
 - [InternalArrayListArgument](#internalarraylistargument)
@@ -125,7 +125,7 @@ Parameters: InternalIntegerArgument, InternalIntegerArgument
   
 Result: InternalArrayListArgument
   
-Description: Creates a sublist from the first index inclusive to the last index exlusive of the target ArrayList
+Description: Creates a sublist from the first index inclusive to the last index exclusive of the target ArrayList
   
 #### Static Class Name: ArrayList
   
@@ -263,7 +263,7 @@ Parameters: None
   
 Result: InternalBooleanArgument
   
-Description: Returns true if the target CommandSender is an operator and false otherwiese.
+Description: Returns true if the target CommandSender is an operator and false otherwise.
   
 - isPlayer
   
@@ -317,7 +317,7 @@ Parameters: None
   
 Result: InternalStringArgument
   
-Description: Returns the decimal string respresentation of the target Integer
+Description: Returns the decimal string representation of the target Integer
 
 #### Static Class Name: Integer
 #### Static Functions:
@@ -327,7 +327,7 @@ Parameters: None / InternalStringArgument
   
 Result: InternalIntegerArgument
   
-Description: Creates a new Integer. If a string is passsed in it will attempt to use it as the value. If no arguments are given, the Integer will default to 0.
+Description: Creates a new Integer. If a string is passed in it will attempt to use it as the value. If no arguments are given, the Integer will default to 0.
   
 
 ### [InternalStringArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java)
@@ -352,7 +352,7 @@ Result: InternalStringArgument
   
 Description: Returns the character found at the given index in the target string
   
-- contians
+- contains
   
 Parameters: InternalStringArgument
   
