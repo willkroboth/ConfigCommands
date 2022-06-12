@@ -86,6 +86,11 @@ public class OpSender extends CraftBlockCommandSender implements ICommandListene
     // override getName to provide sender's name and not a nullPointerException
     public String getName() { return sender.getName(); }
 
+    @Override
+    public Spigot spigot() {
+        return new Spigot();
+    }
+
     // Overriding getWrapper() to provide a custom CommandListenerWrapper
     public CommandListenerWrapper getWrapper() { return commandListenerWrapper; }
 
