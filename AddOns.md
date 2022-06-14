@@ -7,7 +7,7 @@ The base ConfigCommands plugin only supports [5 InternalArguments](Plugin%20Desc
 Adding AddOns to the ConfigCommands base is as easy as adding any other plugin because each AddOn is literally a plugin. Just download the Addon and put it in your plugins folder! It will be automatically detected and integrated into every feature of ConfigCommands: adding arguments, creating expressions, and using `/configcommandhelp`.
 
 ### Known Addons:
-1. [NumberArguments]([./NumberArguments/](https://github.com/willkroboth/NumberArguments))
+1. [NumberArguments](https://github.com/willkroboth/NumberArguments)
 
 ## Addons for Developers
 
