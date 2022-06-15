@@ -184,7 +184,7 @@ public abstract class Expression {
 
                                 if(isStaticClass) {
                                     if(!staticClass.hasStaticFunction(function, parameters))
-                                        throw new ParseException(string, "Invalid function \"" + function + "\" on " + staticClass + " with parameters " + parameters + ". Function does not exist.");
+                                        throw new ParseException(string, "Invalid static function \"" + function + "\" on " + staticClass + " with parameters " + parameters + ". Static function does not exist.");
                                 } else {
                                     if (!target.hasFunction(function, parameters))
                                         throw new ParseException(string, "Invalid function \"" + function + "\" on " + target + " with parameters " + parameters + ". Function does not exist.");
@@ -194,6 +194,8 @@ public abstract class Expression {
 
                                 if (isStaticClass) {
                                     targetExpression = new StaticFunctionCall(staticClass, function, parameterExpressions);
+                                    // if function is being chained, no longer using a static class name
+                                    isStaticClass = false;
                                 } else {
                                     targetExpression = new FunctionCall(targetExpression, function, parameterExpressions);
                                 }
