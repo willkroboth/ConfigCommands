@@ -7,12 +7,9 @@ import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.RegistrationException;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
-import me.willkroboth.ConfigCommands.HelperClasses.Expression;
+import me.willkroboth.ConfigCommands.HelperClasses.*;
 import me.willkroboth.ConfigCommands.HelperClasses.GuidedCommands.BuildCommandHandler;
 import me.willkroboth.ConfigCommands.HelperClasses.GuidedCommands.HelpCommandHandler;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.configuration.ConfigurationSection;
@@ -166,7 +163,13 @@ public class ConfigCommands extends ConfigCommandAddOn {
                 logger.info("Loading " + key + " with name: " + name);
                 logger.increaseIndentation();
                 try {
-                    new ConfigCommandBuilder(name, shortDescription, fullDescription, args, aliases, permission, commandsToRun, localDebug, logger);
+                    ReloadCommandHandler.addCommand(
+                            new ConfigCommandBuilder(
+                                    name, shortDescription, fullDescription, args, aliases,
+                                    permission, commandsToRun, localDebug, logger
+                            ),
+                            key
+                    );
                 } catch (RegistrationException e) {
                     logger.warn(true, "Registration error: \"" + e.getMessage() + "\" Skipping registration.");
                     failedCommands.add("(name) " + name + ": Registration error: \"" + e.getMessage() + "\"");
@@ -236,6 +239,14 @@ public class ConfigCommands extends ConfigCommandAddOn {
 
         getServer().getPluginManager().registerEvents(new BuildCommandHandler(), this);
 
+        // set up reload command
+        new CommandAPICommand("configcommandreload")
+                .withHelp("", "")
+                .withPermission("configcommands.reload")
+                .withArguments(new StringArgument("command")
+                        .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames())))
+                .executes(ReloadCommandHandler::reloadCommand)
+                .register();
         logger.info("Done!");
     }
 }

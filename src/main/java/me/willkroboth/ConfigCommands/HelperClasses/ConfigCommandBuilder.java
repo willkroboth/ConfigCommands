@@ -15,14 +15,14 @@ public class ConfigCommandBuilder extends CommandAPICommand {
     private final ArrayList<String> argument_keys = new ArrayList<>();
     private final HashMap<String, Class<? extends InternalArgument>> argument_variable_classes = new HashMap<>();
 
-    private final ArrayList<HashMap<String, Object>> commands = new ArrayList<>();
+    private ArrayList<HashMap<String, Object>> commands = new ArrayList<>();
 
-    private final Map<String, Integer> tagMap = new HashMap<>();
+    private Map<String, Integer> tagMap = new HashMap<>();
 
     private final boolean debugMode;
     private final IndentedLogger logger;
 
-    private final ConfigCommandExecutor executor;
+    private ConfigCommandExecutor executor;
 
     public ConfigCommandBuilder(String name, String shortDescription, String fullDescription, List<Map<?, ?>> args,
                                 List<String> aliases, String permission, List<String> commands,
@@ -80,6 +80,19 @@ public class ConfigCommandBuilder extends CommandAPICommand {
             InternalArgument.addArgument(arg, this, argument_keys, argument_variable_classes, debugMode, logger);
             logger.decreaseIndentation();
         }
+    }
+
+    // update commands to reflect new behavior from config file
+    public void refreshExecutor(List<String> commands) throws RegistrationException {
+        // refresh relevant variables
+        this.commands = new ArrayList<>();
+        this.tagMap = new HashMap<>();
+
+        // parse new commands
+        parse_commands(commands);
+
+        // create new executor
+        executor = new ConfigCommandExecutor(super.getName(), argument_keys, this.commands, tagMap, debugMode, logger);
     }
 
     private void parse_commands(List<String> commands) throws RegistrationException {
