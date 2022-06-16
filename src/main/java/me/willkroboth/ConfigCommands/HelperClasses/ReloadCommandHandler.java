@@ -13,10 +13,19 @@ import java.util.Map;
 public class ReloadCommandHandler {
     private static final Map<String, ConfigCommandBuilder> commands = new HashMap<>();
     private static final Map<String, String> nameToKey = new HashMap<>();
+    private static final Map<String, String> keyToName = new HashMap<>();
 
     public static void addCommand(ConfigCommandBuilder configCommandBuilder, String key) {
         commands.put(configCommandBuilder.getName(), configCommandBuilder);
         nameToKey.put(configCommandBuilder.getName(), key);
+        keyToName.put(key, configCommandBuilder.getName());
+    }
+
+    public static void updateKey(String oldKey, String newKey){
+        String name = keyToName.get(oldKey);
+        nameToKey.put(name, newKey);
+        keyToName.remove(oldKey);
+        keyToName.put(newKey, name);
     }
 
     public static String[] getCommandNames() {

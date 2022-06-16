@@ -7,6 +7,7 @@ import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.Incorrect
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.HelperClasses.IgnoredIndentedLogger;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
+import me.willkroboth.ConfigCommands.HelperClasses.ReloadCommandHandler;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -686,6 +687,7 @@ public class BuildCommandHandler implements Listener {
 
                 commands.set(key, null);
                 ConfigCommands.saveConfigFile();
+                ReloadCommandHandler.updateKey(key, message);
 
                 context = goBack(sender, 2, context);
                 context = setContext(sender, context, message, BuildCommandHandler::editCommand);
