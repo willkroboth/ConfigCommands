@@ -4,7 +4,7 @@ import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.HelperClasses.OpSender;
+import me.willkroboth.ConfigCommands.OpSenders.OpSender;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -143,7 +143,7 @@ public class InternalCommandSenderArgument extends InternalArgument {
 
     public void setValue(Object arg) {
         value = (CommandSender) arg;
-        opSender = new OpSender(value);
+        opSender = OpSender.makeOpSender(value);
     }
 
     public Object getValue() {
@@ -156,7 +156,7 @@ public class InternalCommandSenderArgument extends InternalArgument {
 
     public void setValue(InternalArgument arg) {
         value = (CommandSender) arg.getValue();
-        opSender = new OpSender(value);
+        opSender = OpSender.makeOpSender(value);
     }
 
     public String forCommand() {
