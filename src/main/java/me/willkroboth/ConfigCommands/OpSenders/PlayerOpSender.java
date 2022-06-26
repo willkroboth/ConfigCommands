@@ -3,10 +3,13 @@ package me.willkroboth.ConfigCommands.OpSenders;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.permissions.Permission;
 
 import java.util.UUID;
 
@@ -45,7 +48,12 @@ public class PlayerOpSender extends CraftPlayer implements OpSender {
         return new Player.Spigot();
     }
 
-    // Make sure OpSender's sendMessage methods are used
+    // make sure certain methods work correctly
+    public boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause){
+        return p.teleport(location, cause);
+    }
+
+    // Make sure OpSender's methods are used
     public void sendMessage(String s) {
         OpSender.super.sendMessage(s);
     }
@@ -60,6 +68,26 @@ public class PlayerOpSender extends CraftPlayer implements OpSender {
 
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender.super.sendMessage(uuid, strings);
+    }
+
+    public boolean isOp() {
+        return OpSender.super.isOp();
+    }
+
+    public boolean isPermissionSet(String name) {
+        return OpSender.super.isPermissionSet(name);
+    }
+
+    public boolean isPermissionSet(Permission perm) {
+        return OpSender.super.isPermissionSet(perm);
+    }
+
+    public boolean hasPermission(String name) {
+        return OpSender.super.hasPermission(name);
+    }
+
+    public boolean hasPermission(Permission perm) {
+        return OpSender.super.hasPermission(perm);
     }
 
     // OpSender methods

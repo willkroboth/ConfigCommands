@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R2.command.ProxiedNativeCommandSender;
+import org.bukkit.permissions.Permission;
 
 import java.util.UUID;
 
@@ -46,7 +47,7 @@ public class ProxyOpSender extends ProxiedNativeCommandSender implements OpSende
         return new Spigot();
     }
 
-    // Make sure OpSender's sendMessage methods are used
+    // Make sure OpSender's methods are used
     public void sendMessage(String s) {
         OpSender.super.sendMessage(s);
     }
@@ -61,6 +62,26 @@ public class ProxyOpSender extends ProxiedNativeCommandSender implements OpSende
 
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender.super.sendMessage(uuid, strings);
+    }
+
+    public boolean isOp() {
+        return OpSender.super.isOp();
+    }
+
+    public boolean isPermissionSet(String name) {
+        return OpSender.super.isPermissionSet(name);
+    }
+
+    public boolean isPermissionSet(Permission perm) {
+        return OpSender.super.isPermissionSet(perm);
+    }
+
+    public boolean hasPermission(String name) {
+        return OpSender.super.hasPermission(name);
+    }
+
+    public boolean hasPermission(Permission perm) {
+        return OpSender.super.hasPermission(perm);
     }
 
     // OpSender methods
