@@ -3,7 +3,7 @@ package me.willkroboth.ConfigCommands.OpSenders;
 import net.minecraft.commands.CommandSourceStack;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.command.CraftBlockCommandSender;
+import org.bukkit.craftbukkit.v1_19_R1.command.CraftBlockCommandSender;
 
 import java.util.UUID;
 

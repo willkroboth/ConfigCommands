@@ -5,8 +5,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.MinecartCommandBlock;
 import net.minecraft.world.level.BaseCommandBlock;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMinecartCommand;
+import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftMinecartCommand;
 import org.bukkit.entity.Entity;
 
 import java.util.UUID;

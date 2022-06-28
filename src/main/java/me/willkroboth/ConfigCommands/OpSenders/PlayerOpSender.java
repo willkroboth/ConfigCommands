@@ -5,8 +5,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.permissions.Permission;
@@ -28,7 +28,7 @@ public class PlayerOpSender extends CraftPlayer implements OpSender {
 
         public ServerPlayerOpWrapper(ServerPlayer p) {
             // parameters found by tracing down normal constructor
-            super(p.server, (ServerLevel) p.level, p.getGameProfile());
+            super(p.server, (ServerLevel) p.level, p.getGameProfile(), p.getProfilePublicKey());
         }
 
         public void setSource(PlayerOpSender source) {

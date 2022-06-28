@@ -3,17 +3,18 @@
 // However, the CraftServer constructor automatically tries to set itself as the singleton server instance
 // This instance cannot be overridden, so an error is thrown
 // The current process also seems to mess with other parts of the server, causing a crash when players exist
-
+//
 //package me.willkroboth.ConfigCommands.OpSenders;
 //
 //import net.minecraft.commands.CommandSourceStack;
+//import net.minecraft.server.Services;
 //import net.minecraft.server.WorldStem;
 //import net.minecraft.server.dedicated.DedicatedPlayerList;
 //import net.minecraft.server.dedicated.DedicatedServer;
 //import org.bukkit.Server;
 //import org.bukkit.command.CommandSender;
-//import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
-//import org.bukkit.craftbukkit.v1_18_R2.command.CraftConsoleCommandSender;
+//import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
+//import org.bukkit.craftbukkit.v1_19_R1.command.CraftConsoleCommandSender;
 //
 //import java.util.UUID;
 //
@@ -55,9 +56,12 @@
 //                    ),
 //                    server.settings,
 //                    server.fixerUpper,
-//                    server.getSessionService(),
-//                    server.getProfileRepository(),
-//                    server.getProfileCache(),
+//                    new Services(
+//                            server.getSessionService(),
+//                            server.getServiceSignatureValidator(),
+//                            server.getProfileRepository(),
+//                            server.getProfileCache()
+//                    ),
 //                    server.progressListenerFactory
 //            );
 //            this.sender = sender;

@@ -5,11 +5,11 @@ import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.command.CraftBlockCommandSender;
-//import org.bukkit.craftbukkit.v1_18_R2.command.CraftConsoleCommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.command.ProxiedNativeCommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMinecartCommand;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.command.CraftBlockCommandSender;
+//import org.bukkit.craftbukkit.v1_19_R1.command.CraftConsoleCommandSender;
+import org.bukkit.craftbukkit.v1_19_R1.command.ProxiedNativeCommandSender;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftMinecartCommand;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.permissions.Permission;
 
 import java.util.Arrays;
@@ -97,7 +97,7 @@ public interface OpSender extends CommandSender, CommandSource {
     }
 
     // CommandSource methods
-    default void sendMessage(Component component, UUID uuid) {
+    default void sendSystemMessage(Component component){
         setLastMessage(component.getString());
     }
 
