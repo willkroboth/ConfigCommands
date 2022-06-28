@@ -116,6 +116,10 @@ public class ConfigCommandExecutor {
                 logger.decreaseIndentation();
             }
         } catch (Exception e){
+            if(debugMode) {
+                logger.info("Error occurred while running the command: " + e.getMessage());
+                logger.info(Arrays.toString(e.getStackTrace()).replace(", ", "\n"));
+            }
             sender.sendMessage("Error occurred while running the command: " + e.getMessage());
         } finally {
             // always reset indentation
