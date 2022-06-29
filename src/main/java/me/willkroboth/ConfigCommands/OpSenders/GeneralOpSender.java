@@ -1,15 +1,21 @@
 package me.willkroboth.ConfigCommands.OpSenders;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_19_R1.block.impl.CraftCommand;
 import org.bukkit.craftbukkit.v1_19_R1.command.CraftBlockCommandSender;
 
 import java.util.UUID;
@@ -17,13 +23,14 @@ import java.util.UUID;
 public class GeneralOpSender extends CraftBlockCommandSender implements OpSender {
     private final CommandSender sender;
     private final CommandSourceStack stack;
+    private final CraftBlock fakeBlock;
 
     public GeneralOpSender(CommandSender sender) {
-        // no methods in the CraftBlockCommandSender that need these values are used
         super(null, null);
 
         this.sender = sender;
         this.stack = buildStack(sender);
+        fakeBlock = new FakeCraftBlock();
     }
 
     private CommandSourceStack buildStack(CommandSender sender) {
@@ -45,7 +52,21 @@ public class GeneralOpSender extends CraftBlockCommandSender implements OpSender
         return OpSender.modifyStack(stack, this);
     }
 
-    // override getName to provide sender's name and not a nullPointerException
+    // Make sure no errors happen because this looks like a command block
+    private static class FakeCraftBlock extends CraftBlock{
+        public FakeCraftBlock(){
+            super(((CraftWorld) Bukkit.getServer().getWorlds().get(0)).getHandle(), BlockPos.ZERO);
+        }
+
+        public BlockData getBlockData() {
+            return new CraftCommand();
+        }
+    }
+
+    public Block getBlock() {
+        return fakeBlock;
+    }
+
     public String getName() {
         return sender.getName();
     }
