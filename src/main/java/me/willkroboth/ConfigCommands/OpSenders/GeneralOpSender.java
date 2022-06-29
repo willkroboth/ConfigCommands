@@ -59,7 +59,7 @@ public class GeneralOpSender extends CraftBlockCommandSender implements OpSender
         }
 
         public BlockData getBlockData() {
-            return new CraftCommand();
+            return new CraftCommand(null);
         }
     }
 
