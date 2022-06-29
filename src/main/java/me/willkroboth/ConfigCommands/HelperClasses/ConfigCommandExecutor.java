@@ -7,6 +7,8 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 public class ConfigCommandExecutor {
@@ -118,7 +120,9 @@ public class ConfigCommandExecutor {
         } catch (Exception e){
             if(debugMode) {
                 logger.info("Error occurred while running the command: " + e.getMessage());
-                logger.info(Arrays.toString(e.getStackTrace()).replace(", ", "\n"));
+                StringWriter stackTrace = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTrace));
+                logger.info(stackTrace.toString());
             }
             sender.sendMessage("Error occurred while running the command: " + e.getMessage());
         } finally {
