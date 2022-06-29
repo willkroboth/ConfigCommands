@@ -44,7 +44,7 @@ commands:
 ```
 This section determines the arguments that the command takes in. If this section is empty, the command won't have any arguments. Each argument needs a `name` and `type`, and may have additional parameters added based on the type. Each argument should have a unique name. If not, the command will fail to register. Note that two arguments are added by default, `<sender>` and `<commandIndex>`, so those names cannot be used.
 
-In this case, the echo command has 1 argument: `{name=<string>, type=String, subtype=greedy}`. The name is `<string>`, and this is how this argument will be referenced in the commands. The type is `String`, so this argument will take in text. This argument has an additional parameter, subtype, which has the value `greedy`. In the case of the type String, this makes the argument input all remaining text in the command. You can read more about argument types and their parameters in the argument documentation.
+In this case, the echo command has 1 argument: `{name=<string>, type=String, subtype=greedy}`. The name is `<string>`, and this is how this argument will be referenced in the commands. The type is `String`, so this argument will take in text. This argument has an additional parameter, subtype, which has the value `greedy`. In the case of the type String, this makes the argument input all remaining text in the command. You can read more about argument types and their parameters in the [plugin description](/Plugin%20Description.md).
 
 ### Short and Full Description
 ```yml
@@ -53,7 +53,7 @@ commands:
     shortDescription: Echos input back to you.
     fullDescription: Takes in a string and sends it back to you.
 ```
-These parameters determine the descriptions shown when using the `/help` command. The short description is shown when the command appears in the help list, while the full description is shown when `/help <name>` is run. If either is not present, they will default to `A Mojang Provided Command`. See the [CommandAPI Help Documentation](https://commandapi.jorel.dev/7.0.0/help.html) for a more detailed description.
+These parameters determine the descriptions shown when using the `/help` command. The short description is shown when the command appears in the help list, while the full description is shown when `/help <name>` is run. If either is not present, they will default to `A Mojang Provided Command`. See the [CommandAPI Help Documentation](https://commandapi.jorel.dev/7.0.0/help.html) for a more detailed description of the difference between these two.
 ### Aliases
 ```yml
 commands:
@@ -71,6 +71,8 @@ commands:
     permission: configcommands.echo
 ```
 This parameter defines the permission node a player needs to run the command. These permissions can be given out the same as any other.
+
+If this value is not present, the command will be given the default permission `configcommands.[name]`.
 
 ### Commands
 ```yml
@@ -113,9 +115,9 @@ Examples:
 - `if <message>.equals("1") goto "Option 1"`
 - `goto Integer.("4")`
 
-`return` will end execution and send a result to `<sender>`, equivalent to `<sender>.sendMessage([Expression])`.
+`return` send a result to `<sender>`, equivalent to `<sender>.sendMessage([Expression])`, then end the command's execution.
 
-Execution will also end if there is not a command at the current index, such as at the end of the list or if an invalid number is jumped to.
+Execution will also end if there is not a command at the current index, such as at the end of the list, or if an invalid number is jumped to by an if or goto command.
 
 #### Note on running commands
 The original motivation for this plugin was to allow sever administrators to allow non-admin players to only run commands with specific arguments. For example, a `/spawn` command:
@@ -134,7 +136,7 @@ A variable is indicated by surrounding a name with < >. Two variables, `<sender>
 Commands can also reference variables just by inserting them in the command. For example, the command `/tellraw <sender> {"color":"red","text":"<message>"}` where `<sender>` is the Player willkroboth and `<message>` is the String `"Hello"` will become `/tellraw willkroboth {"color":"red","text":"Hello"}` and so send a red `"Hello"` to willkroboth.
 
 #### Expressions
-Expressions are a vital part of the command running system, defined by the [Expression.java](/src/me/willkroboth/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
+Expressions are a vital part of the command running system, defined by the [Expression.java](/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
 ```
 "[value of a string]"
 <[variable name]>
