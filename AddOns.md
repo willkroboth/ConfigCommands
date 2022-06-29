@@ -170,13 +170,14 @@ public class InternalBooleanArgument extends InternalArgument {
 This implementation adds a new BooleanArgument to the backing CommandAPICommand, represented by `command`; adds `name` to the list of `argument_keys` this command will be able to use in its expressions; and maps the `name` to its class in the `argument_variable_classes` map.
 
 A more complicated behavior is presented by [InternalStringArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java):
+
 ```java
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 
 import java.util.ArrayList;
@@ -188,13 +189,14 @@ public class InternalStringArgument extends InternalArgument {
         String type = (String) arg.get("subtype");
         if (debugMode) logger.info("Arg has subtype: " + type);
         command.withArguments(
-                type == null ? new StringArgument(name):
-                switch (type) {
-                    case "string" -> new StringArgument(name);
-                    case "text" -> new TextArgument(name);
-                    case "greedy" -> new GreedyStringArgument(name);
-                    default -> throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
-                }
+                type == null ? new StringArgument(name) :
+                        switch (type) {
+                            case "string" -> new StringArgument(name);
+                            case "text" -> new TextArgument(name);
+                            case "greedy" -> new GreedyStringArgument(name);
+                            default ->
+                                    throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+                        }
         );
         argument_keys.add(name);
         argument_variable_classes.put(name, InternalStringArgument.class);

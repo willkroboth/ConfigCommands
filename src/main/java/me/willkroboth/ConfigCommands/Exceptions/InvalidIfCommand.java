@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions;
+package me.willkroboth.ConfigCommands.Exceptions;
 
 public class InvalidIfCommand extends InvalidExpressionCommand {
     public InvalidIfCommand(String arg, String reason) {

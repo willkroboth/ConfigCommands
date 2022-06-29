@@ -1,7 +1,7 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.*;
+import me.willkroboth.ConfigCommands.Exceptions.*;
 import me.willkroboth.ConfigCommands.InternalArguments.*;
 import org.bukkit.command.CommandSender;
 

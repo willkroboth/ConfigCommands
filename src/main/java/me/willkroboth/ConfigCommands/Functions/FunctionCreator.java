@@ -3,7 +3,8 @@ package me.willkroboth.ConfigCommands.Functions;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface FunctionCreator {
     //methods to make declaring functions easier

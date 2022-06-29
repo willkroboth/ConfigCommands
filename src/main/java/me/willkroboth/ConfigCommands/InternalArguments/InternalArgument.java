@@ -1,9 +1,12 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.*;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Functions.Definition;
+import me.willkroboth.ConfigCommands.Functions.Function;
+import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
+import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.HelperClasses.Expression;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AddThisArgumentConsumer;

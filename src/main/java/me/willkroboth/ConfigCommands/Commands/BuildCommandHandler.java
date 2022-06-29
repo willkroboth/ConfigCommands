@@ -1,13 +1,12 @@
-package me.willkroboth.ConfigCommands.HelperClasses.GuidedCommands;
+package me.willkroboth.ConfigCommands.Commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.Argument;
 import me.willkroboth.ConfigCommands.ConfigCommands;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.HelperClasses.IgnoredIndentedLogger;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
-import me.willkroboth.ConfigCommands.HelperClasses.ReloadCommandHandler;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

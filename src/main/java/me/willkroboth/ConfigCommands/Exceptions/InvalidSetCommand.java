@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions;
+package me.willkroboth.ConfigCommands.Exceptions;
 
 public class InvalidSetCommand extends InvalidExpressionCommand {
     public InvalidSetCommand(String arg, String reason) {

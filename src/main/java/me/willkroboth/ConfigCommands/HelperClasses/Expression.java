@@ -1,8 +1,8 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.ParseException;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.Exceptions.ParseException;
+import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;

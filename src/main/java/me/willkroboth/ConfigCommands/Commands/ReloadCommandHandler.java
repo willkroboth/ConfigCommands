@@ -1,7 +1,8 @@
-package me.willkroboth.ConfigCommands.HelperClasses;
+package me.willkroboth.ConfigCommands.Commands;
 
 import me.willkroboth.ConfigCommands.ConfigCommands;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

@@ -1,6 +1,5 @@
 package me.willkroboth.ConfigCommands.OpSenders;
 
-import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.LiteralContents;

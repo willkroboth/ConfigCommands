@@ -1,12 +1,12 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 
 import java.util.ArrayList;
 import java.util.Collection;
