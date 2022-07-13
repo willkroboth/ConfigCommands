@@ -208,9 +208,7 @@ public class ConfigCommands extends ConfigCommandAddOn {
         // set up help command
         new CommandTree("configcommandhelp")
                 .withHelp("Displays information for available ConfigCommand functions",
-                        "Displays information about the available ConfigCommands functions. Using just " +
-                                "/configcommandhelp brings up a guided menu. You can also use tab complete suggestions " +
-                                "to explore the functions the same way.")
+                        "Displays information about the available ConfigCommands functions. Using just /configcommandhelp brings up a guided menu. You can also use tab-complete suggestions to explore the functions the same way.")
                 .withPermission("configcommands.help")
                 .executesPlayer(HelpCommandHandler::addUser)
                 .executesConsole(HelpCommandHandler::addUser)
@@ -234,8 +232,7 @@ public class ConfigCommands extends ConfigCommandAddOn {
         // set up build command
         new CommandAPICommand("configcommandbuild")
                 .withHelp("Helps users create new commands",
-                        "Opens a menu that guides users through creating a new command. Enables creating, " +
-                                "editing, and deleting commands.")
+                        "Opens a menu that guides users through creating a new command. Enables creating, editing, and deleting commands in-game.")
                 .withPermission("configcommands.build")
                 .executesPlayer(BuildCommandHandler::addUser)
                 .executesConsole(BuildCommandHandler::addUser)
@@ -245,12 +242,14 @@ public class ConfigCommands extends ConfigCommandAddOn {
 
         // set up reload command
         new CommandAPICommand("configcommandreload")
-                .withHelp("", "")
+                .withHelp("Reloads a command's code",
+                        "Reloads a command's code from the config.yml, allowing its behavior to change without restarting the server.")
                 .withPermission("configcommands.reload")
                 .withArguments(new StringArgument("command")
                         .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames())))
                 .executes(ReloadCommandHandler::reloadCommand)
                 .register();
+
         logger.info("Done!");
     }
 }
