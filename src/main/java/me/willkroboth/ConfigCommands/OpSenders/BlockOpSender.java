@@ -14,7 +14,7 @@ public class BlockOpSender extends CraftBlockCommandSender implements OpSender {
     private final CraftBlockCommandSender sender;
 
     public BlockOpSender(CraftBlockCommandSender b) {
-        super(null, null);
+        super(b.getWrapper(), null);
         block = OpSender.modifyStack(b.getWrapper(), this);
         tile = b.getBlock();
         sender = b;
