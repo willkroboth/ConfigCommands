@@ -6,7 +6,7 @@ The ConfigCommands plugin allows users to quickly and simply add commands to the
 Note that this project is still in early development and might see major changes to its systems. If you find any bugs or have feature suggestions, don't hesitate to make a report in the issues section of this repository.
 
 ## Creating Commands
-Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommandbuild` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](#command-features).
+Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommandbuild` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](#command-features). Most changes can only be applied after restarting the server, but the behavior of the command, defined by the [commands](#commands) section, can be reloaded in-game using `/configcommandreload <commandName>`. 
 
 ## Command Features
 The features of a command are best introduced using an example. The config.yml file is automatically populated with such an example, the echo command:
