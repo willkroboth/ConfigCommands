@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.HelperClasses.GuidedCommands;
+package me.willkroboth.ConfigCommands.Commands;
 
 import org.bukkit.command.CommandSender;
 

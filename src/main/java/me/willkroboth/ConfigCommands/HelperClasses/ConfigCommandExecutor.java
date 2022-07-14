@@ -7,6 +7,8 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 public class ConfigCommandExecutor {
@@ -116,6 +118,12 @@ public class ConfigCommandExecutor {
                 logger.decreaseIndentation();
             }
         } catch (Exception e){
+            if(debugMode) {
+                logger.info("Error occurred while running the command: " + e.getMessage());
+                StringWriter stackTrace = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTrace));
+                logger.info(stackTrace.toString());
+            }
             sender.sendMessage("Error occurred while running the command: " + e.getMessage());
         } finally {
             // always reset indentation

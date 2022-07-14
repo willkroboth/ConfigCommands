@@ -3,15 +3,22 @@ package me.willkroboth.ConfigCommands.Functions;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface FunctionCreator {
     //methods to make declaring functions easier
     default FunctionList merge(FunctionList... lists){
         FunctionList out = new FunctionList();
+        List<Definition> taken = new ArrayList<>();
 
         for(FunctionList list:lists){
-            out.addAll(list);
+            for(FunctionEntry entry: list) {
+                if(!taken.contains(entry.getKey())) {
+                    out.add(entry);
+                    taken.add(entry.getKey());
+                }
+            }
         }
 
         return out;
@@ -19,9 +26,15 @@ public interface FunctionCreator {
 
     default StaticFunctionList staticMerge(StaticFunctionList... lists){
         StaticFunctionList out = new StaticFunctionList();
+        List<Definition> taken = new ArrayList<>();
 
         for(StaticFunctionList list:lists){
-            out.addAll(list);
+            for(StaticFunctionEntry entry: list) {
+                if(!taken.contains(entry.getKey())) {
+                    out.add(entry);
+                    taken.add(entry.getKey());
+                }
+            }
         }
 
         return out;

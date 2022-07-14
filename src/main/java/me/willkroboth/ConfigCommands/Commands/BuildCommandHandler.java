@@ -1,9 +1,9 @@
-package me.willkroboth.ConfigCommands.HelperClasses.GuidedCommands;
+package me.willkroboth.ConfigCommands.Commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.Argument;
 import me.willkroboth.ConfigCommands.ConfigCommands;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.HelperClasses.IgnoredIndentedLogger;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
@@ -34,7 +34,8 @@ public class BuildCommandHandler implements Listener {
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
         ConfigCommands.reloadConfigFile();
-        activeUsers.put(sender, new CommandContext(null, "", BuildCommandHandler::chooseCommand));        handleMessage(sender, "", null);
+        activeUsers.put(sender, new CommandContext(null, "", BuildCommandHandler::chooseCommand));
+        handleMessage(sender, "", null);
     }
 
     private static CommandContext setContext(CommandSender sender, CommandContext previousContext, Object previousChoice, CommandStep nextStep){
@@ -95,6 +96,7 @@ public class BuildCommandHandler implements Listener {
                 if (message.equals("##")) {
                     sender.sendMessage("Closing the ConfigCommand build menu.");
                     sender.sendMessage("All command changes will take effect once server restarts.");
+                    sender.sendMessage("If you changed the commands of a registered command, you can update it using /configcommandreload");
                     activeUsers.remove(sender);
                     keysBeingEditing.remove(sender);
                 } else if (message.equalsIgnoreCase("back")) {
@@ -686,6 +688,7 @@ public class BuildCommandHandler implements Listener {
 
                 commands.set(key, null);
                 ConfigCommands.saveConfigFile();
+                ReloadCommandHandler.updateKey(key, message);
 
                 context = goBack(sender, 2, context);
                 context = setContext(sender, context, message, BuildCommandHandler::editCommand);

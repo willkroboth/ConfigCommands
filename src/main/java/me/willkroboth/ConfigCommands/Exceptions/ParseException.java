@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions;
+package me.willkroboth.ConfigCommands.Exceptions;
 
 public class ParseException extends RegistrationException {
     public ParseException(String section, String reason) {

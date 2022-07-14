@@ -5,12 +5,12 @@ import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Functions.Definition;
+import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
-import me.willkroboth.ConfigCommands.Functions.Definition;
-import me.willkroboth.ConfigCommands.Functions.Function;
 
 import java.util.ArrayList;
 import java.util.HashMap;

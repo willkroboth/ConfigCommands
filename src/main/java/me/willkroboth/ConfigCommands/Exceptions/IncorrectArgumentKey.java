@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions;
+package me.willkroboth.ConfigCommands.Exceptions;
 
 public class IncorrectArgumentKey extends RegistrationException {
     public IncorrectArgumentKey(String arg, String key) {

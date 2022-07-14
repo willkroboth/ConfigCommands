@@ -7,15 +7,15 @@ The base ConfigCommands plugin only supports [5 InternalArguments](Plugin%20Desc
 Adding AddOns to the ConfigCommands base is as easy as adding any other plugin because each AddOn is literally a plugin. Just download the Addon and put it in your plugins folder! It will be automatically detected and integrated into every feature of ConfigCommands: adding arguments, creating expressions, and using `/configcommandhelp`.
 
 ### Known Addons:
-1. [NumberArguments]([./NumberArguments/](https://github.com/willkroboth/NumberArguments))
+1. [NumberArguments](https://github.com/willkroboth/NumberArguments)
 
 ## Addons for Developers
 
-The following section serves to describe how one might go about creating their own ConfigCommand AddOn. It assumes a basic experience with creating plugins and using Java, and is split up into 5 sections: [Plugin Class](#plugin-class), [Creating InternalArguments](#creating-internalarguments), [Creating FunctionAdders](#creating-functionadders), [Registering InternalArguments and FunctionAdders](#registering-internalarguments-and-functionadders), and [Building Functions](#building-functions). For a full example of creating an AddOn with new InternalArguments and FunctionAdders, see the [NumberArguments](./NumberArguments/) AddOn.
+The following section serves to describe how one might go about creating their own ConfigCommand AddOn. It assumes a basic experience with creating plugins and using Java, and is split up into 5 sections: [Plugin Class](#plugin-class), [Creating InternalArguments](#creating-internalarguments), [Creating FunctionAdders](#creating-functionadders), [Registering InternalArguments and FunctionAdders](#registering-internalarguments-and-functionadders), and [Building Functions](#building-functions). For a full example of creating an AddOn with new InternalArguments and FunctionAdders, see the [NumberArguments](https://github.com/willkroboth/NumberArguments) AddOn.
 
 ### Plugin Class
 #### TLDR; Extend ConfigCommandAddOn instead of JavaPlugin, make `getPackageName()` return the name of your package.
-As mentioned earlier, all AddOns are plugins, so your project can be set up much the same way as any other plugin. To turn a regular plugin into an AddOn, the only difference is that instead of extending JavaPlugin directly like normal, your main class should extend the abstract class [ConfigCommandAddOn](/src/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java). ConfigCommandAddOn extends JavaPlugin, so you can still use features such as `OnEnable()` or handling a config file if you want, but this signifies to the main plugin that this AddOn exists.
+As mentioned earlier, all AddOns are plugins, so your project can be set up much the same way as any other plugin. To turn a regular plugin into an AddOn, the only difference is that instead of extending JavaPlugin directly like normal, your main class should extend the abstract class [ConfigCommandAddOn](/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java). ConfigCommandAddOn extends JavaPlugin, so you can still use features such as `OnEnable()` or handling a config file if you want, but this signifies to the main plugin that this AddOn exists.
 
 ConfigCommandAddOn provides a couple of default methods that make registering your AddOn's InternalArguments and FunctionAdders very easy, while also providing the opportunity to handle everything yourself if you choose.
 
@@ -38,7 +38,7 @@ Implementing this method allows for a bit more control over what ConfigCommands 
 - `1`: Register all InternalArguments in the package
 - `2`: Register all FunctionAdders in the package
 
-The default implementation of `getRegisterMode()` returns `0`, so the default behavior of an AddOn is to register all InternalArguments and FunctionAdders present in the package. If your AddOn only contains either InternalArguments or FunctionAdders, you can change the register mode to skip searching for the other type. A good example of this is the [ConfigCommands](/src/me/willkroboth/ConfigCommands/ConfigCommands.java) base, which only has InternalArguments and so uses register mode 1:
+The default implementation of `getRegisterMode()` returns `0`, so the default behavior of an AddOn is to register all InternalArguments and FunctionAdders present in the package. If your AddOn only contains either InternalArguments or FunctionAdders, you can change the register mode to skip searching for the other type. A good example of this is the [ConfigCommands](/src/main/java/me/willkroboth/ConfigCommands/ConfigCommands.java) base, which only has InternalArguments and so uses register mode 1:
 ```java
 package me.willkroboth.ConfigCommands;
 
@@ -57,13 +57,13 @@ public class ConfigCommands extends ConfigCommandAddOn {
 Additionally, if you would for some reason like to register neither InternalArguments nor FunctionAdders, you could make `getRegisterModer()` return any int other than `0`, `1`, or `2`.
 
 #### registerInternalArguments()
-If you need more control over how your InternalArguments and FunctionAdders are registered, you can implement the `registerInternalArguments()` method. The default implementation in ConfigCommandAddOn uses `getRegisterMode()` to choose between 3 ways of registering the InternalArguments and FunctionAdders, mentioned previously. If you need to be more precise, you can use the methods described in [Registering InternalArguments and FunctionAdders](README.md#registering-internalarguments-and-functionadders) to do things however you want.
+If you need more control over how your InternalArguments and FunctionAdders are registered, you can implement the `registerInternalArguments()` method. The default implementation in ConfigCommandAddOn uses `getRegisterMode()` to choose between 3 ways of registering the InternalArguments and FunctionAdders, mentioned previously. If you need to be more precise, you can use the methods described in [Registering InternalArguments and FunctionAdders](#registering-internalarguments-and-functionadders) to do things however you want.
 
 ### Creating InternalArguments
-InternalArguments are the equivalent of classes in the ConfigCommand system, defining static and non-static functions that users can use in their commands. InternalArguments can also be added to commands to allow input from players. Each InternalArgument you make should extend the abstract class [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java), and the idea is that each InternalArgument is responsible for representing a certain Java class in the Expression system, like an Integer or CommandSender. By implementing various methods described below, you can translate the behavior of each class into the system.
+InternalArguments are the equivalent of classes in the ConfigCommand system, defining static and non-static functions that users can use in their commands. InternalArguments can also be added to commands to allow input from players. Each InternalArgument you make should extend the abstract class [InternalArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java), and the idea is that each InternalArgument is responsible for representing a certain Java class in the Expression system, like an Integer or CommandSender. By implementing various methods described below, you can translate the behavior of each class into the system.
 
 #### Constructor
-In order to find and use your InternalArgument, you must define a default constructor for your class. This constructor doesn't need to and probably shouldn't do anything, but if it doesn't exist your InternalArgument will fail to register and be ignored. You are free to add any other constructors you need. I suggest creating a constructor that takes in an object of the type you store as the InternalArgument's `value`, which makes it easier to give new InternalArguments with a value in one line. A simple example of both these constructors is seen in [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
+In order to find and use your InternalArgument, you must define a default constructor for your class. This constructor doesn't need to and probably shouldn't do anything, but if it doesn't exist your InternalArgument will fail to register and be ignored. You are free to add any other constructors you need. I suggest creating a constructor that takes in an object of the type you store as the InternalArgument's `value`, which makes it easier to give new InternalArguments with a value in one line. A simple example of both these constructors is seen in [InternalIntegerArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
 ```java
 public class InternalIntegerArgument extends InternalArgument{
     private int value;
@@ -78,7 +78,7 @@ public class InternalIntegerArgument extends InternalArgument{
 ```
 
 #### getValue(), setValue(Object arg), setValue(InternalArgument arg), forCommand()
-These 4 methods must be implemented and allow other systems to set and access an instance of the class that an instance of an InternalArgument holds. Here is a simple example of implementing these methods from [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
+These 4 methods must be implemented and allow other systems to set and access an instance of the class that an instance of an InternalArgument holds. Here is a simple example of implementing these methods from [InternalIntegerArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java):
 ```java
 public class InternalIntegerArgument extends InternalArgument{
     private int value;
@@ -94,7 +94,7 @@ public class InternalIntegerArgument extends InternalArgument{
 ```
 The InternalIntegerArgument represents the Java int, and it stores one in the instance variable `value`. The two `setValue()` methods change this value, while `getValue()` offers the value. `forCommand()` outputs the value as a string.
 
-A more complicated implementation is found in [InternalCommandSenderArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalCommandSenderArgument.java):
+A more complicated implementation is found in [InternalCommandSenderArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalCommandSenderArgument.java):
 ```java
 import me.willkroboth.ConfigCommands.HelperClasses.OpSender;
 import org.bukkit.command.CommandSender;
@@ -149,7 +149,7 @@ void addArgument(
 ```
 It is called when a command is trying to add your argument to its list. The default implementation throws an error explaining that this argument cannot be added to a command. If you did not make `getTypeTag()` return null to disable this feature on your InternalArgument, you should implement this method.
 
-The minimum expected behavior is presented by [InternalBooleanArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalBooleanArgument.java):
+The minimum expected behavior is presented by [InternalBooleanArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalBooleanArgument.java):
 ```java
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.BooleanArgument;
@@ -169,14 +169,15 @@ public class InternalBooleanArgument extends InternalArgument {
 ```
 This implementation adds a new BooleanArgument to the backing CommandAPICommand, represented by `command`; adds `name` to the list of `argument_keys` this command will be able to use in its expressions; and maps the `name` to its class in the `argument_variable_classes` map.
 
-A more complicated behavior is presented by [InternalStringArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java):
+A more complicated behavior is presented by [InternalStringArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java):
+
 ```java
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 
 import java.util.ArrayList;
@@ -188,13 +189,14 @@ public class InternalStringArgument extends InternalArgument {
         String type = (String) arg.get("subtype");
         if (debugMode) logger.info("Arg has subtype: " + type);
         command.withArguments(
-                type == null ? new StringArgument(name):
-                switch (type) {
-                    case "string" -> new StringArgument(name);
-                    case "text" -> new TextArgument(name);
-                    case "greedy" -> new GreedyStringArgument(name);
-                    default -> throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
-                }
+                type == null ? new StringArgument(name) :
+                        switch (type) {
+                            case "string" -> new StringArgument(name);
+                            case "text" -> new TextArgument(name);
+                            case "greedy" -> new GreedyStringArgument(name);
+                            default ->
+                                    throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+                        }
         );
         argument_keys.add(name);
         argument_variable_classes.put(name, InternalStringArgument.class);
@@ -204,13 +206,13 @@ public class InternalStringArgument extends InternalArgument {
 InternalStringArgument supports adding the `subtype` parameter to choose between 3 different Argument types from the CommandAPI -- StringArgument, TextArgument, and GreedyString argument -- which you can read more about in the CommandAPI [documentation](https://commandapi.jorel.dev/7.0.0/stringarguments.html). This `addArgument(...)` implementation retrieves the `subtype` parameter from the `arg` map, sends a debug message using `debugMode` and `logger`, then chooses one of the argument types to add based on the subtype it found. If the given subtype is not valid, the method throws an IncorrectArgumentKey exception explaining this.
 
 #### getFunctions(), getStaticFunctions()
-These methods define the functions available for static and non-static references to your InternalArgument class in Expressions. The default implementation of `getFunctions()` references functions added to your class by FunctionAdders as well as `forCommand(None)`, which allows the `forCommand()` method mentioned earlier to be accessed in Expressions. The default implementation of `getStaticFunctions()` just references the static functions added by FunctionAdders. By creating your own implementation for these methods, you can add new static and non statics functions using the processes described in the section on [Building Functions](README.md#building-functions).
+These methods define the functions available for static and non-static references to your InternalArgument class in Expressions. The default implementation of `getFunctions()` references functions added to your class by FunctionAdders as well as `forCommand(None)`, which allows the `forCommand()` method mentioned earlier to be accessed in Expressions. The default implementation of `getStaticFunctions()` just references the static functions added by FunctionAdders. By creating your own implementation for these methods, you can add new static and non statics functions using the processes described in the section on [Building Functions](#building-functions).
 
 ### Creating FunctionAdders
-The purpose of FunctionAdders is to add both static and non-static functions to existing InternalArguments. You might want to do this if your AddOn adds InternalArguments that give existing InternalArguments new functionality. For example, the [NumberArguments](https://github.com/willkroboth/NumberArguments) AddOn adds InternalArguments for other numbers like the float, long, and double, and so has the [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) to add operations like addition, multiplication, and subtraction between the already existing ints and the new floats, longs, and doubles. Each FunctionAdder you make should extend the abstract class [FunctionAdder](/src/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java), and implement some of the following methods:
+The purpose of FunctionAdders is to add both static and non-static functions to existing InternalArguments. You might want to do this if your AddOn adds InternalArguments that give existing InternalArguments new functionality. For example, the [NumberArguments](https://github.com/willkroboth/NumberArguments) AddOn adds InternalArguments for other numbers like the float, long, and double, and so has the [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) to add operations like addition, multiplication, and subtraction between the already existing ints and the new floats, longs, and doubles. Each FunctionAdder you make should extend the abstract class [FunctionAdder](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java), and implement some of the following methods:
 
 #### getClassToAddTo()
-The `getClassToAddTo()` method must be implemented by all FunctionAdders and indicates which InternalArgument the FunctionAdder will be adding functions to. For example, [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) wants to add functions to [InternalIntegerArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java), so it makes `getClassToAddTo()` return `InternalIntegerArgument.class`, like so:
+The `getClassToAddTo()` method must be implemented by all FunctionAdders and indicates which InternalArgument the FunctionAdder will be adding functions to. For example, [IntegerFunctionAdder](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/IntegerFunctionAdder.java) wants to add functions to [InternalIntegerArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java), so it makes `getClassToAddTo()` return `InternalIntegerArgument.class`, like so:
 ```java
 import me.willkroboth.ConfigCommands.InternalArguments.FunctionAdder;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
@@ -221,17 +223,17 @@ public class IntegerFunctionAdder extends FunctionAdder {
 ```
 
 #### getAddedFunctions(), getAddedStaticFunctions()
-The default implementations of these methods return `null` to indicate that they don't add any functions. If you want your FunctionAdder to add static functions, you should implement `getAddedStaticFunctions()`, and if you want to add non-static functions, you should implement `getAddedFunctions()`. Function creation here should follow the methods described in the section on [Building Functions](README.md#building-functions).
+The default implementations of these methods return `null` to indicate that they don't add any functions. If you want your FunctionAdder to add static functions, you should implement `getAddedStaticFunctions()`, and if you want to add non-static functions, you should implement `getAddedFunctions()`. Function creation here should follow the methods described in the section on [Building Functions](#building-functions).
 
 ### Registering InternalArguments and FunctionAdders
-To register InternalArguments and FunctionAdders, there are a few static methods from the [InternalArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) class that allow for increasing control over what gets registered. These methods must be run before or during the call to the `registerInternalArguments()` method of your AddOn to ensure that all InternalArguments and FunctionAdders are set up before the main plugin starts registering commands.
+To register InternalArguments and FunctionAdders, there are a few static methods from the [InternalArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) class that allow for increasing control over what gets registered. These methods must be run before or during the call to the `registerInternalArguments()` method of your AddOn to ensure that all InternalArguments and FunctionAdders are set up before the main plugin starts registering commands.
 
 #### registerFullPackage(...), registerPackageOfInternalArguments(...), registerPackageOfFunctionAdders(...)
 These methods use reflection to automatically find classes within a package that need to be registered. `registerFullPackage(...)` looks for both InternalArguments and FunctionAdders, while `registerPackageOfInternalArguments(...)` and `registerPackageOfFunctionAdders(...)` only look for InternalArguments or FunctionAdders respectively. The full signature of all three of these methods are as follows:
 ```java
 void registerPackage(String packageName, String pluginName, ClassLoader classLoader, boolean debugMode, Logger logger)
 ```
-A general example of these methods being used is found in the default implementation of `registerInternalArguments()` in the [ConfigCommandAddOn](/src/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java) class.
+A general example of these methods being used is found in the default implementation of `registerInternalArguments()` in the [ConfigCommandAddOn](/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java) class.
 ```java
 import me.willkroboth.ConfigCommands.ConfigCommands;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
@@ -270,13 +272,13 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
     protected abstract String getPackageName();
 }
 ```
-`String packageName` represents the package your InternalArguments and FunctionAdders can be found in. In this case, the package name is accessed using the abstract `getPackageName()` method mentioned previously in the section on the [Plugin Class](README.md#plugin-class).
+`String packageName` represents the package your InternalArguments and FunctionAdders can be found in. In this case, the package name is accessed using the abstract `getPackageName()` method mentioned previously in the section on the [Plugin Class](#plugin-class).
 
 `String pluginName` represents the name of your plugin, which is used in the `/configcommandhelp` command to associate InternalArguments to their AddOns. In this case, the plugin name is accessed using the `getName()` method provided by the JavaPlugin interface.
 
 `ClassLoader classLoader` represents the class loader of your plugin, which is used to load the InternalArguments and FunctionAdders found. In this case, the classLoader is accessed using the `getClassLoader()` method provided by the JavaPlugin interface.
 
-`boolean debugMode` is used to turn on and off debug messages that convey more specific information about the progress of the registering process. In this case, the debug state of the main plugin is read using the static `isDebugMode()` method of the [ConfigCommands](/src/me/willkroboth/ConfigCommands/ConfigCommands.java) class. Note that the value returned by `isDebugMode()` is only set once the ConfigCommands plugin has read its config.yml file in its `onEnable()` method, and so can only be accessed by AddOns during or after the call to their `registerInternalArguments()` method.
+`boolean debugMode` is used to turn on and off debug messages that convey more specific information about the progress of the registering process. In this case, the debug state of the main plugin is read using the static `isDebugMode()` method of the [ConfigCommands](/src/main/java/me/willkroboth/ConfigCommands/ConfigCommands.java) class. Note that the value returned by `isDebugMode()` is only set once the ConfigCommands plugin has read its config.yml file in its `onEnable()` method, and so can only be accessed by AddOns during or after the call to their `registerInternalArguments()` method.
 
 `Logger logger` is the Logger to which debug and error messages are sent during the registering process. In this case, the logger is accessed using the `getLogger()` method provided by the JavaPlugin interface.
 
@@ -288,7 +290,7 @@ void registerSetOfType(Set<Class<? extends Type>> classes, String pluginName, bo
 The only difference between these and the package methods is that the package methods find a set of classes to register, while you define a set of classes to register here. All the other parameters act the same as before.
 
 ### Building Functions
-The most important function of InternalArguments and FunctionAdders is returning a list of static or non-static functions. All the classes and interfaces used to create functions are found in the package [me.willkroboth.ConfigCommands.Functions](/src/me/willkroboth/ConfigCommands/Functions/). The most significant part of this collection is the [FunctionCreator](/src/me/willkroboth/ConfigCommands/Functions/FunctionCreator.java) interface, which provides a few methods that make creating functions easier. Any class that needs to create functions should implement the FunctionCreator interface. The parent classes for InternalArguments and FunctionAdders already implement this interface, so the methods are automatically available to their subclasses.
+The most important function of InternalArguments and FunctionAdders is returning a list of static or non-static functions. All the classes and interfaces used to create functions are found in the package [me.willkroboth.ConfigCommands.Functions](/src/main/java/me/willkroboth/ConfigCommands/Functions/). The most significant part of this collection is the [FunctionCreator](/src/main/java/me/willkroboth/ConfigCommands/Functions/FunctionCreator.java) interface, which provides a few methods that make creating functions easier. Any class that needs to create functions should implement the FunctionCreator interface. The parent classes for InternalArguments and FunctionAdders already implement this interface, so the methods are automatically available to their subclasses.
 
 The methods defined by FunctionCreator can be combined into their own sort of syntax, defined by the types taken in and returned by each method. This syntax is best explained by showing all the methods that might be used together.
 ```java
@@ -333,14 +335,14 @@ As you can see, many methods are split into static and non-static variants, and 
 
 Definition objects record a name and ArgList of parameters that characterizes how a Function should be called.
 
-Function objects record a method to call to perform their function and a class that they return. The method passed into a function, [InternalArgumentFunction](/src/me/willkroboth/ConfigCommands/Functions/InternalArgumentFunction.java), is a functional interface with the signature 
+Function objects record a method to call to perform their function and a class that they return. The method passed into a function, [InternalArgumentFunction](/src/main/java/me/willkroboth/ConfigCommands/Functions/InternalArgumentFunction.java), is a functional interface with the signature 
 ```
 InternalArgument apply(InternalArgument target, List<InternalArgument> parameters)
 ```
 You can fill this in with an appropriate lambda expression, or a reference to a method in your class. `target` represents the object on which the Function is being called and is guaranteed to be an instance of the class you are building functions for. `parameters` represents the objects being passed into the Function and is guaranteed to be filled with instances of the types put into the ArgList of the corresponding Definition. You should only need to check the state of your inputs if you assign multiple Definitions to the same function. InternalArgumentStaticFunction is almost the same, it just doesn't have a `target` object.
 
 #### Example
-I think the best way to clarify the above descriptions is to look at an example. All InternalArguments and FunctionAdders should build at least a couple functions, so anyone is a good choice to see a real application of these methods. However, just blindly looking at someone else's code isn't a very good way to get started, so I will explain an example from [InternalArrayListArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalArrayListArgument.java)
+I think the best way to clarify the above descriptions is to look at an example. All InternalArguments and FunctionAdders should build at least a couple functions, so anyone is a good choice to see a real application of these methods. However, just blindly looking at someone else's code isn't a very good way to get started, so I will explain an example from [InternalArrayListArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArrayListArgument.java)
 ```java
 public class InternalArrayListArgument extends InternalArgument {
     public FunctionList getFunctions() {
@@ -427,8 +429,8 @@ public class InternalArrayListArgument extends InternalArgument {
 
 The most notable feature of InternalArrayListArgument are the two methods `generateGets` and `generateSets`. The get and set functions had multiple possible input-output combinations that couldn't easily be generated by given methods like `expandDefinition`, so that part was outsourced to unique function calls. This is perfectly valid; you can build FunctionLists however you want, so if existing methods don't work, make your own way. Another example of a unique way of building functions is found in NumberArguments, which uses the interface [NumberFunctions](https://github.com/willkroboth/NumberArguments/blob/main/src/me/willkroboth/NumberArguments/InternalArguments/NumberFunctions.java) to build a repetitive set of math functions.
 
-Another important feature on display is the class [AllInternalArguments](/src/me/willkroboth/ConfigCommands/InternalArguments/HelperClasses/AllInternalArguments.java). This class provides two methods for function building, `NestedArgList get()` and `ArgList getFlat()`. When ConfigCommands registers all the InternalArguments, it automatically populates this class with the classes it finds. If you want your function to accept any InternalArgument type, like the add function, you can pass the given `NestedArgList` into a call to `expandDefinition`.
+Another important feature on display is the class [AllInternalArguments](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/HelperClasses/AllInternalArguments.java). This class provides two methods for function building, `NestedArgList get()` and `ArgList getFlat()`. When ConfigCommands registers all the InternalArguments, it automatically populates this class with the classes it finds. If you want your function to accept any InternalArgument type, like the add function, you can pass the given `NestedArgList` into a call to `expandDefinition`.
 
-Functions that don't have anything to return should return a [InternalVoidArgument](/src/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). Since this object doesn't hold a value, you can access a shared singleton instance using `InternalVoidArgument.getInstance()`.
+Functions that don't have anything to return should return a [InternalVoidArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). Since this object doesn't hold a value, you can access a shared singleton instance using `InternalVoidArgument.getInstance()`.
 
 If you want your method to throw a custom exception, I suggest throwing a `CommandRunException`, as the get function does when the requested class does not match the given class. Other Exceptions are also caught, so you don't need to worry about catching those yourself.

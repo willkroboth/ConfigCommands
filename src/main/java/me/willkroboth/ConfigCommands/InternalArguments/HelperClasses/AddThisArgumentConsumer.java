@@ -1,7 +1,7 @@
 package me.willkroboth.ConfigCommands.InternalArguments.HelperClasses;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationExceptions.IncorrectArgumentKey;
+import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
