@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>ConfigCommands</artifactId>
+        <groupId>me.willkroboth</groupId>
+        <version>2.0.0</version>
+    </parent>
+
+    <artifactId>ConfigCommands-nms</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>ConfigCommands-1_19</module>
+        <module>ConfigCommands-1_16_5</module>
+        <module>ConfigCommands-nms-dependency</module>
+    </modules>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/dev.jorel/commandapi-core -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-core</artifactId>
+            <version>${project.version.commandAPI}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

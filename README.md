@@ -136,7 +136,7 @@ A variable is indicated by surrounding a name with < >. Two variables, `<sender>
 Commands can also reference variables just by inserting them in the command. For example, the command `/tellraw <sender> {"color":"red","text":"<message>"}` where `<sender>` is the Player willkroboth and `<message>` is the String `"Hello"` will become `/tellraw willkroboth {"color":"red","text":"Hello"}` and so send a red `"Hello"` to willkroboth.
 
 #### Expressions
-Expressions are a vital part of the command running system, defined by the [Expression.java](/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
+Expressions are a vital part of the command running system, defined by the [Expression.java](/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
 ```
 "[value of a string]"
 <[variable name]>
