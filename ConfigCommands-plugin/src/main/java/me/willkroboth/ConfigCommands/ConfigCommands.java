@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ConfigCommandsMain extends ConfigCommandsPlugin {
-    // ConfigCommand's information as an AddOn
+public class ConfigCommands extends ConfigCommandsPlugin {
+    // ConfigCommands' information as an AddOn
     protected String getPackageName() {
         return "me.willkroboth.ConfigCommands.InternalArguments";
     }

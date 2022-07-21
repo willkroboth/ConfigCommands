@@ -147,7 +147,7 @@ public class HelpCommandHandler implements Listener {
         if(message.isBlank()) {
             List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
             if (addOns.size() == 1) {
-                context = setContext(sender, context, "ConfigCommand", HelpCommandHandler::chooseInternalArgument);
+                context = setContext(sender, context, "ConfigCommands", HelpCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
             } else {
