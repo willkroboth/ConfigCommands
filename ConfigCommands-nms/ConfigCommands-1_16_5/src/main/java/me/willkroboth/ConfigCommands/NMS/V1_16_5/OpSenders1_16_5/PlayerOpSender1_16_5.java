@@ -2,6 +2,7 @@ package me.willkroboth.ConfigCommands.NMS.V1_16_5.OpSenders1_16_5;
 
 import net.minecraft.server.v1_16_R3.CommandListenerWrapper;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
+import net.minecraft.server.v1_16_R3.PlayerInteractManager;
 import net.minecraft.server.v1_16_R3.WorldServer;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -28,7 +29,8 @@ public class PlayerOpSender1_16_5 extends CraftPlayer implements OpSender1_16_5 
 
         public EntityPlayerOpWrapper(EntityPlayer p) {
             // parameters found by tracing down normal constructor
-            super(p.server, (WorldServer) p.world, p.getProfile(), p.playerInteractManager);
+            // copying the playerInteractManager directly seems to set it to null after running a command
+            super(p.server, (WorldServer) p.world, p.getProfile(), new PlayerInteractManager((WorldServer) p.world));
         }
 
         public void setSource(PlayerOpSender1_16_5 source) {
