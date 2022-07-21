@@ -16,6 +16,7 @@
         <module>ConfigCommands-1_19</module>
         <module>ConfigCommands-1_16_5</module>
         <module>ConfigCommands-nms-dependency</module>
+        <module>ConfigCommands-1_17</module>
     </modules>
 
     <!-- shared dependencies -->
