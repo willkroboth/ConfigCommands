@@ -11,9 +11,7 @@ import org.bukkit.craftbukkit.v1_16_R3.command.CraftBlockCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.command.ProxiedNativeCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMinecartCommand;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.permissions.Permission;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 public interface OpSender1_16_5 extends OpSender, ICommandListener {
@@ -39,48 +37,6 @@ public interface OpSender1_16_5 extends OpSender, ICommandListener {
     static CommandListenerWrapper modifyStack(CommandListenerWrapper source, OpSender1_16_5 sender) {
         // source, worldPosition, rotation, level(Dimension?), permissionLevel, textName, displayName, server, entity
         return new CommandListenerWrapper(sender, source.getPosition(), source.i(), source.getWorld(), 4, source.getName(), source.getScoreboardDisplayName(), source.getServer(), source.getEntity());
-    }
-
-    // store result message for CommandSender methods
-    void setLastMessage(String message);
-
-    // overriding CommandSender
-    default void sendMessage(String s) {
-        setLastMessage(s);
-    }
-
-    default void sendMessage(String[] strings) {
-        setLastMessage(Arrays.toString(strings));
-    }
-
-    default void sendMessage(UUID uuid, String s) {
-        setLastMessage(s);
-    }
-
-    default void sendMessage(UUID uuid, String[] strings) {
-        setLastMessage(Arrays.toString(strings));
-    }
-
-    // overriding ServerOperator
-    default boolean isOp() {
-        return true;
-    }
-
-    // permissions
-    default boolean isPermissionSet(String name) {
-        return true;
-    }
-
-    default boolean isPermissionSet(Permission perm) {
-        return true;
-    }
-
-    default boolean hasPermission(String name) {
-        return true;
-    }
-
-    default boolean hasPermission(Permission perm) {
-        return true;
     }
 
     // ICommandListener methods
