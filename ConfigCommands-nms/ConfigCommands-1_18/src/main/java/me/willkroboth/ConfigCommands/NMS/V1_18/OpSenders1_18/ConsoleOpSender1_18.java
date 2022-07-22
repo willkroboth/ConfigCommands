@@ -4,7 +4,7 @@
 //// This instance cannot be overridden, so an error is thrown
 //// The current process also seems to mess with other parts of the server, causing a crash when players exist
 //
-//package me.willkroboth.ConfigCommands.NMS.V1_17.OpSenders1_17;
+//package me.willkroboth.ConfigCommands.NMS.V1_18.OpSenders1_18;
 //
 //import net.minecraft.commands.CommandSourceStack;
 //import net.minecraft.server.dedicated.DedicatedPlayerList;
