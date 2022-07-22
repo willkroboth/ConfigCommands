@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>ConfigCommands-nms-dependency</artifactId>
+    <packaging>pom</packaging>
 
     <dependencies>
         <!-- Version implementations -->
