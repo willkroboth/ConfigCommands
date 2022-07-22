@@ -14,6 +14,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>ConfigCommands-1_19</module>
+        <module>ConfigCommands-1_18_2</module>
         <module>ConfigCommands-1_18</module>
         <module>ConfigCommands-1_17</module>
         <module>ConfigCommands-1_16_5</module>
