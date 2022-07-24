@@ -33,12 +33,13 @@ public class NumberArguments extends ConfigCommandAddOn {
 }
 ```
 #### getRegisterMode()
-Implementing this method allows for a bit more control over what ConfigCommands does with your plugin. An implementation of `getRegisterMode()` should either return `0`, `1`, or `2`, which have the following effects:
-- `0`: Register all InternalArguments and FunctionAdders in the package
-- `1`: Register all InternalArguments in the package
-- `2`: Register all FunctionAdders in the package
+Implementing this method allows for a bit more control over what ConfigCommands does with your plugin. An implementation of `getRegisterMode()` should return a member of the `RegisterMode` enum, which have the following effects:
+- `RegisterMode.ALL`: Register all InternalArguments and FunctionAdders in the package
+- `RegisterMode.INTERNAL_ARGUMENTS`: Register all InternalArguments in the package
+- `RegisterMode.FUNCTIONS_ADDERS`: Register all FunctionAdders in the package
+- `RegisterMode.NONE`
 
-The default implementation of `getRegisterMode()` returns `0`, so the default behavior of an AddOn is to register all InternalArguments and FunctionAdders present in the package. If your AddOn only contains either InternalArguments or FunctionAdders, you can change the register mode to skip searching for the other type. A good example of this is the [ConfigCommands](ConfigCommands-plugin/src/main/java/me/willkroboth/ConfigCommands/ConfigCommands.java) base, which only has InternalArguments and so uses register mode 1:
+The default implementation of `getRegisterMode()` returns `ALL`, so the default behavior of an AddOn is to register all InternalArguments and FunctionAdders present in the package. If your AddOn only contains either InternalArguments or FunctionAdders, you can change the register mode to skip searching for the other type. A good example of this is the [ConfigCommands](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/ConfigCommands.java) base, which only has InternalArguments and so uses register mode `INTERNAL_ARGUMENTS`:
 ```java
 package me.willkroboth.ConfigCommands;
 
@@ -49,12 +50,12 @@ public class ConfigCommands extends ConfigCommandAddOn {
         return "me.willkroboth.ConfigCommands.InternalArguments";
     }
 
-    protected int getRegisterMode() {
-        return 1;
+    protected RegisterMode getRegisterMode() {
+        return RegisterMode.INTERNAL_ARGUMENTS;
     }
 }
 ```
-Additionally, if you would for some reason like to register neither InternalArguments nor FunctionAdders, you could make `getRegisterModer()` return any int other than `0`, `1`, or `2`.
+Additionally, if you would for some reason like to register neither InternalArguments nor FunctionAdders, you could make `getRegisterModer()` return `NONE`.
 
 #### registerInternalArguments()
 If you need more control over how your InternalArguments and FunctionAdders are registered, you can implement the `registerInternalArguments()` method. The default implementation in ConfigCommandAddOn uses `getRegisterMode()` to choose between 3 ways of registering the InternalArguments and FunctionAdders, mentioned previously. If you need to be more precise, you can use the methods described in [Registering InternalArguments and FunctionAdders](#registering-internalarguments-and-functionadders) to do things however you want.
@@ -143,8 +144,7 @@ void addArgument(
   String name,
   ArrayList<String> argument_keys,
   HashMap<String, Class<? extends InternalArgument>> argument_variable_classes,
-  boolean debugMode, 
-  IndentedLogger logger
+  boolean localDebug
 ) throws IncorrectArgumentKey
 ```
 It is called when a command is trying to add your argument to its list. The default implementation throws an error explaining that this argument cannot be added to a command. If you did not make `getTypeTag()` return null to disable this feature on your InternalArgument, you should implement this method.
@@ -160,7 +160,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InternalBooleanArgument extends InternalArgument {
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean debugMode, IndentedLogger logger) {
+    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) {
         command.withArguments(new BooleanArgument(name));
         argument_keys.add(name);
         argument_variable_classes.put(name, InternalBooleanArgument.class);
@@ -185,17 +185,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InternalStringArgument extends InternalArgument {
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean debugMode, IndentedLogger logger) throws IncorrectArgumentKey {
+    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) throws IncorrectArgumentKey {
         String type = (String) arg.get("subtype");
-        if (debugMode) logger.info("Arg has subtype: " + type);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: " + type);
         command.withArguments(
-                type == null ? new StringArgument(name) :
+                type == null ? new StringArgument(name):
                         switch (type) {
                             case "string" -> new StringArgument(name);
                             case "text" -> new TextArgument(name);
                             case "greedy" -> new GreedyStringArgument(name);
-                            default ->
-                                    throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+                            default -> throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
                         }
         );
         argument_keys.add(name);
@@ -203,7 +202,7 @@ public class InternalStringArgument extends InternalArgument {
     }
 }
 ```
-InternalStringArgument supports adding the `subtype` parameter to choose between 3 different Argument types from the CommandAPI -- StringArgument, TextArgument, and GreedyString argument -- which you can read more about in the CommandAPI [documentation](https://commandapi.jorel.dev/7.0.0/stringarguments.html). This `addArgument(...)` implementation retrieves the `subtype` parameter from the `arg` map, sends a debug message using `debugMode` and `logger`, then chooses one of the argument types to add based on the subtype it found. If the given subtype is not valid, the method throws an IncorrectArgumentKey exception explaining this.
+InternalStringArgument supports adding the `subtype` parameter to choose between 3 different Argument types from the CommandAPI -- StringArgument, TextArgument, and GreedyString argument -- which you can read more about in the CommandAPI [documentation](https://commandapi.jorel.dev/7.0.0/stringarguments.html). This `addArgument(...)` implementation retrieves the `subtype` parameter from the `arg` map, sends a debug message using `localDebug`, then chooses one of the argument types to add based on the subtype it found. If the given subtype is not valid, the method throws an IncorrectArgumentKey exception explaining this.
 
 #### getFunctions(), getStaticFunctions()
 These methods define the functions available for static and non-static references to your InternalArgument class in Expressions. The default implementation of `getFunctions()` references functions added to your class by FunctionAdders as well as `forCommand(None)`, which allows the `forCommand()` method mentioned earlier to be accessed in Expressions. The default implementation of `getStaticFunctions()` just references the static functions added by FunctionAdders. By creating your own implementation for these methods, you can add new static and non statics functions using the processes described in the section on [Building Functions](#building-functions).
