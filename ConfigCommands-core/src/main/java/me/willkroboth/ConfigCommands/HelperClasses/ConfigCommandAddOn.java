@@ -10,23 +10,30 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
         ConfigCommandsHandler.registerAddOn(this);
     }
 
+    public enum RegisterMode{
+        All,
+        INTERNAL_ARGUMENTS,
+        FUNCTION_ADDERS,
+        NONE,
+    }
+
     public void registerInternalArguments() {
         switch (getRegisterMode()) {
-            case 0 -> InternalArgument.registerFullPackage(
+            case All -> InternalArgument.registerFullPackage(
                     getPackageName(),
                     getName(),
                     getClassLoader(),
                     ConfigCommandsHandler.isDebugMode(),
                     getLogger()
             );
-            case 1 -> InternalArgument.registerPackageOfInternalArguments(
+            case INTERNAL_ARGUMENTS -> InternalArgument.registerPackageOfInternalArguments(
                     getPackageName(),
                     getName(),
                     getClassLoader(),
                     ConfigCommandsHandler.isDebugMode(),
                     getLogger()
             );
-            case 2 -> InternalArgument.registerPackageOfFunctionAdders(
+            case FUNCTION_ADDERS -> InternalArgument.registerPackageOfFunctionAdders(
                     getPackageName(),
                     getName(),
                     getClassLoader(),
@@ -37,7 +44,7 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
     }
 
     // makes it easier to choose how internal arguments are registered
-    protected int getRegisterMode() { return 0; }
+    protected RegisterMode getRegisterMode() { return RegisterMode.All; }
 
     protected abstract String getPackageName();
 

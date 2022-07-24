@@ -8,8 +8,8 @@ public class ConfigCommands extends ConfigCommandAddOn {
         return "me.willkroboth.ConfigCommands.InternalArguments";
     }
 
-    protected int getRegisterMode() {
-        return 1;
+    protected RegisterMode getRegisterMode() {
+        return RegisterMode.INTERNAL_ARGUMENTS;
     }
 
     // Enable
