@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ConfigCommands-nms</artifactId>
         <groupId>me.willkroboth</groupId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
     </parent>
 
     <artifactId>ConfigCommands-nms-dependency</artifactId>
@@ -18,27 +18,27 @@
         <dependency>
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_19</artifactId>
-            <version>2.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_18_2</artifactId>
-            <version>2.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_18</artifactId>
-            <version>2.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_17</artifactId>
-            <version>2.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_16_5</artifactId>
-            <version>2.0.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
