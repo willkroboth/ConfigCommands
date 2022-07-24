@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Commands;
+package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;

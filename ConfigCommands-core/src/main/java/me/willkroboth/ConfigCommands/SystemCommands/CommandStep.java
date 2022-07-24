@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Commands;
+package me.willkroboth.ConfigCommands.SystemCommands;
 
 import org.bukkit.command.CommandSender;
 

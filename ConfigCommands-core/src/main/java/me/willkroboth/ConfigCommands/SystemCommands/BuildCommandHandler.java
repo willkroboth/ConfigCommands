@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Commands;
+package me.willkroboth.ConfigCommands.SystemCommands;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
