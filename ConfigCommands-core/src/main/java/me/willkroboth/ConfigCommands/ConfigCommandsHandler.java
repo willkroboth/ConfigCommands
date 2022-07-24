@@ -5,6 +5,7 @@ import dev.jorel.commandapi.arguments.*;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.SystemCommands.BuildCommandHandler;
+import me.willkroboth.ConfigCommands.SystemCommands.DebugCommandHandler;
 import me.willkroboth.ConfigCommands.SystemCommands.FunctionCommandHandler;
 import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
@@ -288,11 +289,14 @@ public class ConfigCommandsHandler {
                 .then(new LiteralArgument("help")
                         .withPermission("configcommands.help")
                         .executes(sendMessage("Gives help information for the different ConfigCommands sections. To get help with a specific system, use /configcommands help [keyword]"))
-                        .then(new LiteralArgument("functions")
-                                .executes(sendMessage("Displays information about the available ConfigCommands functions. Using just /configcommands help brings up a guided menu that narrows in on the function you need help with. You can also use tab-complete suggestions to explore the functions the same way."))
-                        )
                         .then(new LiteralArgument("build")
                                 .executes(sendMessage("Opens a menu that guides users through creating a new command. Enables creating, editing, and deleting commands in-game."))
+                        )
+                        .then(new LiteralArgument("debug")
+                                .executes(sendMessage("Allows setting and viewing the values currently set for global and local debugs"))
+                        )
+                        .then(new LiteralArgument("functions")
+                                .executes(sendMessage("Displays information about the available ConfigCommands functions. Using just /configcommands help brings up a guided menu that narrows in on the function you need help with. You can also use tab-complete suggestions to explore the functions the same way."))
                         )
                         .then(new LiteralArgument("reload")
                                 .executes(sendMessage("Reloads a command's code from the config.yml, allowing its behavior to change without restarting the server."))
@@ -319,6 +323,24 @@ public class ConfigCommandsHandler {
                 .then(new LiteralArgument("build")
                         .withPermission("configcommands.build")
                         .executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                )
+                // debug command
+                .then(new LiteralArgument("debug")
+                        .withPermission("configcommands.debug")
+                        .executes(DebugCommandHandler::sendGlobalDebugMode)
+                        .then(new LiteralArgument("enable")
+                                .executes(DebugCommandHandler.setGlobalDebug(true))
+                        ).then(new LiteralArgument("disable")
+                                .executes(DebugCommandHandler.setGlobalDebug(false))
+                        ).then(new StringArgument("command")
+                                .replaceSuggestions(ArgumentSuggestions.strings(DebugCommandHandler.getKeys()))
+                                .executes(DebugCommandHandler::sendLocalDebugMode)
+                                .then(new LiteralArgument("enable")
+                                        .executes(DebugCommandHandler.setLocalDebug(true))
+                                ).then(new LiteralArgument("disable")
+                                        .executes(DebugCommandHandler.setLocalDebug(false))
+                                )
+                        )
                 )
                 // reload command
                 .then(new LiteralArgument("reload")
