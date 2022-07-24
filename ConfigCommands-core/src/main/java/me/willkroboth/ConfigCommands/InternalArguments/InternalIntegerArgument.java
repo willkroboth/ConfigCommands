@@ -2,11 +2,11 @@ package me.willkroboth.ConfigCommands.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.IntegerArgument;
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,7 @@ public class InternalIntegerArgument extends InternalArgument{
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean debugMode, IndentedLogger logger) throws IncorrectArgumentKey {
+    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) throws IncorrectArgumentKey {
         int min;
         if(arg.get("min") == null){
             min = Integer.MIN_VALUE;
@@ -35,7 +35,7 @@ public class InternalIntegerArgument extends InternalArgument{
                 throw new IncorrectArgumentKey(arg.toString(), "min", "Could not be interpreted as an int.");
             }
         }
-        if(debugMode) logger.info("Arg has min: " + min);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has min: %s", min);
 
         int max;
         if(arg.get("max") == null){
@@ -48,7 +48,7 @@ public class InternalIntegerArgument extends InternalArgument{
                 throw new IncorrectArgumentKey(arg.toString(), "max", "Could not be interpreted as an int.");
             }
         }
-        if(debugMode) logger.info("Arg has max: " + max);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has max: %s", max);
 
         command.withArguments(new IntegerArgument(name, min, max));
         argument_keys.add(name);

@@ -22,15 +22,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HelpCommandHandler implements Listener {
+public class FunctionCommandHandler implements Listener {
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
     // command functions
     public static void addUser(CommandSender sender, Object[] ignored){
-        sender.sendMessage("Welcome to the ConfigCommand help menu!");
+        sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
-        activeUsers.put(sender, new CommandContext(null, "", HelpCommandHandler::chooseAddOn));
+        activeUsers.put(sender, new CommandContext(null, "", FunctionCommandHandler::chooseAddOn));
         handleMessage(sender, "", null);
     }
 
@@ -55,7 +55,7 @@ public class HelpCommandHandler implements Listener {
         List<String> names = InternalArgument.getNames(internalArguments);
         String internalArgument = (String) parameters[1];
         if(!names.contains(internalArgument)) {
-            sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for given addOn");
+            sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for the given addOn");
             return;
         }
         InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
@@ -118,7 +118,7 @@ public class HelpCommandHandler implements Listener {
             if(event != null) event.setCancelled(true);
             if(sender instanceof Player) sender.sendMessage("");
             if(message.equals("##")) {
-                sender.sendMessage("Closing the ConfigCommand help menu.");
+                sender.sendMessage("Closing the ConfigCommand functions menu.");
                 activeUsers.remove(sender);
             }
             else if(message.equalsIgnoreCase("back")){
@@ -147,7 +147,7 @@ public class HelpCommandHandler implements Listener {
         if(message.isBlank()) {
             List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
             if (addOns.size() == 1) {
-                context = setContext(sender, context, "ConfigCommands", HelpCommandHandler::chooseInternalArgument);
+                context = setContext(sender, context, "ConfigCommands", FunctionCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
             } else {
@@ -157,7 +157,7 @@ public class HelpCommandHandler implements Listener {
         }
         else {
             if (ConfigCommandsHandler.getAddOn(message) != null) {
-                context = setContext(sender, context, message, HelpCommandHandler::chooseInternalArgument);
+                context = setContext(sender, context, message, FunctionCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
             }
@@ -187,7 +187,7 @@ public class HelpCommandHandler implements Listener {
             if(names.contains(message)){
                 InternalArgument argument = internalArguments.get(names.indexOf(message));
 
-                context = setContext(sender, context, argument, HelpCommandHandler::chooseFunction);
+                context = setContext(sender, context, argument, FunctionCommandHandler::chooseFunction);
 
                 context.doNextStep(sender, "");
             } else {
@@ -230,7 +230,7 @@ public class HelpCommandHandler implements Listener {
             if(names.contains(message)){
                 Map<Definition, Function> aliases = InternalArgument.getAliases(message, functions);
 
-                context = setContext(sender, context, aliases, HelpCommandHandler::displayInformation);
+                context = setContext(sender, context, aliases, FunctionCommandHandler::displayInformation);
 
                 context.doNextStep(sender, "");
                 return;
@@ -241,7 +241,7 @@ public class HelpCommandHandler implements Listener {
             if(staticNames.contains(message)){
                 Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases(message, staticFunctions);
 
-                context = setContext(sender, context, aliases, HelpCommandHandler::displayStaticInformation);
+                context = setContext(sender, context, aliases, FunctionCommandHandler::displayStaticInformation);
 
                 context.doNextStep(sender, "");
                 return;

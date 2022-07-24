@@ -1,6 +1,7 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.*;
 import me.willkroboth.ConfigCommands.InternalArguments.*;
 import org.bukkit.command.CommandSender;
@@ -19,20 +20,18 @@ public class ConfigCommandBuilder extends CommandAPICommand {
 
     private Map<String, Integer> tagMap = new HashMap<>();
 
-    private final boolean debugMode;
-    private final IndentedLogger logger;
+    private final boolean localDebug;
 
     private ConfigCommandExecutor executor;
 
     public ConfigCommandBuilder(String name, String shortDescription, String fullDescription, List<Map<?, ?>> args,
                                 List<String> aliases, String permission, List<String> commands,
-                                boolean debug, IndentedLogger l) throws RegistrationException {
+                                boolean localDebug) throws RegistrationException {
         //set name
         super(name);
 
-        // set debug variables
-        debugMode = debug;
-        logger = l;
+        // set debug variable
+        this.localDebug = localDebug;
 
         // setup arguments
         addDefaultArgs();
@@ -55,7 +54,7 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         } catch (Exception e){
             throw new RegistrationException("Encountered " + e.getClass().getSimpleName() + " when registering: " + e.getMessage());
         }
-        executor = new ConfigCommandExecutor(name, argument_keys, this.commands, tagMap, debugMode, logger);
+        executor = new ConfigCommandExecutor(name, argument_keys, this.commands, tagMap, this.localDebug);
     }
 
     private void addDefaultArgs() {
@@ -75,10 +74,10 @@ public class ConfigCommandBuilder extends CommandAPICommand {
     private void parse_args(List<Map<?, ?>> args) throws RegistrationException {
         // sets command to execute with arguments and sets up arguments variables
         for (Map<?, ?> arg : args) {
-            if (debugMode) logger.info("Adding argument: " + arg.toString());
-            logger.increaseIndentation();
-            InternalArgument.addArgument(arg, this, argument_keys, argument_variable_classes, debugMode, logger);
-            logger.decreaseIndentation();
+            ConfigCommandsHandler.logDebug(localDebug, "Adding argument: %s", arg);
+            ConfigCommandsHandler.increaseIndentation();
+            InternalArgument.addArgument(arg, this, argument_keys, argument_variable_classes, localDebug);
+            ConfigCommandsHandler.decreaseIndentation();
         }
     }
 
@@ -92,7 +91,7 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         parse_commands(commands);
 
         // create new executor
-        executor = new ConfigCommandExecutor(super.getName(), argument_keys, this.commands, tagMap, debugMode, logger);
+        executor = new ConfigCommandExecutor(getName(), argument_keys, this.commands, tagMap, localDebug);
     }
 
     private void parse_commands(List<String> commands) throws RegistrationException {
@@ -100,14 +99,15 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         // - Run command, indicated by /
         // - define and set variables, indicated by <name> =
         // - run functions, indicated by do
+        // - define branch target tag, indicated by tag
         // - conditional branch, indicated by if
         // - branch, indicated by goto
         // - return value, indicated by return
         int index = 0;
         for (String command : commands) {
-            if (debugMode) logger.info("Parsing command: " + command);
+            ConfigCommandsHandler.logDebug(localDebug, "Parsing command: %s", command);
 
-            logger.increaseIndentation();
+            ConfigCommandsHandler.increaseIndentation();
             switch (command.charAt(0)) {
                 case '/' -> parse_command_to_run(command);
                 case '<' -> parse_set(command);
@@ -118,13 +118,22 @@ public class ConfigCommandBuilder extends CommandAPICommand {
                 case 'r' -> parse_return(command);
                 default -> throw new RegistrationException("Command not recognized, invalid format: \"" + command + "\"");
             }
-            logger.decreaseIndentation();
+            ConfigCommandsHandler.decreaseIndentation();
             index++;
         }
     }
 
     private void parse_command_to_run(String command) {
-        ArrayList<String> command_sections = new ArrayList<>();
+        List<String> command_sections = getCommandSections(command);
+
+        HashMap<String, Object> new_command = new HashMap<>();
+        new_command.put("type", "command");
+        new_command.put("info", command_sections);
+        commands.add(new_command);
+    }
+
+    private List<String> getCommandSections(String command){
+        List<String> command_sections = new ArrayList<>();
         String[] keys = argument_keys.toArray(new String[0]);
 
         int previous_index = 1; //start at 1 to get rid of initial /
@@ -145,12 +154,8 @@ public class ConfigCommandBuilder extends CommandAPICommand {
             command_sections.add(command.substring(previous_index));
         }
 
-        if (debugMode) logger.info("Command has been split into: " + command_sections);
-
-        HashMap<String, Object> new_command = new HashMap<>();
-        new_command.put("type", "command");
-        new_command.put("info", command_sections);
-        commands.add(new_command);
+        ConfigCommandsHandler.logDebug(localDebug, "Command has been split into: %s", command_sections);
+        return command_sections;
     }
 
     private intPair get_first_index_and_length(String string, String[] keys) {
@@ -173,53 +178,33 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         return new intPair(least, length);
     }
 
+    private record intPair(int first, int last){
+    }
+
     private void parse_set(String command) throws RegistrationException {
         String[] parts = command.split(" = ");
         if (parts.length != 2) throw new InvalidSetCommand(command, "Invalid format. Must contain only 1 \" = \".");
 
-        if (debugMode) logger.info("Set split into: " + Arrays.toString(parts));
+        ConfigCommandsHandler.logDebug(localDebug, "Set split into: %s", Arrays.toString(parts));
 
         String variable = parts[0];
         if (!(variable.charAt(0) == '<' && variable.charAt(variable.length() - 1) == '>')) {
             throw new InvalidSetCommand(command, "Invalid variable: " + variable + ". Must be wrapped by < >.");
         }
-        if (debugMode) logger.info("Variable is " + variable);
+        ConfigCommandsHandler.logDebug(localDebug, "Variable is " + variable);
 
         String rawExpression = parts[1];
         Class<? extends InternalArgument> returnType;
         HashMap<String, Object> info;
         if (rawExpression.startsWith("/")) {
             // setting a variable to a command
-            if (debugMode) logger.info("Expression looks like a command.");
-            if (debugMode) logger.info("Parsing \"" + rawExpression + "\" as command.");
-            command = rawExpression;
+            ConfigCommandsHandler.logDebug(localDebug, "Expression looks like a command.");
+            ConfigCommandsHandler.logDebug(localDebug, "Parsing \"%s\" as command.", rawExpression);
 
             // parse command
-            ArrayList<String> command_sections = new ArrayList<>();
-            String[] keys = argument_keys.toArray(new String[0]);
-
-            int previous_index = 1; //start at 1 to get rid of initial /
-            intPair pair = get_first_index_and_length(command, keys);
-            int index = pair.first;
-            int length = pair.last;
-
-            while (index != -1) {
-                command_sections.add(command.substring(previous_index, index));
-                command_sections.add(command.substring(index, index + length));
-
-                previous_index = index + length;
-                pair = get_first_index_and_length(command, keys, previous_index);
-                index = pair.first;
-                length = pair.last;
-            }
-            if (previous_index != command.length()) {
-                command_sections.add(command.substring(previous_index));
-            }
-
-            if (debugMode) logger.info("Command has been split into: " + command_sections);
+            List<String> command_sections = getCommandSections(rawExpression);
 
             info = new HashMap<>();
-
             info.put("variable", variable);
             info.put("expressionType", "command");
             info.put("command", command_sections);
@@ -227,7 +212,7 @@ public class ConfigCommandBuilder extends CommandAPICommand {
             returnType = InternalStringArgument.class;
         } else {
             // expression is code
-            Expression expression = Expression.parseExpression(rawExpression, argument_variable_classes, debugMode, logger);
+            Expression expression = Expression.parseExpression(rawExpression, argument_variable_classes, localDebug);
             returnType = expression.getEvaluationType(argument_variable_classes);
 
             info = new HashMap<>();
@@ -244,12 +229,11 @@ public class ConfigCommandBuilder extends CommandAPICommand {
                         ") was previously made as " + currentType.getSimpleName() +
                         ", but is now being set as " + returnType.getSimpleName());
             }
-            if (debugMode) logger.info(variable + " already found in argument keys, and the return type matches.");
+            ConfigCommandsHandler.logDebug(localDebug, "%s already found in argument keys, and the return type matches.", variable);
         } else {
             argument_keys.add(variable);
             argument_variable_classes.put(variable, returnType);
-            if (debugMode)
-                logger.info(variable + " not found in arguments keys, so it was created to match return type.");
+            ConfigCommandsHandler.logDebug("%s not found in arguments keys, so it was created to match return type.", variable);
         }
 
         HashMap<String, Object> new_command = new HashMap<>();
@@ -262,9 +246,9 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         if (!command.startsWith("do ")) throw new InvalidDoCommand(command, "Invalid format. Must start with \"do \".");
 
         command = command.substring(3);
-        if (debugMode) logger.info("Do trimmed off to get: " + command);
+        ConfigCommandsHandler.logDebug(localDebug, "Do trimmed off to get: %s", command);
 
-        Expression expression = Expression.parseExpression(command, argument_variable_classes, debugMode, logger);
+        Expression expression = Expression.parseExpression(command, argument_variable_classes, localDebug);
 
         HashMap<String, Object> info = new HashMap<>();
 
@@ -280,8 +264,8 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         if(!command.startsWith("tag ")) throw new InvalidExpressionCommand("tag", command, "Invalid format. Must start with \"tag\"");
 
         String tag = command.substring(4);
-        if (debugMode) logger.info("Tag trimmed off to get: " + tag);
-        if (debugMode) logger.info("Tag will have index: " + index);
+        ConfigCommandsHandler.logDebug(localDebug, "Tag trimmed off to get: %s", tag);
+        ConfigCommandsHandler.logDebug(localDebug, "Tag will have index: %s", index);
         tagMap.put(tag, index);
 
         HashMap<String, Object> new_command = new HashMap<>();
@@ -293,33 +277,33 @@ public class ConfigCommandBuilder extends CommandAPICommand {
         if (!command.startsWith("if ")) throw new InvalidIfCommand(command, "Invalid format. Must start with \"if \"");
 
         command = command.substring(3);
-        if (debugMode) logger.info("If trimmed off to get: " + command);
+        ConfigCommandsHandler.logDebug(localDebug, "If trimmed off to get: %s", command);
 
         String[] parts = command.split(" goto ");
         if (parts.length != 2) throw new InvalidIfCommand(command, "Invalid format. Must contain \" goto \" once.");
-        if (debugMode) logger.info("If split into: " + Arrays.toString(parts));
+        ConfigCommandsHandler.logDebug(localDebug, "If split into: %s", Arrays.toString(parts));
 
         String booleanString = parts[0];
-        if (debugMode) logger.info("booleanExpression is: " + booleanString);
-        Expression booleanExpression = Expression.parseExpression(booleanString, argument_variable_classes, debugMode, logger);
-        if (debugMode) logger.info("booleanExpression parsed to: " + booleanExpression);
+        ConfigCommandsHandler.logDebug(localDebug, "booleanExpression is: %s", booleanString);
+        Expression booleanExpression = Expression.parseExpression(booleanString, argument_variable_classes, localDebug);
+        ConfigCommandsHandler.logDebug(localDebug, "booleanExpression parsed to: %s", booleanExpression);
         Class<? extends InternalArgument> returnType = booleanExpression.getEvaluationType(argument_variable_classes);
         if (!returnType.isAssignableFrom(InternalBooleanArgument.class))
             throw new InvalidIfCommand(command, "Invalid booleanExpression. Must return InternalBooleanArgument, but instead returns " + returnType.getSimpleName());
-        if (debugMode) logger.info("booleanExpression correctly returns a boolean");
+        ConfigCommandsHandler.logDebug(localDebug, "booleanExpression correctly returns a boolean");
 
         String indexString = parts[1];
-        if (debugMode) logger.info("indexExpression is: " + indexString);
-        Expression indexExpression = Expression.parseExpression(indexString, argument_variable_classes, debugMode, logger);
-        if (debugMode) logger.info("indexExpression parsed to: " + indexExpression);
+        ConfigCommandsHandler.logDebug("indexExpression is: %s", indexString);
+        Expression indexExpression = Expression.parseExpression(indexString, argument_variable_classes, localDebug);
+        ConfigCommandsHandler.logDebug(localDebug, "indexExpression parsed to: %s", indexExpression);
         returnType = indexExpression.getEvaluationType(argument_variable_classes);
 
         HashMap<String, Object> info = new HashMap<>();
         if(returnType.isAssignableFrom(InternalIntegerArgument.class)){
-            if(debugMode) logger.info("indexExpression correctly returns an integer");
+            ConfigCommandsHandler.logDebug(localDebug, "indexExpression correctly returns an integer");
             info.put("indexType", "integer");
         } else if(returnType.isAssignableFrom(InternalStringArgument.class)){
-            if(debugMode) logger.info("indexExpression correctly returns a string");
+            ConfigCommandsHandler.logDebug(localDebug, "indexExpression correctly returns a string");
             info.put("indexType", "string");
         } else {
             throw new InvalidIfCommand(command, "Invalid indexExpression. Must return InternalIntegerArgument or InternalStringArgument, but instead returns " + returnType.getSimpleName());
@@ -338,19 +322,19 @@ public class ConfigCommandBuilder extends CommandAPICommand {
             throw new InvalidGotoCommand(command, "Invalid format. Must start with \"goto \"");
 
         String indexString = command.substring(5);
-        if (debugMode) logger.info("Goto trimmed off to get: " + indexString);
+        ConfigCommandsHandler.logDebug(localDebug, "Goto trimmed off to get: %s", indexString);
 
-        if (debugMode) logger.info("indexExpression is: " + indexString);
-        Expression indexExpression = Expression.parseExpression(indexString, argument_variable_classes, debugMode, logger);
-        if (debugMode) logger.info("indexExpression parsed to: " + indexExpression);
+        ConfigCommandsHandler.logDebug(localDebug, "indexExpression is: %s", indexString);
+        Expression indexExpression = Expression.parseExpression(indexString, argument_variable_classes, localDebug);
+        ConfigCommandsHandler.logDebug(localDebug, "indexExpression parsed to: %s", indexExpression);
         Class<? extends InternalArgument> returnType = indexExpression.getEvaluationType(argument_variable_classes);
 
         HashMap<String, Object> info = new HashMap<>();
         if(returnType.isAssignableFrom(InternalIntegerArgument.class)){
-            if(debugMode) logger.info("indexExpression correctly returns an integer");
+            ConfigCommandsHandler.logDebug(localDebug, "indexExpression correctly returns an integer");
             info.put("indexType", "integer");
         } else if(returnType.isAssignableFrom(InternalStringArgument.class)){
-            if(debugMode) logger.info("indexExpression correctly returns a string");
+            ConfigCommandsHandler.logDebug(localDebug, "indexExpression correctly returns a string");
             info.put("indexType", "string");
         } else {
             throw new InvalidIfCommand(command, "Invalid indexExpression. Must return InternalIntegerArgument or InternalStringArgument, but instead returns " + returnType.getSimpleName());
@@ -368,11 +352,11 @@ public class ConfigCommandBuilder extends CommandAPICommand {
             throw new InvalidReturnCommand(command, "Invalid format. Must start with \"return \"");
 
         String returnString = command.substring(7);
-        if (debugMode) logger.info("Return trimmed off to get: " + returnString);
+        ConfigCommandsHandler.logDebug(localDebug, "Return trimmed off to get: %s", returnString);
 
-        if (debugMode) logger.info("returnExpression is: " + returnString);
-        Expression returnExpression = Expression.parseExpression(returnString, argument_variable_classes, debugMode, logger);
-        if (debugMode) logger.info("returnExpression parsed to: " + returnExpression);
+        ConfigCommandsHandler.logDebug(localDebug, "returnExpression is: %s", returnString);
+        Expression returnExpression = Expression.parseExpression(returnString, argument_variable_classes, localDebug);
+        ConfigCommandsHandler.logDebug(localDebug, "returnExpression parsed to: %s", returnExpression);
 
         HashMap<String, Object> info = new HashMap<>();
 
@@ -386,14 +370,5 @@ public class ConfigCommandBuilder extends CommandAPICommand {
 
     public void execute(CommandSender sender, Object[] args) {
         executor.copy(argument_variable_classes).execute(sender, args);
-    }
-
-    static class intPair{
-        int first;
-        int last;
-        public intPair(int first, int last){
-            this.first = first;
-            this.last = last;
-        }
     }
 }

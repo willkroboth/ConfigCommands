@@ -1,5 +1,6 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
@@ -15,21 +16,25 @@ import java.util.Map;
 public abstract class Expression {
     private final static Map<String, InternalArgument> staticClassMap = new HashMap<>();
 
-    public static void addToClassMap(InternalArgument object){ staticClassMap.put(object.getName(), object); }
+    public static void addToClassMap(InternalArgument object) {
+        staticClassMap.put(object.getName(), object);
+    }
 
-    public static Map<String, InternalArgument> getClassMap(){ return staticClassMap; }
+    public static Map<String, InternalArgument> getClassMap() {
+        return staticClassMap;
+    }
 
     public static Expression parseExpression(String string, HashMap<String, Class<? extends InternalArgument>> argumentVariables,
-                                             boolean debugMode, IndentedLogger logger) throws RegistrationException {
-        if(string.charAt(0) == '"' && string.charAt(string.length()-1) == '"'){
+                                             boolean localDebug) throws RegistrationException {
+        if (string.charAt(0) == '"' && string.charAt(string.length() - 1) == '"') {
             // basic string for basic initialization
-            return new StringConstant(string.substring(1, string.length()-1));
+            return new StringConstant(string.substring(1, string.length() - 1));
         }
         boolean isStringConstant = string.charAt(0) == '"';
 
         // parsing variables
         StringBuilder wordBuild = new StringBuilder();
-        int parseMode = isStringConstant ? -1:0;
+        int parseMode = isStringConstant ? -1 : 0;
         // -1- reading string constant in function chain (until '"') - goes to 1
         // 0 - reading target variable/static class (until '.') - goes to 1
         // 1 - reading function (until '(') - goes to 2
@@ -46,22 +51,25 @@ public abstract class Expression {
         InternalArgument staticClass = null;
         boolean isStaticClass = false;
 
-        if(debugMode){ logger.info("Parsing expression: " + string); logger.increaseIndentation();}
+        if (localDebug) {
+            ConfigCommandsHandler.logNormal("Parsing expression: %s", string);
+            ConfigCommandsHandler.increaseIndentation();
+        }
 
         try {
             for (int i = 0; i < string.length(); i++) {
                 char c = string.charAt(i);
                 switch (parseMode) {
                     case -1: // reading string constant
-                        if(c == '"'){
-                            if(i != 0){
+                        if (c == '"') {
+                            if (i != 0) {
                                 //skip first "
-                                if (debugMode) logger.info("String constant built as \"" + wordBuild + "\"");
+                                ConfigCommandsHandler.logDebug(localDebug, "String constant built as \"%s\"", wordBuild);
                                 targetExpression = new StringConstant(wordBuild.toString());
 
                                 // know at least one char after "constant"_, needs to be .,  then another
-                                if(string.charAt(i+1) != '.')
-                                    throw new ParseException(string, "Invalid expression. Expected '.' after string constant, got '" + string.charAt(i+1) + "'");
+                                if (string.charAt(i + 1) != '.')
+                                    throw new ParseException(string, "Invalid expression. Expected '.' after string constant, got '" + string.charAt(i + 1) + "'");
                                 if (i + 2 >= string.length())
                                     throw new ParseException(string, "Expression ended early. Expected function after '\"constant\".'.");
 
@@ -76,12 +84,12 @@ public abstract class Expression {
                     case 0: // reading variable/static class
                         if (c == '.') {
                             String word = wordBuild.toString();
-                            if (debugMode) logger.info("Target built as \"" + word + "\"");
+                            ConfigCommandsHandler.logDebug(localDebug, "Target built as \"%s\"", word);
 
                             isStaticClass = staticClassMap.containsKey(word);
-                            if(isStaticClass){
+                            if (isStaticClass) {
                                 staticClass = staticClassMap.get(word);
-                                if (debugMode) logger.info("Target identified as a static class");
+                                ConfigCommandsHandler.logDebug(localDebug, "Target identified as a static class");
 
                                 if (i + 1 >= string.length())
                                     throw new ParseException(string, "Expression ended early. Expected function after \"class.\".");
@@ -90,7 +98,7 @@ public abstract class Expression {
                                     throw new ParseException(string, "Target \"" + word + "\" Does not match constant class or variable format.");
                                 if (!argumentVariables.containsKey(word))
                                     throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
-                                if (debugMode) logger.info("Target identified as valid variable.");
+                                ConfigCommandsHandler.logDebug(localDebug, "Target identified as valid variable.");
 
                                 targetExpression = new Variable(word);
                                 if (i + 1 >= string.length())
@@ -105,11 +113,11 @@ public abstract class Expression {
                     case 1: // reading function name
                         if (c == '(') {
                             function = wordBuild.toString();
-                            if (debugMode) logger.info("Function name built as \"" + function + "\"");
+                            ConfigCommandsHandler.logDebug(localDebug, "Function name built as \"%s\"", function);
 
                             parseMode = 2;
                             parenthesisDepth = 1;
-                            if (debugMode) logger.info("parenthesisDepth is 1");
+                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is 1");
 
                             wordBuild = new StringBuilder();
                         } else {
@@ -119,37 +127,36 @@ public abstract class Expression {
                     case 2: // reading parameters
                         if (c == '(') {
                             parenthesisDepth += 1;
-                            if (debugMode) logger.info("parenthesisDepth is " + parenthesisDepth);
+                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is %s", parenthesisDepth);
                             wordBuild.append(c);
-                        }
-                        else if (c == ')') {
+                        } else if (c == ')') {
                             parenthesisDepth -= 1;
-                            if (debugMode) logger.info("parenthesisDepth is " + parenthesisDepth);
+                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is %s", parenthesisDepth);
 
                             if (parenthesisDepth != 0) {
                                 wordBuild.append(c);
                             } else {
                                 // Final parameter
                                 String word = wordBuild.toString();
-                                if(!word.isEmpty()) {
-                                    if (debugMode) logger.info("Final parameter built as \"" + word + "\"");
+                                if (!word.isEmpty()) {
+                                    ConfigCommandsHandler.logDebug(localDebug, "Final parameter built as \"%s\"", word);
 
                                     Expression parameter;
                                     try {
-                                        parameter = parseExpression(word, argumentVariables, debugMode, logger);
+                                        parameter = parseExpression(word, argumentVariables, localDebug);
                                     } catch (ParseException e) {
                                         throw new ParseException(string, "\n" + e.getMessage());
                                     }
-                                    if (debugMode) logger.info("Parameter successfully parsed");
+                                    ConfigCommandsHandler.logDebug(localDebug, "Parameter successfully parsed");
 
                                     parameterExpressions.add(parameter);
                                 }
                                 wordBuild = new StringBuilder();
 
                                 // prepare and go to 1 to read a new function
-                                if (debugMode) logger.info("Creating new FunctionCall expression");
+                                ConfigCommandsHandler.logDebug(localDebug, "Creating new FunctionCall expression");
 
-                                if(!isStaticClass) {
+                                if (!isStaticClass) {
                                     try {
                                         assert targetExpression != null;
                                         target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentVariables));
@@ -159,9 +166,9 @@ public abstract class Expression {
                                                 "This issue must be fixed in the plugin's code, so please contact the plugin's author.");
                                     }
 
-                                    if (debugMode) {
-                                        logger.info("target is type " + target.getClass().getSimpleName());
-                                        logger.info("function is " + function);
+                                    if (localDebug) {
+                                        ConfigCommandsHandler.logNormal("target is type " + target.getClass().getSimpleName());
+                                        ConfigCommandsHandler.logNormal("function is " + function);
                                     }
                                 }
 
@@ -169,9 +176,9 @@ public abstract class Expression {
                                 for (Expression parameterExpression : parameterExpressions) {
                                     parameters.add(parameterExpression.getEvaluationType(argumentVariables));
                                 }
-                                if (debugMode){
+                                if (localDebug) {
                                     StringBuilder parametersString = new StringBuilder("[");
-                                    if(parameters.size() != 0) {
+                                    if (parameters.size() != 0) {
                                         for (Class<? extends InternalArgument> parameter : parameters) {
                                             parametersString.append(parameter.getSimpleName());
                                             parametersString.append(", ");
@@ -179,18 +186,18 @@ public abstract class Expression {
                                         parametersString.delete(parametersString.length() - 2, parametersString.length());
                                     }
                                     parametersString.append("]");
-                                    logger.info("parameter types are " + parametersString);
+                                    ConfigCommandsHandler.logNormal("parameter types are %s", parametersString);
                                 }
 
-                                if(isStaticClass) {
-                                    if(!staticClass.hasStaticFunction(function, parameters))
+                                if (isStaticClass) {
+                                    if (!staticClass.hasStaticFunction(function, parameters))
                                         throw new ParseException(string, "Invalid static function \"" + function + "\" on " + staticClass + " with parameters " + parameters + ". Static function does not exist.");
                                 } else {
                                     if (!target.hasFunction(function, parameters))
                                         throw new ParseException(string, "Invalid function \"" + function + "\" on " + target + " with parameters " + parameters + ". Function does not exist.");
                                 }
 
-                                if (debugMode) logger.info("target was found to have function");
+                                ConfigCommandsHandler.logDebug(localDebug, "target was found to have function");
 
                                 if (isStaticClass) {
                                     targetExpression = new StaticFunctionCall(staticClass, function, parameterExpressions);
@@ -204,40 +211,39 @@ public abstract class Expression {
                                 parameterExpressions = new ArrayList<>();
 
                                 i++; // skip '.'
-                                if (i >= string.length()){
-                                    if (debugMode) logger.info("End of expression. The function call will be returned.");
+                                if (i >= string.length()) {
+                                    ConfigCommandsHandler.logDebug(localDebug, "End of expression. The function call will be returned.");
                                     return targetExpression;
                                 }
-                                if (string.charAt(i) != '.') throw new ParseException(string, "Expected '.' or nothing at all after closing a function. Found '" + string.charAt(i) + "' instead.");
+                                if (string.charAt(i) != '.')
+                                    throw new ParseException(string, "Expected '.' or nothing at all after closing a function. Found '" + string.charAt(i) + "' instead.");
                                 parseMode = 1; // go back to reading a function, so they can be chained
                             }
-                        }
-                        else if (parenthesisDepth == 1 && c == ',') {
+                        } else if (parenthesisDepth == 1 && c == ',') {
                             // new parameter
                             String word = wordBuild.toString();
-                            if (debugMode) logger.info("New parameter built as \"" + word + "\"");
+                            ConfigCommandsHandler.logDebug(localDebug, "New parameter built as \"%s\"", word);
 
                             Expression parameter;
                             try {
-                                parameter = parseExpression(word, argumentVariables, debugMode, logger);
+                                parameter = parseExpression(word, argumentVariables, localDebug);
                             } catch (ParseException e) {
                                 throw new ParseException(string, "\n" + e.getMessage());
                             }
-                            if (debugMode) logger.info("Parameter successfully parsed");
+                            ConfigCommandsHandler.logDebug(localDebug, "Parameter successfully parsed");
 
                             parameterExpressions.add(parameter);
                             if (string.charAt(i + 1) == ' ') {
                                 i++; // skip ' ' if used to separate parameters
                             }
                             wordBuild = new StringBuilder();
-                        }
-                        else {
+                        } else {
                             wordBuild.append(c);
                         }
                 }
             }
 
-            if (debugMode) logger.info("End of expression reached without returning anything.");
+            ConfigCommandsHandler.logDebug(localDebug, "End of expression reached without returning anything.");
             switch (parseMode) {
                 // reading string constant
                 case -1 -> throw new ParseException(string, "Expression ended early. Expected statement staring with \" to be closed by \"");
@@ -249,7 +255,7 @@ public abstract class Expression {
                         throw new ParseException(string, "Target \"" + word + "\" Does not match variable format.");
                     if (!argumentVariables.containsKey(word))
                         throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
-                    if (debugMode) logger.info("Expression found to be a valid variable reference");
+                    ConfigCommandsHandler.logDebug(localDebug, "Expression found to be a valid variable reference");
                     targetExpression = new Variable(word);
                     return targetExpression;
                 }
@@ -260,7 +266,8 @@ public abstract class Expression {
             }
             throw new ParseException(string, "Code reached invalid parseMode: " + parseMode);
         } finally {
-            if (debugMode){ logger.decreaseIndentation();}
+            if (localDebug) ConfigCommandsHandler.decreaseIndentation();
+
         }
     }
 
@@ -269,7 +276,7 @@ public abstract class Expression {
     public abstract Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables);
 
     public abstract InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables,
-                                              boolean debugMode, IndentedLogger logger) throws CommandRunException;
+                                              boolean localDebug) throws CommandRunException;
 }
 
 class FunctionCall extends Expression{
@@ -298,29 +305,29 @@ class FunctionCall extends Expression{
         return target.getReturnTypeForFunction(function, parameters);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean debugMode, IndentedLogger logger) throws CommandRunException {
-        if (debugMode) logger.info("Evaluating FunctionCall");
+    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+        ConfigCommandsHandler.logDebug(localDebug, "Evaluating FunctionCall");
 
-        if (debugMode) logger.info("Target expression is: " + targetExpression);
-        logger.increaseIndentation();
-        InternalArgument target = targetExpression.evaluate(argument_variables, debugMode, logger);
-        logger.decreaseIndentation();
+        ConfigCommandsHandler.logDebug(localDebug, "Target expression is: %s", targetExpression);
+        ConfigCommandsHandler.increaseIndentation();
+        InternalArgument target = targetExpression.evaluate(argument_variables, localDebug);
+        ConfigCommandsHandler.decreaseIndentation();
 
-        if (debugMode) logger.info("Function is: " + function);
+        ConfigCommandsHandler.logDebug(localDebug, "Function is: " + function);
 
         List<InternalArgument> parameters = new ArrayList<>();
         for(Expression parameterExpression: parameterExpressions){
-            if (debugMode) logger.info("Parameter expression is: " + parameterExpression);
-            logger.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argument_variables, debugMode, logger));
-            logger.decreaseIndentation();
+            ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
+            ConfigCommandsHandler.increaseIndentation();
+            parameters.add(parameterExpression.evaluate(argument_variables, localDebug));
+            ConfigCommandsHandler.decreaseIndentation();
         }
 
-        if (debugMode) logger.info("Running function");
-        logger.increaseIndentation();
+        ConfigCommandsHandler.logDebug(localDebug, "Running function");
+        ConfigCommandsHandler.increaseIndentation();
         InternalArgument result = target.runFunction(function, parameters);
-        logger.decreaseIndentation();
-        if (debugMode) logger.info("Result is " + result + " with value " + result.getValue());
+        ConfigCommandsHandler.decreaseIndentation();
+        ConfigCommandsHandler.logDebug(localDebug, "Result is %s with value %s", result, result.getValue());
         return result;
     }
 }
@@ -349,26 +356,26 @@ class StaticFunctionCall extends Expression{
         return targetClass.getReturnTypeForStaticFunction(function, parameters);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean debugMode, IndentedLogger logger) throws CommandRunException {
-        if (debugMode) logger.info("Evaluating StaticFunctionCall");
+    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+        ConfigCommandsHandler.logDebug(localDebug, "Evaluating StaticFunctionCall");
 
-        if (debugMode) logger.info("Target class is: " + targetClass);
+        ConfigCommandsHandler.logDebug(localDebug, "Target class is: %s", targetClass);
 
-        if (debugMode) logger.info("Function is: " + function);
+        ConfigCommandsHandler.logDebug(localDebug, "Function is: %s", function);
 
         List<InternalArgument> parameters = new ArrayList<>();
         for(Expression parameterExpression: parameterExpressions){
-            if (debugMode) logger.info("Parameter expression is: " + parameterExpression);
-            logger.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argument_variables, debugMode, logger));
-            logger.decreaseIndentation();
+            ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
+            ConfigCommandsHandler.increaseIndentation();
+            parameters.add(parameterExpression.evaluate(argument_variables, localDebug));
+            ConfigCommandsHandler.decreaseIndentation();
         }
 
-        if (debugMode) logger.info("Running function");
-        logger.increaseIndentation();
+        ConfigCommandsHandler.logDebug(localDebug, "Running function");
+        ConfigCommandsHandler.increaseIndentation();
         InternalArgument result = targetClass.runStaticFunction(function, parameters);
-        logger.decreaseIndentation();
-        if (debugMode) logger.info("Result is " + result + " with value " + result.getValue());
+        ConfigCommandsHandler.decreaseIndentation();
+        ConfigCommandsHandler.logDebug(localDebug, "Result is %s with value %s", result, result.getValue());
         return result;
     }
 }
@@ -384,11 +391,11 @@ class Variable extends Expression{
         return argument_variables.get(name);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean debugMode, IndentedLogger logger) throws CommandRunException {
-        if (debugMode) {
-            logger.info("Evaluating Variable");
-            logger.info("Variable name is: " + name);
-            logger.info("Class " + argument_variables.get(name).getClass().getSimpleName() + " with value " + argument_variables.get(name).forCommand());
+    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+        if (localDebug) {
+            ConfigCommandsHandler.logNormal("Evaluating Variable");
+            ConfigCommandsHandler.logNormal("Variable name is: %s", name);
+            ConfigCommandsHandler.logNormal("Class %s with value %s ", argument_variables.get(name).getClass().getSimpleName(), argument_variables.get(name).forCommand());
         }
         return argument_variables.get(name);
     }
@@ -406,9 +413,9 @@ class StringConstant extends Expression{
         return InternalStringArgument.class;
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean debugMode, IndentedLogger logger) throws CommandRunException {
-        if (debugMode) logger.info("Evaluating Constant");
-        if (debugMode) logger.info("Constant is " + this);
+    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+        ConfigCommandsHandler.logDebug(localDebug, "Evaluating Constant");
+        ConfigCommandsHandler.logDebug(localDebug, "Constant is %s", this);
         return value;
     }
 }

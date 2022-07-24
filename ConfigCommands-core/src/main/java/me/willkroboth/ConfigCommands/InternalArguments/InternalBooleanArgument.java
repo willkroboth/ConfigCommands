@@ -6,7 +6,6 @@ import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +22,7 @@ public class InternalBooleanArgument extends InternalArgument {
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean debugMode, IndentedLogger logger) {
+    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) {
         command.withArguments(new BooleanArgument(name));
         argument_keys.add(name);
         argument_variable_classes.put(name, InternalBooleanArgument.class);

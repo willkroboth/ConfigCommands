@@ -1,16 +1,16 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
+import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,9 +27,9 @@ public class InternalStringArgument extends InternalArgument {
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean debugMode, IndentedLogger logger) throws IncorrectArgumentKey {
+    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) throws IncorrectArgumentKey {
         String type = (String) arg.get("subtype");
-        if (debugMode) logger.info("Arg has subtype: " + type);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: " + type);
         command.withArguments(
                 type == null ? new StringArgument(name):
                 switch (type) {

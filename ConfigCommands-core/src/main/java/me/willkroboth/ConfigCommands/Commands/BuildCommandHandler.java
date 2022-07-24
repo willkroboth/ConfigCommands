@@ -3,8 +3,6 @@ package me.willkroboth.ConfigCommands.Commands;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
-import me.willkroboth.ConfigCommands.HelperClasses.IgnoredIndentedLogger;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.Argument;
@@ -26,7 +24,7 @@ import java.util.*;
 public class BuildCommandHandler implements Listener {
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
     private static final Map<CommandSender, String> keysBeingEditing = new HashMap<>();
-    private static final List<CommandSender> passToHelpCommand = new ArrayList<>();
+    private static final List<CommandSender> passToFunctionCommand = new ArrayList<>();
 
     // command functions
     public static void addUser(CommandSender sender, Object[] ignored){
@@ -83,11 +81,11 @@ public class BuildCommandHandler implements Listener {
 
     private static void handleMessage(CommandSender sender, String message, Cancellable event) {
         if (activeUsers.containsKey(sender)) {
-            if (passToHelpCommand.contains(sender)) {
+            if (passToFunctionCommand.contains(sender)) {
                 if (message.equals("##")) {
-                    // just closed help menu
-                    // don't cancel message b/c HelpCommandHandler will cancel it
-                    passToHelpCommand.remove(sender);
+                    // just closed function menu
+                    // don't cancel message b/c FunctionCommandHandler will cancel it
+                    passToFunctionCommand.remove(sender);
                     activeUsers.get(sender).doNextStep(sender, "");
                 }
             } else {
@@ -96,7 +94,7 @@ public class BuildCommandHandler implements Listener {
                 if (message.equals("##")) {
                     sender.sendMessage("Closing the ConfigCommand build menu.");
                     sender.sendMessage("All command changes will take effect once server restarts.");
-                    sender.sendMessage("If you changed the commands of a registered command, you can update it using /configcommandreload");
+                    sender.sendMessage("If you changed the commands of a registered command, you can update it using /configcommands reload");
                     activeUsers.remove(sender);
                     keysBeingEditing.remove(sender);
                 } else if (message.equalsIgnoreCase("back")) {
@@ -266,7 +264,7 @@ public class BuildCommandHandler implements Listener {
                 sender.sendMessage("Type anything else to add it as a new command");
             }
             sender.sendMessage("Type '?' for help with the command format.");
-            sender.sendMessage("Type \"functions\" to use /configcommandhelp to get help with functions");
+            sender.sendMessage("Type \"functions\" to use /configcommands functions to get help with functions");
         } else {
             if (message.matches("[0-9]+")) {
                 int target = Integer.parseInt(message);
@@ -301,8 +299,8 @@ public class BuildCommandHandler implements Listener {
                 sender.sendMessage("  Output result as string:");
                 sender.sendMessage("    return <counter>");
             } else if (message.equals("functions")) {
-                HelpCommandHandler.addUser(sender, null);
-                passToHelpCommand.add(sender);
+                FunctionCommandHandler.addUser(sender, null);
+                passToFunctionCommand.add(sender);
             } else {
                 context = setContext(sender, context, message, BuildCommandHandler::addCommand);
                 context.doNextStep(sender, "");
@@ -499,10 +497,9 @@ public class BuildCommandHandler implements Listener {
             }
         }
         boolean debugMode = false;
-        IndentedLogger logger = new IgnoredIndentedLogger();
         try {
-            InternalArgument.addArgument(arg, dummyCommand, argument_keys, argument_variable_classes, debugMode, logger);
-            Argument argument = dummyCommand.getArguments().get(0);
+            InternalArgument.addArgument(arg, dummyCommand, argument_keys, argument_variable_classes, debugMode);
+            Argument<?> argument = dummyCommand.getArguments().get(0);
             return "Argument adds without problem, producing a " + argument.getClass().getSimpleName() + " with rawType: " + argument.getRawType().toString();
         } catch (IncorrectArgumentKey e) {
             return "Attempting to add argument throws error: " + e.getMessage();

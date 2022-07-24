@@ -1,6 +1,7 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
@@ -8,7 +9,6 @@ import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.HelperClasses.Expression;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AddThisArgumentConsumer;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import org.reflections.Reflections;
@@ -300,29 +300,29 @@ public abstract class InternalArgument implements FunctionCreator {
         addStaticFunctions(object.getClassToAddTo(), object.getAddedStaticFunctions());
     }
 
-    public static void createFunctionMaps(boolean debugMode, IndentedLogger logger){
-        if (debugMode) logger.info("Initializing function maps");
-        logger.increaseIndentation();
+    public static void createFunctionMaps(){
+        ConfigCommandsHandler.logNormal("Initializing function maps");
+        ConfigCommandsHandler.increaseIndentation();
         for(Class<? extends InternalArgument> clazz: AllInternalArguments.getFlat()) {
             InternalArgument object = getInternalArgument(clazz);
 
-            if(debugMode) logger.info(object.toString());
+            ConfigCommandsHandler.logDebug(object.toString());
             try {
                 functions.put(clazz, Map.ofEntries(object.getFunctions().toArray(new FunctionEntry[0])));
                 staticFunctions.put(clazz, Map.ofEntries(object.getStaticFunctions().toArray(new StaticFunctionEntry[0])));
             } catch (Exception e){
-                logger.warn(true, "Unexpected fatal exception when setting function map for " + object);
+                ConfigCommandsHandler.logError("Unexpected fatal exception when setting function map for %s", object);
 
                 try { object.getFunctions(); }
-                catch (Exception ignored){ logger.info("Couldn't get functions"); }
+                catch (Exception ignored){ ConfigCommandsHandler.logError("Couldn't get functions"); }
 
                 try { object.getStaticFunctions(); }
-                catch (Exception ignored){ logger.info("Couldn't get static functions"); }
+                catch (Exception ignored){ ConfigCommandsHandler.logError("Couldn't get static functions"); }
 
                 throw e;
             }
         }
-        logger.decreaseIndentation();
+        ConfigCommandsHandler.decreaseIndentation();
     }
 
     public static String formatArgumentName(String name){
@@ -338,21 +338,21 @@ public abstract class InternalArgument implements FunctionCreator {
     public static void addArgument(Map<?, ?> arg, CommandAPICommand command,
                                    ArrayList<String> argument_keys,
                                    HashMap<String, Class<? extends InternalArgument>> argument_variable_classes,
-                                   boolean debugMode, IndentedLogger logger)
+                                   boolean localDebug)
             throws IncorrectArgumentKey{
         String name = (String) arg.get("name");
         if(name == null) throw new IncorrectArgumentKey(arg.toString(), "name", "Key not found.");
         name = formatArgumentName(name);
-        if (debugMode) logger.info("Arg has name: " + name);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has name: " + name);
         if(argument_keys.contains(name)) throw new IncorrectArgumentKey(arg.toString(), "name", "Argument with this name already exists!");
 
         String type = (String) arg.get("type");
         if(type == null) throw new IncorrectArgumentKey(arg.toString(), "type", "Key not found.");
-        if (debugMode) logger.info("Arg has type: " + type);
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has type: " + type);
         if(!argumentMap.containsKey(type)) throw new IncorrectArgumentKey(arg.toString(), "type", "Type \"" + type + "\" was not found");
 
         try {
-            argumentMap.get(type).add(arg, command, name, argument_keys, argument_variable_classes, debugMode, logger);
+            argumentMap.get(type).add(arg, command, name, argument_keys, argument_variable_classes, localDebug);
         } catch (IncorrectArgumentKey e){
             throw e;
         } catch (Exception e){
@@ -379,7 +379,7 @@ public abstract class InternalArgument implements FunctionCreator {
     public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name,
                             ArrayList<String> argument_keys,
                             HashMap<String, Class<? extends InternalArgument>> argument_variable_classes,
-                            boolean debugMode, IndentedLogger logger) throws IncorrectArgumentKey{
+                            boolean localDebug) throws IncorrectArgumentKey{
         // default result from adding argument is to reject being added
         throw new IncorrectArgumentKey(arg.toString(), "type", getName() + " cannot be an argument");
     }

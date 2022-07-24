@@ -1,5 +1,7 @@
 package me.willkroboth.ConfigCommands.Commands;
 
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
@@ -33,42 +35,36 @@ public class ReloadCommandHandler {
         return commands.keySet().toArray(new String[0]);
     }
 
-    public static int reloadCommand(CommandSender sender, Object[] args) {
+    public static void reloadCommand(CommandSender sender, Object[] args) throws WrapperCommandSyntaxException {
         String name = (String) args[0];
         if(!commands.containsKey(name)){
-            sender.sendMessage("Command: \"" + name + "\" was not created by ConfigCommands.");
-            return 0;
+           throw CommandAPI.fail("Command: \"" + name + "\" was not created by ConfigCommands.");
         }
         ConfigCommandsHandler.reloadConfigFile();
         FileConfiguration config = ConfigCommandsHandler.getConfigFile();
         ConfigurationSection commandSection = config.getConfigurationSection("commands");
 
         if (commandSection == null || commandSection.getKeys(false).size() == 0) {
-            sender.sendMessage("No commands found in config.yml");
-            return 0;
+            throw CommandAPI.fail("No commands found in config.yml");
         }
 
         String key = nameToKey.get(name);
         ConfigurationSection command = commandSection.getConfigurationSection(key);
         if (command == null) {
-            sender.sendMessage("No data was found for the command");
-            return 0;
+            throw CommandAPI.fail("No data was found for the command");
         }
 
         List<String> commandsToRun = command.getStringList("commands");
         if (commandsToRun.size() == 0) {
-            sender.sendMessage(key + " has no commands. Skipping.");
-            return 0;
+            throw CommandAPI.fail(key + " has no commands. Skipping.");
         }
 
         try {
             commands.get(name).refreshExecutor(commandsToRun);
         } catch (RegistrationException e) {
-            sender.sendMessage("Could not apply new commands: " + e.getMessage());
-            return 0;
+            throw CommandAPI.fail("Could not apply new commands: " + e.getMessage());
         }
 
         sender.sendMessage("Command successfully updated!");
-        return 1;
     }
 }
