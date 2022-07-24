@@ -5,3 +5,15 @@
 /ConfigCommands-nms/ConfigCommands-1_18_2/target/
 /ConfigCommands-nms/ConfigCommands-1_19/target/
 /ConfigCommands-plugin/target/
+/ConfigCommands-plugin/dependency-reduced-pom.xml
+/.idea/
+/ConfigCommands.iml
+/ConfigCommands-nms/ConfigCommands-1_16_5/ConfigCommands-1_16_5.iml
+/ConfigCommands-nms/ConfigCommands-1_17/ConfigCommands-1_17.iml
+/ConfigCommands-nms/ConfigCommands-1_18/ConfigCommands-1_18.iml
+/ConfigCommands-nms/ConfigCommands-1_18_2/ConfigCommands-1_18_2.iml
+/ConfigCommands-nms/ConfigCommands-1_19/ConfigCommands-1_19.iml
+/ConfigCommands-core/ConfigCommands-core.iml
+/ConfigCommands-nms/ConfigCommands-nms.iml
+/ConfigCommands-nms/ConfigCommands-nms-dependency/ConfigCommands-nms-dependency.iml
+/ConfigCommands-plugin/ConfigCommands-plugin.iml
