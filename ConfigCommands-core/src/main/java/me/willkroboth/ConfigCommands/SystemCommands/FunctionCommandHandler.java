@@ -26,25 +26,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FunctionCommandHandler implements Listener {
-    private static final ArgumentTree argumentTree = new LiteralArgument("functions")
-            .withPermission("configcommands.system.functions")
-            .executes(FunctionCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
-            .then(new StringArgument("addOn")
-                    .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getAddOns))
-                    .then(new StringArgument("internalArgument")
-                            .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getInternalArguments))
-                            .then(new MultiLiteralArgument("static", "nonStatic")
-                                    .then(new GreedyStringArgument("function")
-                                            .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getFunctions))
-                                            .executes((CommandExecutor) FunctionCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
-                                    )
-                            )
-                    )
-            );
-
-    public static ArgumentTree getArgumentTree() {
-        return argumentTree;
+public class FunctionCommandHandler extends SystemCommandHandler implements Listener {
+    // command configuration
+    protected ArgumentTree getArgumentTree() {
+        return super.getArgumentTree()
+                .executes(FunctionCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                .then(new StringArgument("addOn")
+                        .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getAddOns))
+                        .then(new StringArgument("internalArgument")
+                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getInternalArguments))
+                                .then(new MultiLiteralArgument("static", "nonStatic")
+                                        .then(new GreedyStringArgument("function")
+                                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getFunctions))
+                                                .executes((CommandExecutor) FunctionCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                                        )
+                                )
+                        )
+                );
     }
 
     private static final String[] helpMessages = new String[]{
@@ -54,14 +52,15 @@ public class FunctionCommandHandler implements Listener {
             "\tUse tab-completion: /configcommands functions <addOn> <internalArgument> <(non)static> <function>"
     };
 
-    public static String[] getHelpMessages() {
+    protected String[] getHelpMessages() {
         return helpMessages;
     }
 
+    // command functions
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
-    // command functions
-    public static void addUser(CommandSender sender, Object[] ignored) {
+    // accessed by BuildCommandHandler
+    protected static void addUser(CommandSender sender, Object[] ignored) {
         sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
@@ -69,7 +68,7 @@ public class FunctionCommandHandler implements Listener {
         handleMessage(sender, "", null);
     }
 
-    public static void displayInformation(CommandSender sender, Object[] parameters) {
+    private static void displayInformation(CommandSender sender, Object[] parameters) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) parameters[0];
 
@@ -197,7 +196,7 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    public static String[] getAddOns(SuggestionInfo ignored) {
+    private static String[] getAddOns(SuggestionInfo ignored) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String[] out = new String[addOns.size()];
         for (int i = 0; i < addOns.size(); i++) {
@@ -225,7 +224,7 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    public static String[] getInternalArguments(SuggestionInfo info) {
+    private static String[] getInternalArguments(SuggestionInfo info) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
 
@@ -279,7 +278,7 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    public static String[] getFunctions(SuggestionInfo info) {
+    private static String[] getFunctions(SuggestionInfo info) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
 

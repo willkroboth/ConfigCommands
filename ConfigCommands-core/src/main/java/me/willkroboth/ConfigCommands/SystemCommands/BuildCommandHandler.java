@@ -1,14 +1,13 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.ArgumentTree;
-import dev.jorel.commandapi.arguments.LiteralArgument;
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.Argument;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,13 +23,10 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.*;
 
-public class BuildCommandHandler implements Listener {
-    private static final ArgumentTree argumentTree = new LiteralArgument("build")
-            .withPermission("configcommands.system.build")
-            .executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
-
-    public static ArgumentTree getArgumentTree() {
-        return argumentTree;
+public class BuildCommandHandler extends SystemCommandHandler implements Listener {
+    // command configuration
+    protected ArgumentTree getArgumentTree() {
+        return super.getArgumentTree().executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
     }
 
     private static final String[] helpMessages = new String[]{
@@ -40,16 +36,17 @@ public class BuildCommandHandler implements Listener {
             "\t/configcommands build"
     };
 
-    public static String[] getHelpMessages() {
+    protected String[] getHelpMessages() {
         return helpMessages;
     }
 
+
+    // command functions
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
     private static final Map<CommandSender, String> keysBeingEditing = new HashMap<>();
     private static final List<CommandSender> passToFunctionCommand = new ArrayList<>();
 
-    // command functions
-    public static void addUser(CommandSender sender, Object[] ignored) {
+    private static void addUser(CommandSender sender, Object[] ignored) {
         sender.sendMessage("Welcome to the ConfigCommand build menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
