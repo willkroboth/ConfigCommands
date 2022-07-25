@@ -1,6 +1,5 @@
 package me.willkroboth.ConfigCommands;
 
-import dev.jorel.commandapi.CommandTree;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
@@ -10,12 +9,12 @@ import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternal
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
-import me.willkroboth.ConfigCommands.SystemCommands.*;
+import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
+import me.willkroboth.ConfigCommands.SystemCommands.SystemCommandHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +117,7 @@ public class ConfigCommandsHandler {
 
         registerCommandsFromConfig();
 
-        setUpPluginCommands();
+        SystemCommandHandler.setUpCommands(plugin);
 
         logNormal("Done!");
     }
@@ -264,32 +263,6 @@ public class ConfigCommandsHandler {
                 }
             }
         }
-    }
-
-    private static void setUpPluginCommands() {
-        new CommandTree("configcommands")
-                .withPermission("configcommands")
-                .withHelp(
-                        HelpCommandHandler.getShortDescription(),
-                        HelpCommandHandler.getFullDescription()
-                )
-                .executes(HelpCommandHandler.getDefaultMessage())
-                // help command
-                .then(HelpCommandHandler.getArgumentTree())
-                // functions command
-                .then(FunctionCommandHandler.getArgumentTree())
-                // build command
-                .then(BuildCommandHandler.getArgumentTree())
-                // debug command
-                .then(DebugCommandHandler.getArgumentTree())
-                // reload command
-                .then(ReloadCommandHandler.getArgumentTree())
-                .register();
-
-        // register events
-        PluginManager manager = plugin.getServer().getPluginManager();
-        manager.registerEvents(new FunctionCommandHandler(), plugin);
-        manager.registerEvents(new BuildCommandHandler(), plugin);
     }
 }
 
