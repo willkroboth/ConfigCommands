@@ -20,16 +20,18 @@ public class DebugCommandHandler {
                     .executes(DebugCommandHandler.setGlobalDebug(true))
             ).then(new LiteralArgument("disable")
                     .executes(DebugCommandHandler.setGlobalDebug(false))
-            ).then(new StringArgument("command")
-                    .replaceSuggestions(ArgumentSuggestions.strings(DebugCommandHandler.getKeys()))
-                    .executes(DebugCommandHandler::sendLocalDebugMode)
-                    .then(new LiteralArgument("enable")
-                            .executes(DebugCommandHandler.setLocalDebug(true))
-                    ).then(new LiteralArgument("disable")
-                            .executes(DebugCommandHandler.setLocalDebug(false))
+            ).then(new LiteralArgument("local")
+                    .then(new StringArgument("command")
+                            .replaceSuggestions(ArgumentSuggestions.strings(DebugCommandHandler.getKeys()))
+                            .executes(DebugCommandHandler::sendLocalDebugMode)
+                            .then(new LiteralArgument("enable")
+                                    .executes(DebugCommandHandler.setLocalDebug(true))
+                            ).then(new LiteralArgument("disable")
+                                    .executes(DebugCommandHandler.setLocalDebug(false))
+                            )
                     )
             );
-
+    
     public static ArgumentTree getArgumentTree() {
         return argumentTree;
     }
