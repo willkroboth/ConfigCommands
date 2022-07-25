@@ -15,12 +15,12 @@ public class HelpCommandHandler extends SystemCommandHandler {
         ConfigCommandsHandler.increaseIndentation();
         ArgumentTree base = super.getArgumentTree();
 
-        ConfigCommandsHandler.logDebug("Adding help for branch help");
+        ConfigCommandsHandler.logDebug("Adding help for branch \"help\"");
         base.executes(sendMessages(getHelpMessages()));
 
         for (SystemCommandHandler command : getCommands()) {
             if (command != this) {
-                ConfigCommandsHandler.logDebug("Adding help for branch %s", command.getName());
+                ConfigCommandsHandler.logDebug("Adding help for branch \"%s\"", command.getName());
                 base.then(helpBranch(command.getName(), command.getHelpMessages()));
             }
         }
