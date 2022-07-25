@@ -13,7 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class DebugCommandHandler {
     private static final ArgumentTree argumentTree = new LiteralArgument("debug")
-            .withPermission("configcommands.debug")
+            .withPermission("configcommands.system.debug")
             .executes(DebugCommandHandler::sendGlobalDebugMode)
             .then(new LiteralArgument("enable")
                     .executes(DebugCommandHandler.setGlobalDebug(true))

@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class FunctionCommandHandler implements Listener {
     private static final ArgumentTree argumentTree = new LiteralArgument("functions")
-            .withPermission("configcommands.functions")
+            .withPermission("configcommands.system.functions")
             .executes(FunctionCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
             .then(new StringArgument("addOn")
                     .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getAddOns))

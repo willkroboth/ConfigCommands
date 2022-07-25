@@ -26,7 +26,7 @@ import java.util.*;
 
 public class BuildCommandHandler implements Listener {
     private static final ArgumentTree argumentTree = new LiteralArgument("build")
-            .withPermission("configcommands.build")
+            .withPermission("configcommands.system.build")
             .executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
 
     public static ArgumentTree getArgumentTree() {

@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ReloadCommandHandler {
     private static final ArgumentTree argumentTree = new LiteralArgument("reload")
-            .withPermission("configcommands.reload")
+            .withPermission("configcommands.system.reload")
             .then(new StringArgument("command")
                     .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler::getCommandNames))
                     .executes(ReloadCommandHandler::reloadCommand)

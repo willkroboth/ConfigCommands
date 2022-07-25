@@ -8,7 +8,6 @@ public class SystemCommandHandler {
     public static void setUpCommands(ConfigCommands plugin) {
         // register main commands
         new CommandTree("configcommands")
-                .withPermission("configcommands")
                 .withHelp(
                         HelpCommandHandler.getShortDescription(),
                         HelpCommandHandler.getFullDescription()

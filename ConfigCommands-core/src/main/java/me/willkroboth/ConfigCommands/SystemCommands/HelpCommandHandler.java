@@ -17,7 +17,7 @@ public class HelpCommandHandler {
         return helpMessages;
     }
     private static final ArgumentTree argumentTree =
-            helpBranch("help", HelpCommandHandler.getHelpMessages()).withPermission("configcommands.help")
+            helpBranch("help", HelpCommandHandler.getHelpMessages()).withPermission("configcommands.system.help")
             .then(helpBranch("build", BuildCommandHandler.getHelpMessages()))
             .then(helpBranch("debug", DebugCommandHandler.getHelpMessages()))
             .then(helpBranch("functions", FunctionCommandHandler.getHelpMessages()))
