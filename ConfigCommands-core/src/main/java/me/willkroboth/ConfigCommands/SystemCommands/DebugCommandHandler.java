@@ -41,7 +41,7 @@ public class DebugCommandHandler {
             "\tSee value of global debug: /configcommands debug",
             "\tTurn on global debug: /configcommands debug enable",
             "\tSee echo command's local debug: /configcommands debug local echo",
-            "\tSet echo command's local debug: /configcommands debug local echo enable"
+            "\tSet echo command's local debug: /configcommands debug local echo disable"
     };
 
     public static String[] getHelpMessages() {
