@@ -2,6 +2,7 @@ package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
@@ -21,7 +22,7 @@ public class ReloadCommandHandler {
     private static final ArgumentTree argumentTree = new LiteralArgument("reload")
             .withPermission("configcommands.reload")
             .then(new StringArgument("command")
-                    .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames()))
+                    .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler::getCommandNames))
                     .executes(ReloadCommandHandler::reloadCommand)
             );
 
@@ -56,7 +57,7 @@ public class ReloadCommandHandler {
         keyToName.put(newKey, name);
     }
 
-    public static String[] getCommandNames() {
+    public static String[] getCommandNames(SuggestionInfo suggestionInfo) {
         return commands.keySet().toArray(new String[0]);
     }
 
