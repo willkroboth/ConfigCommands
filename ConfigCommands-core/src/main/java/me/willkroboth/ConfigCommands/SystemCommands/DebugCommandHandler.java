@@ -11,14 +11,16 @@ import org.bukkit.configuration.ConfigurationSection;
 public class DebugCommandHandler {
     public static void sendGlobalDebugMode(CommandSender sender, Object[] ignored) {
         ConfigCommandsHandler.reloadConfigFile();
-        boolean debugMode = ConfigCommandsHandler.getConfigFile().getBoolean("debugMode", false);
+        boolean debugMode = ConfigCommandsHandler.getConfigFile().getBoolean("debug", false);
         sender.sendMessage("Global debug is currently " + (debugMode ? "enabled" : "disabled"));
     }
 
     public static CommandExecutor setGlobalDebug(boolean value) {
         return (sender, args) -> {
             ConfigCommandsHandler.reloadConfigFile();
-            ConfigCommandsHandler.getConfigFile().set("debugMode", value);
+            ConfigCommandsHandler.getConfigFile().set("debug", value);
+            ConfigCommandsHandler.saveConfigFile();
+
             sender.sendMessage("Global debug is currently " + (value ? "enabled" : "disabled"));
         };
     }
@@ -48,7 +50,9 @@ public class DebugCommandHandler {
             ConfigurationSection commands = ConfigCommandsHandler.getConfigFile().getConfigurationSection("commands");
             if (commands == null || !commands.getKeys(false).contains(key)) throw CommandAPI.fail("Command \"" + key + "\" dose not exist!");
 
-            commands.getConfigurationSection(key).set("debugMode", value);
+            commands.getConfigurationSection(key).set("debug", value);
+            ConfigCommandsHandler.saveConfigFile();
+
             sender.sendMessage("Debug for \"" + key + "\" is currently " + (value ? "enabled" : "disabled"));
         };
     }
