@@ -4,6 +4,7 @@ import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
+import org.bukkit.command.ConsoleCommandSender;
 
 import java.util.Arrays;
 
@@ -32,7 +33,13 @@ public class HelpCommandHandler extends SystemCommandHandler {
     }
 
     private static CommandExecutor sendMessages(String... messages) {
-        return (sender, args) -> Arrays.stream(messages).map(s -> s.replace("\t", "    ")).forEach(sender::sendMessage);
+        return (sender, args) -> {
+            if(!(sender instanceof ConsoleCommandSender)) {
+                Arrays.stream(messages).map(s -> s.replace("\t", "    ")).forEach(sender::sendMessage);
+            } else {
+                Arrays.stream(messages).forEach(sender::sendMessage);
+            }
+        };
     }
 
     private static final String[] helpMessages = new String[]{
