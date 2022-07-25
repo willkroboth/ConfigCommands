@@ -1,6 +1,10 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
+import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.LiteralArgument;
+import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
@@ -14,6 +18,15 @@ import java.util.List;
 import java.util.Map;
 
 public class ReloadCommandHandler {
+    public static ArgumentTree getArgumentTree() {
+        return new LiteralArgument("reload")
+                .withPermission("configcommands.reload")
+                .then(new StringArgument("command")
+                        .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames()))
+                        .executes(ReloadCommandHandler::reloadCommand)
+                );
+    }
+
     private static final Map<String, ConfigCommandBuilder> commands = new HashMap<>();
     private static final Map<String, String> nameToKey = new HashMap<>();
     private static final Map<String, String> keyToName = new HashMap<>();

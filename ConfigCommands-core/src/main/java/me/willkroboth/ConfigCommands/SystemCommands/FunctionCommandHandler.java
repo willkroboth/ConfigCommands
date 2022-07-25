@@ -1,5 +1,9 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
+import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.executors.CommandExecutor;
+import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
@@ -23,10 +27,30 @@ import java.util.List;
 import java.util.Map;
 
 public class FunctionCommandHandler implements Listener {
+    private static final ArgumentTree argumentTree = new LiteralArgument("functions")
+            .withPermission("configcommands.functions")
+            .executes(FunctionCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+            .then(new StringArgument("addOn")
+                    .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getAddOns))
+                    .then(new StringArgument("internalArgument")
+                            .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getInternalArguments))
+                            .then(new MultiLiteralArgument("static", "nonStatic")
+                                    .then(new GreedyStringArgument("function")
+                                            .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getFunctions))
+                                            .executes((CommandExecutor) FunctionCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                                    )
+                            )
+                    )
+            );
+
+    public static ArgumentTree getArgumentTree() {
+        return argumentTree;
+    }
+
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
     // command functions
-    public static void addUser(CommandSender sender, Object[] ignored){
+    public static void addUser(CommandSender sender, Object[] ignored) {
         sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
@@ -34,7 +58,7 @@ public class FunctionCommandHandler implements Listener {
         handleMessage(sender, "", null);
     }
 
-    public static void displayInformation(CommandSender sender, Object[] parameters){
+    public static void displayInformation(CommandSender sender, Object[] parameters) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) parameters[0];
 
@@ -45,7 +69,7 @@ public class FunctionCommandHandler implements Listener {
                 break;
             }
         }
-        if(!addOnExists) {
+        if (!addOnExists) {
             sender.sendMessage(ChatColor.RED + "Invalid command: addOn \"" + addOn + "\" does not exist");
             return;
         }
@@ -54,7 +78,7 @@ public class FunctionCommandHandler implements Listener {
 
         List<String> names = InternalArgument.getNames(internalArguments);
         String internalArgument = (String) parameters[1];
-        if(!names.contains(internalArgument)) {
+        if (!names.contains(internalArgument)) {
             sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for the given addOn");
             return;
         }
@@ -62,11 +86,11 @@ public class FunctionCommandHandler implements Listener {
 
         String staticChoice = (String) parameters[2];
 
-        if(staticChoice.equals("static")){
+        if (staticChoice.equals("static")) {
             Map<Definition, StaticFunction> functions = InternalArgument.getStaticFunctions(argument.getClass());
             Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases((String) parameters[3], functions);
-            if(aliases.size() == 0){
-                sender.sendMessage(ChatColor.RED + "Invalid command: did not find nonStatic function \"" +parameters[3] + "\" for the given internalArgument");
+            if (aliases.size() == 0) {
+                sender.sendMessage(ChatColor.RED + "Invalid command: did not find nonStatic function \"" + parameters[3] + "\" for the given internalArgument");
                 return;
             }
 
@@ -74,11 +98,11 @@ public class FunctionCommandHandler implements Listener {
             sender.sendMessage("Aliases: " + names);
 
             sender.sendMessage("Possible parameters:" + InternalArgument.getStaticParameterString(aliases));
-        } else if(staticChoice.equals("nonStatic")) {
+        } else if (staticChoice.equals("nonStatic")) {
             Map<Definition, Function> functions = InternalArgument.getFunctions(argument.getClass());
             Map<Definition, Function> aliases = InternalArgument.getAliases((String) parameters[3], functions);
-            if(aliases.size() == 0){
-                sender.sendMessage(ChatColor.RED + "Invalid command: did not find static function \"" +parameters[3] + "\" for the given internalArgument");
+            if (aliases.size() == 0) {
+                sender.sendMessage(ChatColor.RED + "Invalid command: did not find static function \"" + parameters[3] + "\" for the given internalArgument");
                 return;
             }
 
@@ -93,12 +117,12 @@ public class FunctionCommandHandler implements Listener {
 
     // events
     @EventHandler
-    public void onChatSent(AsyncPlayerChatEvent event){
+    public void onChatSent(AsyncPlayerChatEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
     @EventHandler
-    public void playerCommandPreprocess(PlayerCommandPreprocessEvent event){
+    public void playerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
@@ -109,42 +133,39 @@ public class FunctionCommandHandler implements Listener {
     }
 
     @EventHandler
-    public void onConsoleSent(ServerCommandEvent event){
+    public void onConsoleSent(ServerCommandEvent event) {
         handleMessage(event.getSender(), event.getCommand(), event);
     }
 
-    private static void handleMessage(CommandSender sender, String message, Cancellable event){
-        if(activeUsers.containsKey(sender)){
-            if(event != null) event.setCancelled(true);
-            if(sender instanceof Player) sender.sendMessage("");
-            if(message.equals("##")) {
+    private static void handleMessage(CommandSender sender, String message, Cancellable event) {
+        if (activeUsers.containsKey(sender)) {
+            if (event != null) event.setCancelled(true);
+            if (sender instanceof Player) sender.sendMessage("");
+            if (message.equals("##")) {
                 sender.sendMessage("Closing the ConfigCommand functions menu.");
                 activeUsers.remove(sender);
-            }
-            else if(message.equalsIgnoreCase("back")){
-                if(activeUsers.get(sender).getPreviousContext() == null) {
+            } else if (message.equalsIgnoreCase("back")) {
+                if (activeUsers.get(sender).getPreviousContext() == null) {
                     sender.sendMessage("No step to go back to.");
-                }
-                else {
+                } else {
                     activeUsers.put(sender, activeUsers.get(sender).getPreviousContext());
                     activeUsers.get(sender).doNextStep(sender, "");
                 }
-            }
-            else {
+            } else {
                 activeUsers.get(sender).doNextStep(sender, message);
             }
         }
     }
 
     // Help menu steps or command suggestions
-    private static CommandContext setContext(CommandSender sender, CommandContext previousContext, Object previousChoice, CommandStep nextStep){
+    private static CommandContext setContext(CommandSender sender, CommandContext previousContext, Object previousChoice, CommandStep nextStep) {
         CommandContext newContext = new CommandContext(previousContext, previousChoice, nextStep);
         activeUsers.put(sender, newContext);
         return newContext;
     }
 
-    private static void chooseAddOn(CommandSender sender, String message, CommandContext context){
-        if(message.isBlank()) {
+    private static void chooseAddOn(CommandSender sender, String message, CommandContext context) {
+        if (message.isBlank()) {
             List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
             if (addOns.size() == 1) {
                 context = setContext(sender, context, "ConfigCommands", FunctionCommandHandler::chooseInternalArgument);
@@ -154,20 +175,18 @@ public class FunctionCommandHandler implements Listener {
                 sender.sendMessage("Choose the AddOn you need help with.");
                 sender.sendMessage(addOns.toString());
             }
-        }
-        else {
+        } else {
             if (ConfigCommandsHandler.getAddOn(message) != null) {
                 context = setContext(sender, context, message, FunctionCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
-            }
-            else {
+            } else {
                 sender.sendMessage("\"" + message + "\" is not a recognized AddOn");
             }
         }
     }
 
-    public static String[] getAddOns(SuggestionInfo ignored){
+    public static String[] getAddOns(SuggestionInfo ignored) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String[] out = new String[addOns.size()];
         for (int i = 0; i < addOns.size(); i++) {
@@ -176,15 +195,14 @@ public class FunctionCommandHandler implements Listener {
         return out;
     }
 
-    private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context){
+    private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context) {
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments((String) context.getPreviousChoice());
-        if(message.isBlank()) {
+        if (message.isBlank()) {
             sender.sendMessage("Choose the InternalArgument you need help with.");
             sender.sendMessage(InternalArgument.getNames(internalArguments).toString());
-        }
-        else {
+        } else {
             List<String> names = InternalArgument.getNames(internalArguments);
-            if(names.contains(message)){
+            if (names.contains(message)) {
                 InternalArgument argument = internalArguments.get(names.indexOf(message));
 
                 context = setContext(sender, context, argument, FunctionCommandHandler::chooseFunction);
@@ -196,7 +214,7 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    public static String[] getInternalArguments(SuggestionInfo info){
+    public static String[] getInternalArguments(SuggestionInfo info) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
 
@@ -207,27 +225,26 @@ public class FunctionCommandHandler implements Listener {
                 break;
             }
         }
-        if(!addOnExists) return new String[0];
+        if (!addOnExists) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
         return InternalArgument.getNames(internalArguments).toArray(new String[0]);
     }
 
-    private static void chooseFunction(CommandSender sender, String message, CommandContext context){
-        if(message.isBlank()){
+    private static void chooseFunction(CommandSender sender, String message, CommandContext context) {
+        if (message.isBlank()) {
             sender.sendMessage("Choose the function you need help with.");
 
             Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
 
             sender.sendMessage("Functions: " + InternalArgument.getNames(InternalArgument.getFunctions(clazz)));
             sender.sendMessage("StaticFunctions: " + InternalArgument.getStaticNames(InternalArgument.getStaticFunctions(clazz)));
-        }
-        else {
+        } else {
             Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
 
             Map<Definition, Function> functions = InternalArgument.getFunctions(clazz);
             List<String> names = InternalArgument.getNames(functions);
-            if(names.contains(message)){
+            if (names.contains(message)) {
                 Map<Definition, Function> aliases = InternalArgument.getAliases(message, functions);
 
                 context = setContext(sender, context, aliases, FunctionCommandHandler::displayInformation);
@@ -238,7 +255,7 @@ public class FunctionCommandHandler implements Listener {
 
             Map<Definition, StaticFunction> staticFunctions = InternalArgument.getStaticFunctions(clazz);
             List<String> staticNames = InternalArgument.getStaticNames(staticFunctions);
-            if(staticNames.contains(message)){
+            if (staticNames.contains(message)) {
                 Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases(message, staticFunctions);
 
                 context = setContext(sender, context, aliases, FunctionCommandHandler::displayStaticInformation);
@@ -251,7 +268,7 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    public static String[] getFunctions(SuggestionInfo info){
+    public static String[] getFunctions(SuggestionInfo info) {
         List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
 
@@ -262,19 +279,19 @@ public class FunctionCommandHandler implements Listener {
                 break;
             }
         }
-        if(!addOnExists) return new String[0];
+        if (!addOnExists) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
         List<String> names = InternalArgument.getNames(internalArguments);
         String internalArgument = (String) info.previousArgs()[1];
-        if(!names.contains(internalArgument)) return new String[0];
+        if (!names.contains(internalArgument)) return new String[0];
         InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
 
         String staticChoice = (String) info.previousArgs()[2];
-        if(staticChoice.equals("static")){
+        if (staticChoice.equals("static")) {
             names = InternalArgument.getStaticNames(InternalArgument.getStaticFunctions(argument.getClass()));
-        } else if(staticChoice.equals("nonStatic")) {
+        } else if (staticChoice.equals("nonStatic")) {
             names = InternalArgument.getNames(InternalArgument.getFunctions(argument.getClass()));
         } else {
             return new String[0];
@@ -283,8 +300,8 @@ public class FunctionCommandHandler implements Listener {
         return names.toArray(new String[0]);
     }
 
-    private static void displayInformation(CommandSender sender, String message, CommandContext context){
-        if(message.isBlank()){
+    private static void displayInformation(CommandSender sender, String message, CommandContext context) {
+        if (message.isBlank()) {
             Map<Definition, Function> aliases = (Map<Definition, Function>) context.getPreviousChoice();
 
             List<String> names = InternalArgument.getNames(aliases);
@@ -296,8 +313,8 @@ public class FunctionCommandHandler implements Listener {
         }
     }
 
-    private static void displayStaticInformation(CommandSender sender, String message, CommandContext context){
-        if(message.isBlank()){
+    private static void displayStaticInformation(CommandSender sender, String message, CommandContext context) {
+        if (message.isBlank()) {
             Map<Definition, StaticFunction> aliases = (Map<Definition, StaticFunction>) context.getPreviousChoice();
 
             List<String> names = InternalArgument.getStaticNames(aliases);

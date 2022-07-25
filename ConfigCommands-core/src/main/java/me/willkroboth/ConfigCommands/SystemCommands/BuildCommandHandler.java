@@ -1,5 +1,8 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
+import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.arguments.LiteralArgument;
+import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
@@ -22,12 +25,20 @@ import org.bukkit.event.server.ServerCommandEvent;
 import java.util.*;
 
 public class BuildCommandHandler implements Listener {
+    private static final ArgumentTree argumentTree = new LiteralArgument("build")
+            .withPermission("configcommands.build")
+            .executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
+
+    public static ArgumentTree getArgumentTree() {
+        return argumentTree;
+    }
+
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
     private static final Map<CommandSender, String> keysBeingEditing = new HashMap<>();
     private static final List<CommandSender> passToFunctionCommand = new ArrayList<>();
 
     // command functions
-    public static void addUser(CommandSender sender, Object[] ignored){
+    public static void addUser(CommandSender sender, Object[] ignored) {
         sender.sendMessage("Welcome to the ConfigCommand build menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
@@ -36,13 +47,13 @@ public class BuildCommandHandler implements Listener {
         handleMessage(sender, "", null);
     }
 
-    private static CommandContext setContext(CommandSender sender, CommandContext previousContext, Object previousChoice, CommandStep nextStep){
+    private static CommandContext setContext(CommandSender sender, CommandContext previousContext, Object previousChoice, CommandStep nextStep) {
         CommandContext newContext = new CommandContext(previousContext, previousChoice, nextStep);
         activeUsers.put(sender, newContext);
         return newContext;
     }
 
-    private static CommandContext goBack(CommandSender sender, int steps, CommandContext currentContext){
+    private static CommandContext goBack(CommandSender sender, int steps, CommandContext currentContext) {
         CommandContext newContext = currentContext;
         for (int i = 0; i < steps; i++) {
             newContext = newContext.getPreviousContext();
@@ -52,18 +63,18 @@ public class BuildCommandHandler implements Listener {
         return newContext;
     }
 
-    private static void goBackStep(CommandSender sender, String message, CommandContext context){
+    private static void goBackStep(CommandSender sender, String message, CommandContext context) {
         handleMessage(sender, "back", null);
     }
 
     // events
     @EventHandler
-    public void onChatSent(AsyncPlayerChatEvent event){
+    public void onChatSent(AsyncPlayerChatEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
     @EventHandler
-    public void playerCommandPreprocess(PlayerCommandPreprocessEvent event){
+    public void playerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
@@ -75,7 +86,7 @@ public class BuildCommandHandler implements Listener {
     }
 
     @EventHandler
-    public void onConsoleSent(ServerCommandEvent event){
+    public void onConsoleSent(ServerCommandEvent event) {
         handleMessage(event.getSender(), event.getCommand(), event);
     }
 
@@ -119,18 +130,18 @@ public class BuildCommandHandler implements Listener {
         FileConfiguration config = ConfigCommandsHandler.getConfigFile();
         ConfigurationSection commands = config.getConfigurationSection("commands");
 
-        if(commands == null){
+        if (commands == null) {
             config.createSection("commands");
             commands = config.getConfigurationSection("commands");
         }
         assert commands != null;
         Set<String> keys = commands.getKeys(false);
 
-        if (message.isBlank()){
-            if(keys.size() != 0) {
-                sender.sendMessage("Found " + keys.size() + " command" + (keys.size() == 1? "": "s") + " to edit");
+        if (message.isBlank()) {
+            if (keys.size() != 0) {
+                sender.sendMessage("Found " + keys.size() + " command" + (keys.size() == 1 ? "" : "s") + " to edit");
                 sender.sendMessage("Type one of the following keys to edit:");
-                for(String key:keys) {
+                for (String key : keys) {
                     sender.sendMessage("  " + key);
                 }
                 sender.sendMessage("Or type \"create\" to make a new command");
@@ -139,15 +150,15 @@ public class BuildCommandHandler implements Listener {
                 sender.sendMessage("Type \"create\" to make a new command");
             }
         } else {
-            if(keys.contains(message)){
-                if(keysBeingEditing.containsValue(message)){
+            if (keys.contains(message)) {
+                if (keysBeingEditing.containsValue(message)) {
                     sender.sendMessage("Someone else is currently editing that command!");
                 } else {
                     keysBeingEditing.put(sender, message);
                     context = setContext(sender, context, message, BuildCommandHandler::editCommand);
                     context.doNextStep(sender, "");
                 }
-            } else if(message.equals("create")){
+            } else if (message.equals("create")) {
                 context = setContext(sender, context, "", BuildCommandHandler::createCommand);
                 context.doNextStep(sender, "");
             } else {
@@ -157,14 +168,14 @@ public class BuildCommandHandler implements Listener {
     }
 
     private static void createCommand(CommandSender sender, String message, CommandContext context) {
-        if (message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("What key should the command be stored under?");
         } else {
             FileConfiguration config = ConfigCommandsHandler.getConfigFile();
             ConfigurationSection commands = config.getConfigurationSection("commands");
             assert commands != null;
             Set<String> keys = commands.getKeys(false);
-            if(!keys.contains(message)){
+            if (!keys.contains(message)) {
                 commands.createSection(message);
 
                 context = goBack(sender, 1, context);
@@ -178,7 +189,7 @@ public class BuildCommandHandler implements Listener {
 
     private static void editCommand(CommandSender sender, String message, CommandContext context) {
         String key = (String) context.getPreviousChoice();
-        if(message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("Editing command with key \"" + key + "\"");
             sender.sendMessage("Select one of the following options using its number to continue:");
             sender.sendMessage("  1. See current info");
@@ -191,8 +202,7 @@ public class BuildCommandHandler implements Listener {
             sender.sendMessage("  8. Edit aliases");
             sender.sendMessage("  9. Edit commands");
             sender.sendMessage("  10. Delete entire command");
-        }
-        else {
+        } else {
             CommandStep nextStep = switch (message) {
                 case "1" -> BuildCommandHandler::seeInfo;
                 case "2" -> BuildCommandHandler::changeKey;
@@ -206,7 +216,7 @@ public class BuildCommandHandler implements Listener {
                 case "10" -> BuildCommandHandler::deleteCommand;
                 default -> null;
             };
-            if(nextStep == null) {
+            if (nextStep == null) {
                 sender.sendMessage("Message \"" + message + "\" is not a number from 1 to 10");
                 return;
             }
@@ -217,13 +227,12 @@ public class BuildCommandHandler implements Listener {
 
     private static void deleteCommand(CommandSender sender, String message, CommandContext context) {
         String key = (String) context.getPreviousChoice();
-        if(message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("Are you sure you want to delete command: \"" + key + "\"?");
             sender.sendMessage(ChatColor.YELLOW + "THIS ACTION CANNOT BE UNDONE");
             sender.sendMessage("Type \"yes\" to confirm or anything else to go back.");
-        }
-        else {
-            if(message.equals("yes")){
+        } else {
+            if (message.equals("yes")) {
                 FileConfiguration config = ConfigCommandsHandler.getConfigFile();
                 ConfigurationSection commands = config.getConfigurationSection("commands");
                 assert commands != null;
@@ -319,7 +328,7 @@ public class BuildCommandHandler implements Listener {
 
         String newCommand = (String) context.getPreviousChoice();
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             if (commandList.size() == 0) {
                 commandList.add(newCommand);
                 command.set("commands", commandList);
@@ -335,9 +344,9 @@ public class BuildCommandHandler implements Listener {
                 sender.sendMessage("Type an index to place the new command at");
             }
         } else {
-            if(message.matches("[0-9]+")){
+            if (message.matches("[0-9]+")) {
                 int target = Integer.parseInt(message);
-                if(0 <= target && target <= commandList.size()){
+                if (0 <= target && target <= commandList.size()) {
                     commandList.add(target, newCommand);
                     command.set("commands", commandList);
                     ConfigCommandsHandler.saveConfigFile();
@@ -362,25 +371,25 @@ public class BuildCommandHandler implements Listener {
         assert command != null;
         List<Map<?, ?>> args = command.getMapList("args");
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             if (args.size() == 0) {
                 sender.sendMessage("No arguments");
                 sender.sendMessage("Type anything to start creating an argument with that name");
             } else {
                 sender.sendMessage("Current arguments:");
                 for (int i = 0; i < args.size(); i++) {
-                    sender.sendMessage("  " + (i+1) + ". " + args.get(i));
+                    sender.sendMessage("  " + (i + 1) + ". " + args.get(i));
                 }
                 sender.sendMessage("Type a number to edit the corresponding argument");
                 sender.sendMessage("Type anything else to start creating an argument with that name");
             }
         } else {
-            if(message.matches("[0-9]+")){
+            if (message.matches("[0-9]+")) {
                 int target = Integer.parseInt(message);
-                if(0 < target && target <= args.size()){
+                if (0 < target && target <= args.size()) {
                     // skip step that chooses type
-                    context = setContext(sender, context, args.get(target-1), BuildCommandHandler::goBackStep);
-                    context = setContext(sender, context, args.get(target-1), BuildCommandHandler::addParametersToArgument);
+                    context = setContext(sender, context, args.get(target - 1), BuildCommandHandler::goBackStep);
+                    context = setContext(sender, context, args.get(target - 1), BuildCommandHandler::addParametersToArgument);
                     context.doNextStep(sender, "");
                 } else {
                     sender.sendMessage("Given number is not in range 1 to " + args.size());
@@ -388,17 +397,16 @@ public class BuildCommandHandler implements Listener {
             } else {
                 message = InternalArgument.formatArgumentName(message);
                 boolean nameUsedBefore = false;
-                for(Map<?, ?> arg:args){
+                for (Map<?, ?> arg : args) {
                     String name = (String) arg.get("name");
-                    if(name != null && message.equals(InternalArgument.formatArgumentName(name))){
+                    if (name != null && message.equals(InternalArgument.formatArgumentName(name))) {
                         nameUsedBefore = true;
                         break;
                     }
                 }
-                if(nameUsedBefore) {
+                if (nameUsedBefore) {
                     sender.sendMessage("Name " + message + " is already in use!");
-                }
-                else {
+                } else {
                     sender.sendMessage("Creating argument with name: \"" + message + "\"");
                     Map<String, String> arg = new HashMap<>();
                     arg.put("name", message);
@@ -411,13 +419,13 @@ public class BuildCommandHandler implements Listener {
     }
 
     private static void chooseTypeForArgument(CommandSender sender, String message, CommandContext context) {
-        if(message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("What will the argument type be?");
             sender.sendMessage("Type '?' for a list of valid argument types");
-        } else if(message.equals("?")) {
+        } else if (message.equals("?")) {
             sender.sendMessage("Argument types:");
             sender.sendMessage(InternalArgument.getArgumentTypes().toString());
-        } else if(InternalArgument.getArgumentTypes().contains(message)) {
+        } else if (InternalArgument.getArgumentTypes().contains(message)) {
             Map<String, String> arg = (Map<String, String>) context.getPreviousChoice();
             arg.put("type", message);
 
@@ -441,18 +449,18 @@ public class BuildCommandHandler implements Listener {
         Map<String, String> arg = (Map<String, String>) context.getPreviousChoice();
 
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("Current argument: " + arg.toString());
             sender.sendMessage(testArgument(arg, args));
             sender.sendMessage("Create a new key or overwrite an old one by typing \"key:value\"");
             sender.sendMessage("Delete a key by typing \"key:\"");
             sender.sendMessage("Delete the argument by typing \"delete\"");
             sender.sendMessage("Finish adding the argument by typing \"confirm\"");
-        } else if(message.equals("confirm")){
+        } else if (message.equals("confirm")) {
             context = setContext(sender, context, key, BuildCommandHandler::addArgument);
 
             context.doNextStep(sender, "");
-        } else if(message.equals("delete")){
+        } else if (message.equals("delete")) {
             args.remove(arg);
             command.set("args", args);
             ConfigCommandsHandler.saveConfigFile();
@@ -461,16 +469,16 @@ public class BuildCommandHandler implements Listener {
             context.doNextStep(sender, "");
         } else {
             String[] parts = message.split(":", 2);
-            if(parts.length != 2){
+            if (parts.length != 2) {
                 sender.sendMessage("Unknown \"key:value\" format.");
-            } else{
+            } else {
                 String argKey = parts[0];
-                if(argKey.isBlank()){
+                if (argKey.isBlank()) {
                     sender.sendMessage("key cannot be blank");
                     return;
                 }
                 String argValue = parts[1];
-                if(argValue.isBlank()){
+                if (argValue.isBlank()) {
                     arg.remove(argKey);
                     sender.sendMessage("Removed key: " + argKey);
                 } else {
@@ -482,16 +490,16 @@ public class BuildCommandHandler implements Listener {
         }
     }
 
-    private static String testArgument(Map<String, String> arg, List<Map<?, ?>> previousArgs){
+    private static String testArgument(Map<String, String> arg, List<Map<?, ?>> previousArgs) {
         CommandAPICommand dummyCommand = new CommandAPICommand("dummy");
         ArrayList<String> argument_keys = new ArrayList<>();
         HashMap<String, Class<? extends InternalArgument>> argument_variable_classes = new HashMap<>();
-        for(Map.Entry<String, Class<? extends InternalArgument>> preArg: ConfigCommandBuilder.getDefaultArgs().entrySet()) {
+        for (Map.Entry<String, Class<? extends InternalArgument>> preArg : ConfigCommandBuilder.getDefaultArgs().entrySet()) {
             argument_keys.add(preArg.getKey());
             argument_variable_classes.put(preArg.getKey(), preArg.getValue());
         }
-        for(Map<?, ?> preArg: previousArgs){
-            if(!preArg.equals(arg)) {
+        for (Map<?, ?> preArg : previousArgs) {
+            if (!preArg.equals(arg)) {
                 argument_keys.add((String) preArg.get("name"));
                 argument_variable_classes.put((String) preArg.get("name"), InternalArgument.class);
             }
@@ -519,7 +527,7 @@ public class BuildCommandHandler implements Listener {
 
         args.remove(arg);
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             if (args.size() == 0) {
                 sender.sendMessage("Added argument: " + arg);
                 args.add(arg);
@@ -531,23 +539,23 @@ public class BuildCommandHandler implements Listener {
             } else {
                 sender.sendMessage("Current arguments:");
                 for (int i = 0; i < args.size(); i++) {
-                    sender.sendMessage("  " + (i+1) + ". " + args.get(i));
+                    sender.sendMessage("  " + (i + 1) + ". " + args.get(i));
                 }
                 sender.sendMessage("Adding argument: " + arg);
                 sender.sendMessage("Type an index to place the new argument at");
             }
         } else {
-            if(message.matches("[0-9]+")){
+            if (message.matches("[0-9]+")) {
                 int target = Integer.parseInt(message);
-                if(0 < target && target <= args.size()+1){
-                    args.add(target-1, arg);
+                if (0 < target && target <= args.size() + 1) {
+                    args.add(target - 1, arg);
                     command.set("args", args);
                     ConfigCommandsHandler.saveConfigFile();
 
                     context = goBack(sender, 3, context);
                     context.doNextStep(sender, "");
                 } else {
-                    sender.sendMessage("Given number is not in range 1 to " + (args.size()+1));
+                    sender.sendMessage("Given number is not in range 1 to " + (args.size() + 1));
                 }
             } else {
                 sender.sendMessage("Cannot recognize message \"" + message + "\" as number");
@@ -564,24 +572,24 @@ public class BuildCommandHandler implements Listener {
         assert command != null;
         List<String> aliases = command.getStringList("aliases");
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             if (aliases.size() == 0) {
                 sender.sendMessage("No aliases");
                 sender.sendMessage("Type anything to add it as an alias");
             } else {
                 sender.sendMessage("Current aliases:");
                 for (int i = 0; i < aliases.size(); i++) {
-                    sender.sendMessage("  " + (i+1) + ". " + aliases.get(i));
+                    sender.sendMessage("  " + (i + 1) + ". " + aliases.get(i));
                 }
                 sender.sendMessage("Type a number to delete the corresponding alias");
                 sender.sendMessage("Type anything else to add it as an alias");
             }
         } else {
-            if(message.matches("[0-9]+")){
+            if (message.matches("[0-9]+")) {
                 int target = Integer.parseInt(message);
-                if(0 < target && target <= aliases.size()){
-                    sender.sendMessage("Deleting alias \"" + aliases.get(target-1) + "\"");
-                    aliases.remove(target-1);
+                if (0 < target && target <= aliases.size()) {
+                    sender.sendMessage("Deleting alias \"" + aliases.get(target - 1) + "\"");
+                    aliases.remove(target - 1);
                     command.set("aliases", aliases);
                     ConfigCommandsHandler.saveConfigFile();
 
@@ -610,13 +618,13 @@ public class BuildCommandHandler implements Listener {
         ConfigurationSection command = commands.getConfigurationSection(key);
         assert command != null;
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             String permission = command.getString("permission");
             if (permission == null) {
                 sender.sendMessage("Current permission is null");
                 String name = command.getString("name");
                 sender.sendMessage("Default permission is \"" +
-                        ConfigCommandBuilder.getDefaultPermission(name == null? key:name) + "\""
+                        ConfigCommandBuilder.getDefaultPermission(name == null ? key : name) + "\""
                 );
             } else {
                 sender.sendMessage("Current permission: \"" + permission + "\"");
@@ -631,7 +639,7 @@ public class BuildCommandHandler implements Listener {
         }
     }
 
-    private static void handleSimpleChange(CommandSender sender, String message, CommandContext context, String section){
+    private static void handleSimpleChange(CommandSender sender, String message, CommandContext context, String section) {
         String key = (String) context.getPreviousChoice();
 
         FileConfiguration config = ConfigCommandsHandler.getConfigFile();
@@ -640,7 +648,7 @@ public class BuildCommandHandler implements Listener {
         ConfigurationSection command = commands.getConfigurationSection(key);
         assert command != null;
 
-        if(message.isBlank()){
+        if (message.isBlank()) {
             String value = command.getString(section);
             if (value == null) {
                 sender.sendMessage("Current " + section + " is null");
@@ -671,7 +679,7 @@ public class BuildCommandHandler implements Listener {
 
     private static void changeKey(CommandSender sender, String message, CommandContext context) {
         String key = (String) context.getPreviousChoice();
-        if(message.isBlank()){
+        if (message.isBlank()) {
             sender.sendMessage("Current key: " + key);
             sender.sendMessage("What would you like the new key to be?");
         } else {
@@ -679,7 +687,7 @@ public class BuildCommandHandler implements Listener {
             ConfigurationSection commands = config.getConfigurationSection("commands");
             assert commands != null;
             Set<String> keys = commands.getKeys(false);
-            if(!keys.contains(message)){
+            if (!keys.contains(message)) {
                 commands.set(message, commands.get(key));
                 keysBeingEditing.put(sender, message);
 
@@ -697,7 +705,7 @@ public class BuildCommandHandler implements Listener {
     }
 
     private static void seeInfo(CommandSender sender, String message, CommandContext context) {
-        if(message.isBlank()) {
+        if (message.isBlank()) {
             String key = (String) context.getPreviousChoice();
 
             FileConfiguration config = ConfigCommandsHandler.getConfigFile();
@@ -710,21 +718,21 @@ public class BuildCommandHandler implements Listener {
             sender.sendMessage("  Name: \"" + command.getString("name") + "\"");
 
             List<String> aliases = command.getStringList("aliases");
-            if(aliases.size() == 0){
+            if (aliases.size() == 0) {
                 sender.sendMessage("  No Aliases");
             } else {
                 sender.sendMessage("  Aliases:");
-                for (String alias: aliases){
+                for (String alias : aliases) {
                     sender.sendMessage("    " + alias);
                 }
             }
 
             List<Map<?, ?>> args = command.getMapList("args");
-            if(args.size() == 0){
+            if (args.size() == 0) {
                 sender.sendMessage("  No Arguments");
             } else {
                 sender.sendMessage("  Arguments:");
-                for (Map<?, ?> arg: args){
+                for (Map<?, ?> arg : args) {
                     sender.sendMessage("    " + arg.toString());
                 }
             }
@@ -734,12 +742,12 @@ public class BuildCommandHandler implements Listener {
             sender.sendMessage("  Full Description: \"" + command.getString("fullDescription") + "\"");
 
             List<String> commandsToRun = command.getStringList("commands");
-            if(commandsToRun.size() == 0){
+            if (commandsToRun.size() == 0) {
                 sender.sendMessage("  No Commands");
             } else {
                 sender.sendMessage("  Commands:");
-                for (int i = 0; i < commandsToRun.size(); i++){
-                    sender.sendMessage("    " + (i) + ". "  + commandsToRun.get(i));
+                for (int i = 0; i < commandsToRun.size(); i++) {
+                    sender.sendMessage("    " + (i) + ". " + commandsToRun.get(i));
                 }
             }
 
