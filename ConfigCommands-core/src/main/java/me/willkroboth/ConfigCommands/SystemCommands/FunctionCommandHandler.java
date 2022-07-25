@@ -51,7 +51,7 @@ public class FunctionCommandHandler implements Listener {
             "Displays information about the available ConfigCommands functions",
             "Usage:",
             "\tBring up guided menu: /configcommands functions",
-            "\tUse tab-completion: /configcommands <functions> <addOn> <internalArgument> <(non)static> <function>"
+            "\tUse tab-completion: /configcommands functions <addOn> <internalArgument> <(non)static> <function>"
     };
 
     public static String[] getHelpMessages() {
