@@ -18,13 +18,25 @@ import java.util.List;
 import java.util.Map;
 
 public class ReloadCommandHandler {
+    private static final ArgumentTree argumentTree = new LiteralArgument("reload")
+            .withPermission("configcommands.reload")
+            .then(new StringArgument("command")
+                    .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames()))
+                    .executes(ReloadCommandHandler::reloadCommand)
+            );
+
     public static ArgumentTree getArgumentTree() {
-        return new LiteralArgument("reload")
-                .withPermission("configcommands.reload")
-                .then(new StringArgument("command")
-                        .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler.getCommandNames()))
-                        .executes(ReloadCommandHandler::reloadCommand)
-                );
+        return argumentTree;
+    }
+
+    private static final String[] helpMessages = new String[]{
+            "Reloads a command's code from the config.yml, allowing its behavior to change without restarting the server.",
+            "Usage:",
+            "\t/configcommands reload <command>"
+    };
+
+    public static String[] getHelpMessages() {
+        return helpMessages;
     }
 
     private static final Map<String, ConfigCommandBuilder> commands = new HashMap<>();

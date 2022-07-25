@@ -47,6 +47,17 @@ public class FunctionCommandHandler implements Listener {
         return argumentTree;
     }
 
+    private static final String[] helpMessages = new String[]{
+            "Displays information about the available ConfigCommands functions",
+            "Usage:",
+            "\tBring up guided menu: /configcommands functions",
+            "\tUse tab-completion: /configcommands <functions> <addOn> <internalArgument> <(non)static> <function>"
+    };
+
+    public static String[] getHelpMessages() {
+        return helpMessages;
+    }
+
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
     // command functions

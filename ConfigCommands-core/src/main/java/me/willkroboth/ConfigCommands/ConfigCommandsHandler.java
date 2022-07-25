@@ -1,8 +1,6 @@
 package me.willkroboth.ConfigCommands;
 
 import dev.jorel.commandapi.CommandTree;
-import dev.jorel.commandapi.executors.CommandExecutor;
-import me.willkroboth.ConfigCommands.SystemCommands.*;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
@@ -12,6 +10,7 @@ import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternal
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
+import me.willkroboth.ConfigCommands.SystemCommands.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -271,12 +270,10 @@ public class ConfigCommandsHandler {
         new CommandTree("configcommands")
                 .withPermission("configcommands")
                 .withHelp(
-                        "A command for interacting with the ConfigCommands system",
-                        "Different systems are accessed using their keywords. For help with a specific system, use /configcommands help [keyword]"
+                        HelpCommandHandler.getShortDescription(),
+                        HelpCommandHandler.getFullDescription()
                 )
-                .executes((CommandExecutor) (sender, args) ->
-                        sender.sendMessage("A command for interacting with the ConfigCommands system. For help with using this command for a specific section, use /configcommands help [keyword].")
-                )
+                .executes(HelpCommandHandler.getDefaultMessage())
                 // help command
                 .then(HelpCommandHandler.getArgumentTree())
                 // functions command

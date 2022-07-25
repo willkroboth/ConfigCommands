@@ -33,6 +33,17 @@ public class BuildCommandHandler implements Listener {
         return argumentTree;
     }
 
+    private static final String[] helpMessages = new String[]{
+            "Opens a menu that guides users through creating a new command",
+            "Enables creating, editing, and deleting commands in-game",
+            "Usage:",
+            "\t/configcommands build"
+    };
+
+    public static String[] getHelpMessages() {
+        return helpMessages;
+    }
+
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
     private static final Map<CommandSender, String> keysBeingEditing = new HashMap<>();
     private static final List<CommandSender> passToFunctionCommand = new ArrayList<>();

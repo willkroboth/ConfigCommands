@@ -2,7 +2,6 @@ package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
@@ -31,9 +30,22 @@ public class DebugCommandHandler {
                             )
                     )
             );
-    
+
     public static ArgumentTree getArgumentTree() {
         return argumentTree;
+    }
+
+    private static final String[] helpMessages = new String[]{
+            "Allows setting and viewing the values currently set for global and local debug",
+            "Usage:",
+            "\tSee value of global debug: /configcommands debug",
+            "\tTurn on global debug: /configcommands debug enable",
+            "\tSee echo command's local debug: /configcommands debug local echo",
+            "\tSet echo command's local debug: /configcommands debug local echo enable"
+    };
+
+    public static String[] getHelpMessages() {
+        return helpMessages;
     }
 
     public static void sendGlobalDebugMode(CommandSender sender, Object[] ignored) {
