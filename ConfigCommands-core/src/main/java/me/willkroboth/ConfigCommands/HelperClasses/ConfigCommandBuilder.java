@@ -4,12 +4,127 @@ import dev.jorel.commandapi.CommandAPICommand;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.*;
 import me.willkroboth.ConfigCommands.InternalArguments.*;
+import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 
 public class ConfigCommandBuilder extends CommandAPICommand {
-    public static String getDefaultPermission(String name){
+    public static void registerCommandsFromConfig(ConfigurationSection commands, boolean globalDebug) {
+        if(commands == null){
+            ConfigCommandsHandler.logDebug(globalDebug, "The configuration section for the commands was not found! Skipping");
+            return;
+        }
+
+        ConfigCommandsHandler.logDebug(globalDebug, "Registering commands from %s", commands.getCurrentPath());
+        if (commands.getKeys(false).size() == 0) {
+            ConfigCommandsHandler.logNormal("No commands found! Skipping");
+            return;
+        }
+
+        List<String> failedCommands = new ArrayList<>();
+        for (String key : commands.getKeys(false)) {
+            ConfigCommandsHandler.logNormal("Loading command %s", key);
+
+            // vital data needed for command to work
+            ConfigurationSection command = commands.getConfigurationSection(key);
+            if (command == null) {
+                ConfigCommandsHandler.logError("%s has no data. Skipping.", key);
+                failedCommands.add("(key) " + key + ": No data found!");
+                continue;
+            }
+
+            boolean localDebug = command.getBoolean("debug", false);
+            ConfigCommandsHandler.logDebug(localDebug && !globalDebug, "Debug turned on for %s", key);
+            localDebug = globalDebug || localDebug;
+
+            String name = (String) command.get("name");
+            if (name == null) {
+                ConfigCommandsHandler.logError("%s has no command name. Skipping.", key);
+                failedCommands.add("(key) " + key + ": No name found!");
+                continue;
+            }
+
+            ConfigCommandsHandler.logDebug(localDebug, "%s has name %s", key, name);
+
+            List<String> commandsToRun = command.getStringList("commands");
+            if (commandsToRun.size() == 0) {
+                ConfigCommandsHandler.logError("%s has no commands. Skipping.", key);
+                failedCommands.add("(name) " + name + ": No commands found!");
+                continue;
+            }
+
+            ConfigCommandsHandler.logDebug(localDebug, "%s has %s command(s): %s", key, commandsToRun.size(), commandsToRun);
+
+            // less important, but will warn user if they don't exist
+            String shortDescription = command.getString("shortDescription");
+            if (shortDescription == null) ConfigCommandsHandler.logWarning("%s has no shortDescription.", key);
+            ConfigCommandsHandler.logDebug(localDebug, "%s has shortDescription: %s", key, shortDescription);
+
+            String fullDescription = command.getString("fullDescription");
+            if (fullDescription == null) ConfigCommandsHandler.logWarning("%s has no fullDescription.", key);
+            ConfigCommandsHandler.logDebug(localDebug, "%s has fullDescription: %s", key, fullDescription);
+
+            String permission = command.getString("permission");
+            if (permission == null) {
+                permission = buildDefaultPermission(name);
+                ConfigCommandsHandler.logWarning("%s has no permission. Using \"%s\".", key, permission);
+            }
+            ConfigCommandsHandler.logDebug(localDebug, "%s has permission %s", key, permission);
+
+            // Don't need to warn user about these
+            List<Map<?, ?>> args = command.getMapList("args");
+            ConfigCommandsHandler.logDebug(localDebug, key + " has args: " + args);
+
+            List<String> aliases = command.getStringList("aliases");
+            ConfigCommandsHandler.logDebug(localDebug, "%s has %s alias(es): %s", key, aliases.size(), aliases);
+
+            // register command
+            ConfigCommandsHandler.logNormal("Loading %s with name: %s", key, name);
+            int indentation = ConfigCommandsHandler.getIndentation();
+            ConfigCommandsHandler.increaseIndentation();
+            try {
+                ReloadCommandHandler.addCommand(
+                        new ConfigCommandBuilder(
+                                name, shortDescription, fullDescription, args,
+                                aliases, permission, commandsToRun, localDebug
+                        ),
+                        key
+                );
+            } catch (RegistrationException e) {
+                ConfigCommandsHandler.logError("Registration error: \"%s\" Skipping registration", e.getMessage());
+                failedCommands.add("(name) " + name + ": Registration error: \"" + e.getMessage() + "\"");
+            }
+            // reset indentation in case of error
+            ConfigCommandsHandler.setIndentation(indentation);
+        }
+
+        // inform user of failed commands
+        if (failedCommands.size() == 0) {
+            ConfigCommandsHandler.logNormal("All commands were successfully registered.");
+            ConfigCommandsHandler.logNormal("Note: this does not mean they will work as you expect.");
+            if (globalDebug) {
+                ConfigCommandsHandler.logNormal("If a command does not work, check the console output to try to find the problem.");
+            } else {
+                ConfigCommandsHandler.logNormal("If a command does not work, turn on debug mode, then check the console output to try to find the problem.");
+            }
+        } else {
+            ConfigCommandsHandler.logNormal("%s command(s) failed while registering:", failedCommands.size());
+            ConfigCommandsHandler.increaseIndentation();
+            for (String message : failedCommands) {
+                ConfigCommandsHandler.logError(message);
+            }
+            ConfigCommandsHandler.decreaseIndentation();
+            if (globalDebug) {
+                ConfigCommandsHandler.logNormal("Scroll up to find more information.");
+            } else {
+                ConfigCommandsHandler.logNormal("Turn on debug mode and scroll up to find more information.");
+            }
+        }
+    }
+
+    public static String buildDefaultPermission(String name){
         return "configcommands." + name.toLowerCase(Locale.ROOT);
     }
 

@@ -632,7 +632,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Current permission is null");
                 String name = command.getString("name");
                 sender.sendMessage("Default permission is \"" +
-                        ConfigCommandBuilder.getDefaultPermission(name == null ? key : name) + "\""
+                        ConfigCommandBuilder.buildDefaultPermission(name == null ? key : name) + "\""
                 );
             } else {
                 sender.sendMessage("Current permission: \"" + permission + "\"");
