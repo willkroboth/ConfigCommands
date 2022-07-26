@@ -11,10 +11,6 @@ import me.willkroboth.ConfigCommands.NMS.VersionHandler;
 import me.willkroboth.ConfigCommands.SystemCommands.SystemCommandHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.Plugin;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConfigCommandsHandler {
     // plugin instance
@@ -25,23 +21,6 @@ public class ConfigCommandsHandler {
 
     public static boolean isDebugMode() {
         return debugMode;
-    }
-
-    // Add on management
-    private static final List<ConfigCommandAddOn> addOns = new ArrayList<>();
-
-    public static void registerAddOn(ConfigCommandAddOn addOn) {
-        addOns.add(addOn);
-    }
-
-    public static List<ConfigCommandAddOn> getAddOns() {
-        return addOns;
-    }
-
-    public static ConfigCommandAddOn getAddOn(String name) {
-        Plugin plugin = ConfigCommandsHandler.plugin.getServer().getPluginManager().getPlugin(name);
-        if (plugin instanceof ConfigCommandAddOn addOn) return addOn;
-        return null;
     }
 
     // Config file
@@ -109,7 +88,9 @@ public class ConfigCommandsHandler {
 
         setVariables();
 
-        setupInternalArguments();
+        ConfigCommandAddOn.registerAllInternalArguments();
+
+        InternalArgument.createFunctionMaps();
 
         ConfigCommandBuilder.registerCommandsFromConfig(getConfigFile().getConfigurationSection("commands"), debugMode);
 
@@ -128,29 +109,6 @@ public class ConfigCommandsHandler {
         plugin.saveDefaultConfig();
         debugMode = getConfigFile().getBoolean("debug", false);
         logDebug("Debug mode on! More information will be shown.");
-    }
-
-    private static void setupInternalArguments() {
-        // register InternalArguments from addOns
-        for (ConfigCommandAddOn addOn : addOns) {
-            logNormal("Enabling addOn %s", addOn);
-            addOn.registerInternalArguments();
-        }
-
-        // display registrations
-        if (debugMode) {
-            logNormal(
-                    "All recognized InternalArguments:\n\t%s",
-                    AllInternalArguments.getFlat().toString().replace(", ", ",\n\t")
-            );
-            logNormal(
-                    "Static class map:\n\t%s",
-                    Expression.getClassMap().toString().replace(", ", ",\n\t")
-            );
-        }
-
-        // create function maps
-        InternalArgument.createFunctionMaps();
     }
 }
 

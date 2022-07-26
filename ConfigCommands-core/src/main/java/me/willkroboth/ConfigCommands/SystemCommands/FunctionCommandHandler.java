@@ -1,16 +1,18 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.ArgumentTree;
-import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.SuggestionInfo;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.arguments.MultiLiteralArgument;
+import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
-import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import dev.jorel.commandapi.SuggestionInfo;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,6 +27,7 @@ import org.bukkit.event.server.ServerCommandEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class FunctionCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
@@ -69,17 +72,9 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
     }
 
     private static void displayInformation(CommandSender sender, Object[] parameters) {
-        List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) parameters[0];
 
-        boolean addOnExists = false;
-        for (ConfigCommandAddOn on : addOns) {
-            if (on.getName().equals(addOn)) {
-                addOnExists = true;
-                break;
-            }
-        }
-        if (!addOnExists) {
+        if (ConfigCommandAddOn.getAddOn(addOn) == null) {
             sender.sendMessage(ChatColor.RED + "Invalid command: addOn \"" + addOn + "\" does not exist");
             return;
         }
@@ -176,7 +171,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
 
     private static void chooseAddOn(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
-            List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
+            Set<String> addOns = ConfigCommandAddOn.getAddOns().keySet();
             if (addOns.size() == 1) {
                 context = setContext(sender, context, "ConfigCommands", FunctionCommandHandler::chooseInternalArgument);
 
@@ -186,7 +181,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
                 sender.sendMessage(addOns.toString());
             }
         } else {
-            if (ConfigCommandsHandler.getAddOn(message) != null) {
+            if (ConfigCommandAddOn.getAddOn(message) != null) {
                 context = setContext(sender, context, message, FunctionCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
@@ -197,12 +192,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
     }
 
     private static String[] getAddOns(SuggestionInfo ignored) {
-        List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
-        String[] out = new String[addOns.size()];
-        for (int i = 0; i < addOns.size(); i++) {
-            out[i] = addOns.get(i).getName();
-        }
-        return out;
+        return ConfigCommandAddOn.getAddOns().keySet().toArray(new String[0]);
     }
 
     private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context) {
@@ -225,17 +215,8 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
     }
 
     private static String[] getInternalArguments(SuggestionInfo info) {
-        List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
-
-        boolean addOnExists = false;
-        for (ConfigCommandAddOn on : addOns) {
-            if (on.getName().equals(addOn)) {
-                addOnExists = true;
-                break;
-            }
-        }
-        if (!addOnExists) return new String[0];
+        if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
         return InternalArgument.getNames(internalArguments).toArray(new String[0]);
@@ -279,17 +260,9 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
     }
 
     private static String[] getFunctions(SuggestionInfo info) {
-        List<ConfigCommandAddOn> addOns = ConfigCommandsHandler.getAddOns();
         String addOn = (String) info.previousArgs()[0];
 
-        boolean addOnExists = false;
-        for (ConfigCommandAddOn on : addOns) {
-            if (on.getName().equals(addOn)) {
-                addOnExists = true;
-                break;
-            }
-        }
-        if (!addOnExists) return new String[0];
+        if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 

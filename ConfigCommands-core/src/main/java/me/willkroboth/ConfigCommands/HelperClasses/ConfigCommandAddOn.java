@@ -1,20 +1,63 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
+import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public abstract class ConfigCommandAddOn extends JavaPlugin {
+
+    // AddOn management
+    private static final Map<String, ConfigCommandAddOn> addOns = new HashMap<>();
+
+    public static void includeAddOn(ConfigCommandAddOn addOn) {
+        addOns.put(addOn.getName().toLowerCase(), addOn);
+    }
+
+    public static Map<String, ConfigCommandAddOn> getAddOns() {
+        return addOns;
+    }
+
+    public static ConfigCommandAddOn getAddOn(String name) {
+        return addOns.getOrDefault(name.toLowerCase(), null);
+    }
+
+    public static void registerAllInternalArguments() {
+        ConfigCommandsHandler.logNormal("");
+
+        // register InternalArguments from addOns
+        for (ConfigCommandAddOn addOn : addOns.values()) {
+            ConfigCommandsHandler.logNormal("Registering InternalArguments for addOn %s", addOn);
+            addOn.registerInternalArguments();
+        }
+
+        // display registrations
+        if (ConfigCommandsHandler.isDebugMode()) {
+            ConfigCommandsHandler.logNormal(
+                    "All recognized InternalArguments:\n\t%s",
+                    AllInternalArguments.getFlat().toString().replace(", ", ",\n\t")
+            );
+            ConfigCommandsHandler.logNormal(
+                    "Static class map:\n\t%s",
+                    Expression.getClassMap().toString().replace(", ", ",\n\t")
+            );
+        }
+    }
+
+    // AddOn configuration
     public ConfigCommandAddOn() {
         super();
-        ConfigCommandsHandler.registerAddOn(this);
+        includeAddOn(this);
     }
 
     public enum RegisterMode{
         All,
         INTERNAL_ARGUMENTS,
         FUNCTION_ADDERS,
-        NONE,
+        NONE
     }
 
     public void registerInternalArguments() {
@@ -40,6 +83,7 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
                     ConfigCommandsHandler.isDebugMode(),
                     getLogger()
             );
+            case NONE -> getLogger().info("No InternalArguments or FunctionAdders to register");
         }
     }
 
