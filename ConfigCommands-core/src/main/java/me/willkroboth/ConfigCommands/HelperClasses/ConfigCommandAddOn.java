@@ -27,10 +27,11 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
 
     public static void registerAllInternalArguments() {
         ConfigCommandsHandler.logNormal("");
+        ConfigCommandsHandler.logNormal("Registering InternalArguments");
 
         // register InternalArguments from addOns
         for (ConfigCommandAddOn addOn : addOns.values()) {
-            ConfigCommandsHandler.logNormal("Registering InternalArguments for addOn %s", addOn);
+            ConfigCommandsHandler.logNormal("Loading addOn %s", addOn);
             addOn.registerInternalArguments();
         }
 

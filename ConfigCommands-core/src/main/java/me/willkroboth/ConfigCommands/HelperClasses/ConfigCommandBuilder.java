@@ -12,12 +12,13 @@ import java.util.*;
 
 public class ConfigCommandBuilder extends CommandAPICommand {
     public static void registerCommandsFromConfig(ConfigurationSection commands, boolean globalDebug) {
+        ConfigCommandsHandler.logNormal("");
         if(commands == null){
-            ConfigCommandsHandler.logDebug(globalDebug, "The configuration section for the commands was not found! Skipping");
+            ConfigCommandsHandler.logNormal("The configuration section for the commands was not found! Skipping");
             return;
         }
 
-        ConfigCommandsHandler.logDebug(globalDebug, "Registering commands from %s", commands.getCurrentPath());
+        ConfigCommandsHandler.logNormal("Registering commands from %s", commands.getCurrentPath());
         if (commands.getKeys(false).size() == 0) {
             ConfigCommandsHandler.logNormal("No commands found! Skipping");
             return;
@@ -25,6 +26,7 @@ public class ConfigCommandBuilder extends CommandAPICommand {
 
         List<String> failedCommands = new ArrayList<>();
         for (String key : commands.getKeys(false)) {
+            ConfigCommandsHandler.logNormal("");
             ConfigCommandsHandler.logNormal("Loading command %s", key);
 
             // vital data needed for command to work

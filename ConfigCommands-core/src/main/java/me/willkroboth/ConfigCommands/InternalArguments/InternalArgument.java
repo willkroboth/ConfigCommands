@@ -301,6 +301,7 @@ public abstract class InternalArgument implements FunctionCreator {
     }
 
     public static void createFunctionMaps(){
+        ConfigCommandsHandler.logNormal("");
         ConfigCommandsHandler.logNormal("Initializing function maps");
         ConfigCommandsHandler.increaseIndentation();
         for(Class<? extends InternalArgument> clazz: AllInternalArguments.getFlat()) {
