@@ -316,7 +316,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("  Output result as string:");
                 sender.sendMessage("    return <counter>");
             } else if (message.equals("functions")) {
-                FunctionCommandHandler.addUser(sender, null);
+                FunctionsCommandHandler.addUser(sender, null);
                 passToFunctionCommand.add(sender);
             } else {
                 context = setContext(sender, context, message, BuildCommandHandler::addCommand);

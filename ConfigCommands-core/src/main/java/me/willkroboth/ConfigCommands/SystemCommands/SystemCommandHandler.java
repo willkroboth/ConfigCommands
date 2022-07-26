@@ -22,7 +22,7 @@ public abstract class SystemCommandHandler {
     public static void setUpCommands(ConfigCommands plugin) {
         commands.addAll(List.of(
                 new HelpCommandHandler(),
-                new FunctionCommandHandler(),
+                new FunctionsCommandHandler(),
                 new BuildCommandHandler(),
                 new ReloadCommandHandler(),
                 new DebugCommandHandler()

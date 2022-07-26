@@ -29,19 +29,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FunctionCommandHandler extends SystemCommandHandler implements Listener {
+public class FunctionsCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
     protected ArgumentTree getArgumentTree() {
         return super.getArgumentTree()
-                .executes(FunctionCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                .executes(FunctionsCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
                 .then(new StringArgument("addOn")
-                        .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getAddOns))
+                        .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getAddOns))
                         .then(new StringArgument("internalArgument")
-                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getInternalArguments))
+                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getInternalArguments))
                                 .then(new MultiLiteralArgument("static", "nonStatic")
                                         .then(new GreedyStringArgument("function")
-                                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionCommandHandler::getFunctions))
-                                                .executes((CommandExecutor) FunctionCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
+                                                .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getFunctions))
+                                                .executes((CommandExecutor) FunctionsCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
                                         )
                                 )
                         )
@@ -67,7 +67,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
         sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
-        activeUsers.put(sender, new CommandContext(null, "", FunctionCommandHandler::chooseAddOn));
+        activeUsers.put(sender, new CommandContext(null, "", FunctionsCommandHandler::chooseAddOn));
         handleMessage(sender, "", null);
     }
 
@@ -173,7 +173,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
         if (message.isBlank()) {
             Set<String> addOns = ConfigCommandAddOn.getAddOns().keySet();
             if (addOns.size() == 1) {
-                context = setContext(sender, context, "ConfigCommands", FunctionCommandHandler::chooseInternalArgument);
+                context = setContext(sender, context, "ConfigCommands", FunctionsCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
             } else {
@@ -182,7 +182,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
             }
         } else {
             if (ConfigCommandAddOn.getAddOn(message) != null) {
-                context = setContext(sender, context, message, FunctionCommandHandler::chooseInternalArgument);
+                context = setContext(sender, context, message, FunctionsCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
             } else {
@@ -205,7 +205,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
             if (names.contains(message)) {
                 InternalArgument argument = internalArguments.get(names.indexOf(message));
 
-                context = setContext(sender, context, argument, FunctionCommandHandler::chooseFunction);
+                context = setContext(sender, context, argument, FunctionsCommandHandler::chooseFunction);
 
                 context.doNextStep(sender, "");
             } else {
@@ -238,7 +238,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
             if (names.contains(message)) {
                 Map<Definition, Function> aliases = InternalArgument.getAliases(message, functions);
 
-                context = setContext(sender, context, aliases, FunctionCommandHandler::displayInformation);
+                context = setContext(sender, context, aliases, FunctionsCommandHandler::displayInformation);
 
                 context.doNextStep(sender, "");
                 return;
@@ -249,7 +249,7 @@ public class FunctionCommandHandler extends SystemCommandHandler implements List
             if (staticNames.contains(message)) {
                 Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases(message, staticFunctions);
 
-                context = setContext(sender, context, aliases, FunctionCommandHandler::displayStaticInformation);
+                context = setContext(sender, context, aliases, FunctionsCommandHandler::displayStaticInformation);
 
                 context.doNextStep(sender, "");
                 return;
