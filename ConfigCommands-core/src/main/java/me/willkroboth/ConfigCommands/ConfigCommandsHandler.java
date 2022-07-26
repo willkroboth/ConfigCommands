@@ -2,9 +2,7 @@ package me.willkroboth.ConfigCommands;
 
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
-import me.willkroboth.ConfigCommands.HelperClasses.Expression;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
@@ -86,7 +84,16 @@ public class ConfigCommandsHandler {
     public static void enable(ConfigCommands plugin) {
         ConfigCommandsHandler.plugin = plugin;
 
-        setVariables();
+        logger = new IndentedLogger(plugin.getLogger());
+
+        plugin.saveDefaultConfig();
+        debugMode = getConfigFile().getBoolean("debug", false);
+        logDebug("Debug mode on! More information will be shown.");
+
+        String bukkit = Bukkit.getServer().toString();
+        String version = bukkit.substring(bukkit.indexOf("minecraftVersion") + 17, bukkit.length() - 1);
+        ConfigCommandsHandler.logDebug("Getting NMS for version %s", version);
+        nms = VersionHandler.getVersion(version);
 
         ConfigCommandAddOn.registerAllInternalArguments();
 
@@ -97,18 +104,6 @@ public class ConfigCommandsHandler {
         SystemCommandHandler.setUpCommands(plugin);
 
         logNormal("Done!");
-    }
-
-    private static void setVariables() {
-        String bukkit = Bukkit.getServer().toString();
-        String version = bukkit.substring(bukkit.indexOf("minecraftVersion") + 17, bukkit.length() - 1);
-        nms = VersionHandler.getVersion(version);
-
-        logger = new IndentedLogger(plugin.getLogger());
-
-        plugin.saveDefaultConfig();
-        debugMode = getConfigFile().getBoolean("debug", false);
-        logDebug("Debug mode on! More information will be shown.");
     }
 }
 
