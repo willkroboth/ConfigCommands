@@ -64,7 +64,7 @@ public class ConfigCommandExecutor {
     public void execute(CommandSender sender, Object[] args) {
         int startIndentation = ConfigCommandsHandler.getIndentation();
         try {
-            ConfigCommandsHandler.logDebug(localDebug, "Running ConfigCommand %s with args: %s", name, args);
+            ConfigCommandsHandler.logDebug(localDebug, "Running ConfigCommand %s with args: %s", name, Arrays.deepToString(args));
 
             // setup default args
             argument_variables.get("<sender>").setValue(sender);
