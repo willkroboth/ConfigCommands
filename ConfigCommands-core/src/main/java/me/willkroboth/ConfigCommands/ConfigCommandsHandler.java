@@ -90,10 +90,7 @@ public class ConfigCommandsHandler {
         debugMode = getConfigFile().getBoolean("debug", false);
         logDebug("Debug mode on! More information will be shown.");
 
-        String bukkit = Bukkit.getServer().toString();
-        String version = bukkit.substring(bukkit.indexOf("minecraftVersion") + 17, bukkit.length() - 1);
-        ConfigCommandsHandler.logDebug("Getting NMS for version %s", version);
-        nms = VersionHandler.getVersion(version);
+        nms = VersionHandler.loadNMS();
 
         ConfigCommandAddOn.registerAllInternalArguments();
 
