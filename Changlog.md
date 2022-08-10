@@ -1,4 +1,18 @@
-## [ConfigCommands v 2.0.0](/Releases/ConfigCommands-2.0.0.jar) (current)
+## [ConfigCommands v 3.0.0](/Releases/ConfigCommands-3.0.0.jar)
+### Features:
+- [#19](https://github.com/willkroboth/ConfigCommands/issues/19) - Added support for Minecraft versions 1.16.5, 1.17, 1.17.1, 1.18, 1.18.1, 1.18.2, and 1.19 with one jar file
+- Combined `/configcommandhelp`, `/configcommandbuild`, `/configcommandreload` into a single command `/configcommands`
+- Renamed `/configcommands help` to `/configcommands functions`
+- Added `/configcommands debug` for setting and reading local debug values
+- Added `/configcommands help` for seeing help and usage information for the different branches of `/configcommands`
+
+### Technical Changes:
+- Refactored project as a multi-module maven project to better handle depending on different Spigot versions in the different NMS modules
+- Added enum [ConfigCommandAddOn.RegisterMode](/ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java#L57) to let AddOns choose more exactly how they want to register thier InternalArguments and FunctionAdders
+- Added package [SystemCommands](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands) and class [SystemCommandHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands/SystemCommandHandler.java) to manage `/configcommands`
+- Added class [ConfigCommandsHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/ConfigCommandsHandler.java) to manage interactions with the ConfigCommands plugin
+
+## [ConfigCommands v 2.0.0](/Releases/ConfigCommands-2.0.0.jar)
 - [#8](https://github.com/willkroboth/ConfigCommands/issues/8) - Added `/configcommandreload` command for updating command behavior without needing to restart the server
 - Fixed bug that prevented Expression function chains that started with a Static class reference
 
