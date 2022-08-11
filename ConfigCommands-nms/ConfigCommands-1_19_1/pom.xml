@@ -10,10 +10,9 @@
         <version>3.0.0</version>
     </parent>
 
-    <artifactId>ConfigCommands-1_19</artifactId>
-
+    <artifactId>ConfigCommands-1_19_1</artifactId>
     <properties>
-        <spigot.version>1.19-R0.1-SNAPSHOT</spigot.version>
+        <spigot.version>1.19.1-R0.1-SNAPSHOT</spigot.version>
     </properties>
 
     <dependencies>

@@ -15,7 +15,7 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import java.util.UUID;
 
 public interface OpSender1_16_5 extends OpSender, ICommandListener {
-    static OpSender makeOpSender(CommandSender sender) {
+    static OpSender1_16_5 makeOpSender(CommandSender sender) {
         if (sender instanceof OpSender1_16_5 o)
             return o;
         if (sender instanceof CraftPlayer p)
