@@ -112,7 +112,7 @@ public class ConfigCommandExecutor {
                 }
                 ConfigCommandsHandler.decreaseIndentation();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if (localDebug) {
                 ConfigCommandsHandler.logNormal("Error occurred while running the command: %s", e.getMessage());
                 StringWriter stackTrace = new StringWriter();
