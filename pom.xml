@@ -15,7 +15,7 @@
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
 
-        <project.version.commandAPI>8.5.1-SNAPSHOT</project.version.commandAPI>
+        <project.version.commandAPI>8.5.1</project.version.commandAPI>
     </properties>
 
     <packaging>pom</packaging>
@@ -26,10 +26,17 @@
     </modules>
 
     <repositories>
+        <!-- hosts Spigot api -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <!-- hosts all Spigot builds -->
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/nms/</url>
+        </repository>
+
         <repository>
             <id>minecraft-libraries</id>
             <name>Minecraft Libraries</name>
