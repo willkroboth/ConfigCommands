@@ -1,3 +1,4 @@
+# build files
 /ConfigCommands-core/target/
 /ConfigCommands-nms/ConfigCommands-1_16_5/target/
 /ConfigCommands-nms/ConfigCommands-1_17/target/
@@ -5,9 +6,15 @@
 /ConfigCommands-nms/ConfigCommands-1_18_2/target/
 /ConfigCommands-nms/ConfigCommands-1_19-common/target/
 /ConfigCommands-nms/ConfigCommands-1_19/target/
+/ConfigCommands-nms/ConfigCommands-1_19/dependency-reduced-pom.xml
 /ConfigCommands-nms/ConfigCommands-1_19_1/target/
+/ConfigCommands-nms/ConfigCommands-1_19_1/dependency-reduced-pom.xml
+/ConfigCommands-nms/ConfigCommands-nms-dependency/target/
+/ConfigCommands-nms/ConfigCommands-nms-dependency/dependency-reduced-pom.xml
 /ConfigCommands-plugin/target/
 /ConfigCommands-plugin/dependency-reduced-pom.xml
+
+# IntelliJ project configuration files
 /.idea/
 /ConfigCommands.iml
 /ConfigCommands-nms/ConfigCommands-1_16_5/ConfigCommands-1_16_5.iml

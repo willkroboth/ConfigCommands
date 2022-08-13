@@ -30,7 +30,7 @@
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-core</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/dev.jorel/commandapi-core -->

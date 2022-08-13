@@ -22,7 +22,6 @@
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-nms-dependency</artifactId>
             <version>${project.version}</version>
-            <type>pom</type>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/dev.jorel/commandapi-core -->
@@ -61,7 +60,7 @@
                                 <filter>
                                     <artifact>me.willkroboth:ConfigCommands-core</artifact>
                                     <excludes>
-                                        <exclude>me/willkroboth/ConfigCommands/VersionHandler**</exclude>
+                                        <exclude>me/willkroboth/ConfigCommands/NMS/VersionHandler**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

@@ -29,12 +29,29 @@
             <artifactId>ConfigCommands-1_19-common</artifactId>
             <version>${project.version}</version>
             <classifier>mojang-mapped</classifier>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Shade in 1_19-common -->
+            <!-- This helps specialsource recognize that ServerPlayerOpWrapper extends ServerPlayer -->
+            <!-- The reference to different versions of 1_19-common will be resolved in nms-dependency -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Remap classes -->
             <plugin>
                 <groupId>net.md-5</groupId>
                 <artifactId>specialsource-maven-plugin</artifactId>

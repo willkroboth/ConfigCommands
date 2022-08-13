@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>ConfigCommands-nms-dependency</artifactId>
-    <packaging>pom</packaging>
 
     <dependencies>
         <!-- Version implementations -->
@@ -29,6 +28,13 @@
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_19-common</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>me.willkroboth</groupId>
+            <artifactId>ConfigCommands-1_19-common</artifactId>
+            <version>${project.version}</version>
+            <classifier>mojang-mapped</classifier>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -54,4 +60,40 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+                            <!-- remove duplicate references to 1_19_common -->
+                            <filters>
+                                <filter>
+                                    <artifact>${project.groupId}:ConfigCommands-1_19</artifact>
+                                    <excludes>
+                                        <exclude>me/willkroboth/ConfigCommands/NMS/V1_19_common/**</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>${project.groupId}:ConfigCommands-1_19_1</artifact>
+                                    <excludes>
+                                        <exclude>me/willkroboth/ConfigCommands/NMS/V1_19_common/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
