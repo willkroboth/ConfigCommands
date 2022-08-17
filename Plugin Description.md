@@ -1,7 +1,11 @@
-# ConfigCommands v 2.0.0
-## Spigot api-version: 1.19
+# ConfigCommands v 3.0.0
+## Supported Minecraft Versions:
+- 1.16.5
+- 1.17, 1.17.1
+- 1.18, 1.18.1, 1.18.2
+- 1.19, 1.19.1, 1.19.2
 ## Dependencies
-[CommandAPI](https://commandapi.jorel.dev/) v 8.4.1 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/8.4.1/CommandAPI-8.4.1.jar))
+[CommandAPI](https://commandapi.jorel.dev/) v 8.5.1 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/8.5.1/CommandAPI-8.5.1.jar))
 
 For server owners: Make sure to put the CommandAPI.jar file in your plugins folder as well.
 
