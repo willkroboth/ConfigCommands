@@ -6,58 +6,37 @@
 
     <groupId>me.willkroboth</groupId>
     <artifactId>ConfigCommands</artifactId>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
+
+        <project.version.commandAPI>8.5.1</project.version.commandAPI>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <!-- Remap mojang mappings using special source
-                Configuration found at https://www.spigotmc.org/threads/mojang-mappings-maven-plugin-problem.538445/#post-4324855 -->
-                <groupId>net.md-5</groupId>
-                <artifactId>specialsource-maven-plugin</artifactId>
-                <version>1.2.3</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-obf</id>
-                        <configuration>
-                            <srgIn>org.spigotmc:minecraft-server:1.19-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
-                            <reverse>true</reverse>
-                            <remappedDependencies>org.spigotmc:spigot:1.19-R0.1-SNAPSHOT:jar:remapped-mojang</remappedDependencies>
-                            <remappedArtifactAttached>true</remappedArtifactAttached>
-                            <remappedClassifierName>remapped-obf</remappedClassifierName>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>remap</goal>
-                        </goals>
-                        <id>remap-spigot</id>
-                        <configuration>
-                            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
-                            <srgIn>org.spigotmc:minecraft-server:1.19-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
-                            <remappedDependencies>org.spigotmc:spigot:1.19-R0.1-SNAPSHOT:jar:remapped-obf</remappedDependencies>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <packaging>pom</packaging>
+    <modules>
+        <module>ConfigCommands-core</module>
+        <module>ConfigCommands-nms</module>
+        <module>ConfigCommands-plugin</module>
+    </modules>
 
     <repositories>
+        <!-- hosts Spigot api -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <!-- hosts all Spigot builds -->
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/nms/</url>
+        </repository>
+
         <repository>
             <id>minecraft-libraries</id>
             <name>Minecraft Libraries</name>
@@ -65,44 +44,8 @@
         </repository>
     </repositories>
 
-    <dependencies>
-        <!-- spigot and bukkit -->
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.19-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.bukkit</groupId>
-            <artifactId>craftbukkit</artifactId>
-            <version>1.19-R0.1-SNAPSHOT</version>
-            <classifier>remapped-mojang</classifier>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/dev.jorel/commandapi-core -->
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-core</artifactId>
-            <version>8.4.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- https://github.com/ronmamo/reflections -->
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- https://github.com/Mojang/brigadier -->
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>brigadier</artifactId>
-            <version>1.0.18</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+    </build>
 </project>

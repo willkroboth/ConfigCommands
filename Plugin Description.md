@@ -1,7 +1,11 @@
-# ConfigCommands v 2.0.0
-## Spigot api-version: 1.19
+# ConfigCommands v 3.0.0
+## Supported Minecraft Versions:
+- 1.16.5
+- 1.17, 1.17.1
+- 1.18, 1.18.1, 1.18.2
+- 1.19, 1.19.1, 1.19.2
 ## Dependencies
-[CommandAPI](https://commandapi.jorel.dev/) v 8.4.1 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/8.4.1/CommandAPI-8.4.1.jar))
+[CommandAPI](https://commandapi.jorel.dev/) v 8.5.1 by [JorelAli](https://github.com/JorelAli) ([download](https://github.com/JorelAli/CommandAPI/releases/download/8.5.1/CommandAPI-8.5.1.jar))
 
 For server owners: Make sure to put the CommandAPI.jar file in your plugins folder as well.
 
@@ -11,7 +15,7 @@ For server owners: Make sure to put the CommandAPI.jar file in your plugins fold
 For server owners: No need to worry about this one, it is automatically imported using the Spigot library loader.
 
 ## Internal Arguments
-InternalArguments define the classes and functions available in [Expressions](README.md#expressions), and the main purpose of [AddOns](AddOns.md) is to add more InternalArguments and functions. All InternalArguments extend the abstract class [InternalArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) and define a set of functions and static functions. 
+InternalArguments define the classes and functions available in [Expressions](README.md#expressions), and the main purpose of [AddOns](AddOns.md) is to add more InternalArguments and functions. All InternalArguments extend the abstract class [InternalArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArgument.java) and define a set of functions and static functions. 
 
 The InternalArgument class provides one non-static method to all subarguments by default:
   
@@ -23,9 +27,9 @@ Result: InternalStringArgument
   
 Description: Varies by implementation. Should return a string that represents the value in the context of a command.
 
-Subclasses of the [FunctionAdder](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](AddOns.md).
+Subclasses of the [FunctionAdder](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/FunctionAdder.java) can add more functions to existing InternalArguments, but this is described in more detail by the description of [AddOns](AddOns.md).
 
-The main plugin provides 5 InternalArguments, described below, as well as the [InternalVoidArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). The InternalVoidArgument does not have any static or non-static functions and should not be a parameter of any other function. It is returned by functions that shouldn't return anything.
+The main plugin provides 5 InternalArguments, described below, as well as the [InternalVoidArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalVoidArgument.java). The InternalVoidArgument does not have any static or non-static functions and should not be a parameter of any other function. It is returned by functions that shouldn't return anything.
 
 ### InternalArguments provided by ConfigCommands:
 - [InternalArrayListArgument](#internalarraylistargument)
@@ -34,7 +38,7 @@ The main plugin provides 5 InternalArguments, described below, as well as the [I
 - [InternalIntegerArgument](#internalintegerargument)
 - [InternalStringArgument](#internalstringargument)
 
-### [InternalArrayListArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArrayListArgument.java)
+### [InternalArrayListArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalArrayListArgument.java)
 #### Adding to command: 
 Cannot be added to command
 #### Java Class: [ArrayList<InternalArgument>](https://docs.oracle.com/javase/8/docs/api/java/util/ArrayList.html)
@@ -140,7 +144,7 @@ Result: InternalArrayListArgument
 Description: Creates a new empty ArrayList
   
 
-### [InternalBooleanArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalBooleanArgument.java)
+### [InternalBooleanArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalBooleanArgument.java)
 #### Adding to command: 
 type: Boolean
 #### Java Class: [Boolean](https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html)
@@ -188,7 +192,7 @@ Result: InternalBooleanArgument
 Description: Creates a new boolean with the value of the given String. If the String equals `"true"`, ignoring case, the boolean will be `true`, otherwise it will be `false`.
   
 
-### [InternalCommandSenderArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalCommandSenderArgument.java)
+### [InternalCommandSenderArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalCommandSenderArgument.java)
 #### Adding to command: 
 Cannot be added to command
 #### Java Class: [CommandSender](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/command/CommandSender.html)
@@ -302,7 +306,7 @@ Description: Sets the operator status of the target CommandSender to the given b
 None by default
   
 
-### [InternalIntegerArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java)
+### [InternalIntegerArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalIntegerArgument.java)
 #### Adding to command: 
 type: Integer
   
@@ -330,7 +334,7 @@ Result: InternalIntegerArgument
 Description: Creates a new Integer. If a string is passed in it will attempt to use it as the value. If no arguments are given, the Integer will default to 0.
   
 
-### [InternalStringArgument](/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java)
+### [InternalStringArgument](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/InternalArguments/InternalStringArgument.java)
 #### Adding to command: 
 type: String
   

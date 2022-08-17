@@ -1,12 +1,14 @@
 # ConfigCommands
 
 ## A Bukkit/Spigot plugin for creating commands in-game
-The ConfigCommands plugin allows users to quickly and simply add commands to their server -- no custom plugins needed! This plugin removes the hassle of learning Java and/or a plugin API and lets beginning server owners go directly to creating custom commands to their liking (though more complicated features such as [Expressions](#expressions) may take significant learning anyway). For those who have made a plugin before, this plugin can still help them quickly add simple commands without creating a whole new plugin. This is an extension of my [customcommands](https://github.com/willkroboth/Minecraft-Plugins/tree/main/custom%20commands) project and builds off of the [CommandAPI](https://commandapi.jorel.dev/) developed by [JorelAli](https://github.com/JorelAli) to provide features such as type-safe arguments, custom `/help` menu descriptions, and compatibility with `/execute`. The base plugin only supports using Integers, Strings, and Booleans in commands, but this can be built upon using the AddOn system, which is further described in the [AddOns](AddOns.md) file.
+The ConfigCommands plugin allows users to quickly and simply add commands to their server -- no custom plugins needed! This plugin removes the hassle of learning Java and/or a plugin API and lets beginning server owners go directly to creating custom commands to their liking (Disclaimer: more complicated features such as [Expressions](#expressions) may take significant learning anyway). For those who have made a plugin before, this plugin can still help them quickly add simple commands without creating a whole new plugin. 
 
-Note that this project is still in early development and might see major changes to its systems. If you find any bugs or have feature suggestions, don't hesitate to make a report in the issues section of this repository.
+This is an extension of my [customcommands](https://github.com/willkroboth/Minecraft-Plugins/tree/main/custom%20commands) project and builds off of the [CommandAPI](https://commandapi.jorel.dev/) developed by [JorelAli](https://github.com/JorelAli) to provide features such as type-safe arguments, custom `/help` menu descriptions, and compatibility with `/execute`. The base plugin only supports using Integers, Strings, and Booleans in commands, but this can be built upon using the AddOn system, which is further described in the [AddOns](AddOns.md) file.
+
+Note that this project is still being developed and might see major changes to its systems. If you find any bugs or have feature suggestions, don't hesitate to make a report on [GitHub](https://github.com/willkroboth/ConfigCommands/issues)!
 
 ## Creating Commands
-Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommandbuild` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](#command-features). Most changes can only be applied after restarting the server, but the behavior of the command, defined by the [commands](#commands) section, can be reloaded in-game using `/configcommandreload <commandName>`. 
+Commands added using ConfigCommands are stored in the config.yml, and so may be edited in there. However, the plugin also provides the command `/configcommands build` to help create and edit commands. The command can be used in the console and by players, and uses a guided command system to lead the user through the steps of creating or editing a command. I hope that the command explains itself well enough, but an overview of each of the features the command edits is included [below](#command-features). Most changes can only be applied after restarting the server, but the behavior of the command, defined by the [commands](#commands) section, can be reloaded in-game using `/configcommands reload <commandName>`. 
 
 ## Command Features
 The features of a command are best introduced using an example. The config.yml file is automatically populated with such an example, the echo command:
@@ -42,9 +44,9 @@ commands:
         type: String
         subtype: greedy
 ```
-This section determines the arguments that the command takes in. If this section is empty, the command won't have any arguments. Each argument needs a `name` and `type`, and may have additional parameters added based on the type. Each argument should have a unique name. If not, the command will fail to register. Note that two arguments are added by default, `<sender>` and `<commandIndex>`, so those names cannot be used.
+This section determines the arguments for the command. If this section is empty, the command won't have any arguments. Each argument needs a `name` and `type`, and may have additional parameters added based on the type. Each argument should have a unique name. If not, the command will fail to register. Note that two arguments are added by default, `<sender>` and `<commandIndex>`, so those names cannot be used.
 
-In this case, the echo command has 1 argument: `{name=<string>, type=String, subtype=greedy}`. The name is `<string>`, and this is how this argument will be referenced in the commands. The type is `String`, so this argument will take in text. This argument has an additional parameter, subtype, which has the value `greedy`. In the case of the type String, this makes the argument input all remaining text in the command. You can read more about argument types and their parameters in the [plugin description](/Plugin%20Description.md).
+In this case, the echo command has 1 argument: `{name=<string>, type=String, subtype=greedy}`. The name is `<string>`, and this is how this argument will be referenced in the commands. The type is `String`, so this argument will take in text. This argument has an additional parameter, subtype, which has the value `greedy`. In the case of the type String, this makes the argument input all remaining text in the command. You can read more about the available Arguments and their parameters in the [plugin description](/Plugin%20Description.md).
 
 ### Short and Full Description
 ```yml
@@ -53,7 +55,7 @@ commands:
     shortDescription: Echos input back to you.
     fullDescription: Takes in a string and sends it back to you.
 ```
-These parameters determine the descriptions shown when using the `/help` command. The short description is shown when the command appears in the help list, while the full description is shown when `/help <name>` is run. If either is not present, they will default to `A Mojang Provided Command`. See the [CommandAPI Help Documentation](https://commandapi.jorel.dev/7.0.0/help.html) for a more detailed description of the difference between these two.
+These parameters define the descriptions shown when using the `/help` command. The short description is shown when the command appears in the help list, while the full description is shown when `/help <name>` is run. If either is not present, they will default to `A Mojang Provided Command`. See the [CommandAPI Help Documentation](https://commandapi.jorel.dev/8.5.1/help.html) for a more detailed description of the difference between these two.
 ### Aliases
 ```yml
 commands:
@@ -81,7 +83,11 @@ commands:
     commands:
       - do <sender>.sendMessage(<string>)
 ```
-This section defines what happens when the command is run. If this section is empty, the command will not be registered since it wouldn't do anything anyway. In this case, the command sends the string passed into the command back to the sender. If any command in this section cannot be parsed, the command will not register. The acceptable format of a command is as follows:
+This section defines what happens when the command is run. If this section is empty, the command will not be registered since it wouldn't do anything anyway. 
+
+In this case, the command sends the string passed into the command back to the sender. 
+
+If any command in this section cannot be parsed, the command will not register. The acceptable format of a command is as follows:
 ```
 [Command]
 [Variable] = [Command]
@@ -115,7 +121,7 @@ Examples:
 - `if <message>.equals("1") goto "Option 1"`
 - `goto Integer.("4")`
 
-`return` send a result to `<sender>`, equivalent to `<sender>.sendMessage([Expression])`, then end the command's execution.
+`return` sends a result to `<sender>`, equivalent to `<sender>.sendMessage([Expression])`, then ends the command's execution.
 
 Execution will also end if there is not a command at the current index, such as at the end of the list, or if an invalid number is jumped to by an if or goto command.
 
@@ -136,7 +142,7 @@ A variable is indicated by surrounding a name with < >. Two variables, `<sender>
 Commands can also reference variables just by inserting them in the command. For example, the command `/tellraw <sender> {"color":"red","text":"<message>"}` where `<sender>` is the Player willkroboth and `<message>` is the String `"Hello"` will become `/tellraw willkroboth {"color":"red","text":"Hello"}` and so send a red `"Hello"` to willkroboth.
 
 #### Expressions
-Expressions are a vital part of the command running system, defined by the [Expression.java](/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
+Expressions are a vital part of the command running system, defined by the [Expression.java](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/Expression.java) file. Expressions have their own format, as follows:
 ```
 "[value of a string]"
 <[variable name]>
@@ -149,7 +155,7 @@ Variables can be referenced using `< >` around their name. When parsing, the plu
 
 There are two types of functions and so two ways to call functions. Static functions are called using the name of the class they belong to, while non-static functions can be called on another `[Expression]`. `[parameters]` is a list of expressions, separated by `, `, that are used as the arguments to the function. Since calling a function is also an expression, you can chain function calls together in the same line. When parsing, the plugin will make sure the requested function with the given parameters exists.
 
-The functions and class names that can be used in Expressions are defined by [InternalArguments](Plugin%20Description.md#internal-arguments) and you can read about the InternalArguments in each PluginDescription. The ConfigCommands plugin also provides the command `/configcommandhelp` to help users see what functions are currently available on their server. You can explore the available options in a guided menu system by just running `/configcommandhelp`, or through tab-complete suggestions. You can find the aliases of a function as well as the possible parameters and outputs.
+The functions and class names that can be used in Expressions are defined by InternalArguments and you can read about the avaliable InternalArguments and functions in the [PluginDescription](Plugin%20Description.md#internal-arguments). The ConfigCommands plugin also provides the command `/configcommands functions` to help users see what functions are currently available on their server. You can explore the available options in a guided menu system by just running `/configcommand functions`, or through tab-complete suggestions. This will tell you the aliases of a function as well as the possible parameters and outputs.
 
 Examples:
 - `<sender>.sendMessage("Hello World")`
