@@ -13,6 +13,8 @@
 - Added package [SystemCommands](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands) and class [SystemCommandHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands/SystemCommandHandler.java) to manage `/configcommands`
 - Added class [ConfigCommandsHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/ConfigCommandsHandler.java) to manage interactions with the ConfigCommands plugin
 
+See all commits in [#21](https://github.com/willkroboth/ConfigCommands/pull/21)
+
 ## [ConfigCommands v 2.0.0](/Releases/ConfigCommands-2.0.0.jar)
 - [#8](https://github.com/willkroboth/ConfigCommands/issues/8) - Added `/configcommandreload` command for updating command behavior without needing to restart the server
 - Fixed bug that prevented Expression function chains that started with a Static class reference
