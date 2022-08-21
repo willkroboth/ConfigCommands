@@ -38,7 +38,7 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <classifier>mojang-mapped</classifier>
+                            <classifier>remapped-mojang</classifier>
                         </configuration>
                     </execution>
                 </executions>

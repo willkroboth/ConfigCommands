@@ -29,8 +29,9 @@
             <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_19-common</artifactId>
             <version>${project.version}</version>
-            <classifier>mojang-mapped</classifier>
+            <classifier>remapped-mojang</classifier>
             <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
