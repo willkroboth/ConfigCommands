@@ -8,7 +8,7 @@ import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
-import me.willkroboth.ConfigCommands.HelperClasses.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AddThisArgumentConsumer;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import org.reflections.Reflections;

@@ -8,7 +8,7 @@ import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
+import me.willkroboth.ConfigCommands.RegisteredCommands.ConfigCommandBuilder;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

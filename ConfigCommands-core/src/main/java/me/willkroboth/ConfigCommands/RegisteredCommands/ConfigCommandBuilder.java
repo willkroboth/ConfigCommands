@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.HelperClasses;
+package me.willkroboth.ConfigCommands.RegisteredCommands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;

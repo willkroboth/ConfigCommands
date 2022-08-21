@@ -6,7 +6,7 @@ import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
+import me.willkroboth.ConfigCommands.RegisteredCommands.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

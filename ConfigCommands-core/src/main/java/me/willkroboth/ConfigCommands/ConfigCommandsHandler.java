@@ -1,13 +1,12 @@
 package me.willkroboth.ConfigCommands;
 
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
+import me.willkroboth.ConfigCommands.RegisteredCommands.ConfigCommandBuilder;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
 import me.willkroboth.ConfigCommands.SystemCommands.SystemCommandHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class ConfigCommandsHandler {
