@@ -14,9 +14,9 @@ commands:
     executes:
       - [Commands]
     then:
-      - ArgumentTree1
-      - ArgumentTree2
-      - ...
+      ArgumentTree1:
+      ArgumentTree2:
+      ...:
 ```
 equivalent to this CommandTree:
 ```java
@@ -40,7 +40,7 @@ new CommandTree("commandName")
 ```
 where Argument Trees are represented like this:
 ```yaml
-- name: [name]
+name:
   type: [type]
   argumentInfo:
     "[depends on type, eg subtype: greedy for type: String]"
@@ -48,13 +48,13 @@ where Argument Trees are represented like this:
   executes:
     - [Commands]
   then:
-    - ArgumentTree1
-    - ArgumentTree2
-    - ...
+    ArgumentTree1:
+    ArgumentTree2:
+    ...:
 ```
 and make this Java code:
 ```java
-InternalArgument.convertArgumentInformation("[name]", "[type]", [argumentInfo])
+InternalArgument.convertArgumentInformation("name", "[type]", [argumentInfo])
         .withPermission("[permission]")
         .executes((sender, args) -> {
             // run [Commands]
