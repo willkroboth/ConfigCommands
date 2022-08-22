@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions;
+package me.willkroboth.ConfigCommands.Exceptions.FunctionSyntax;
 
 public class InvalidGotoCommand extends InvalidExpressionCommand {
     public InvalidGotoCommand(String arg, String reason) {

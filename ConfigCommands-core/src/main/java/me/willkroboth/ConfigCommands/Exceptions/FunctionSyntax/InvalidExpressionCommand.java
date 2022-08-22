@@ -1,4 +1,6 @@
-package me.willkroboth.ConfigCommands.Exceptions;
+package me.willkroboth.ConfigCommands.Exceptions.FunctionSyntax;
+
+import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 
 public class InvalidExpressionCommand extends RegistrationException {
     public InvalidExpressionCommand(String expression, String arg, String reason) {

@@ -1,4 +1,4 @@
-package me.willkroboth.ConfigCommands.Exceptions;
+package me.willkroboth.ConfigCommands.Exceptions.FunctionSyntax;
 
 public class InvalidReturnCommand extends InvalidExpressionCommand {
     public InvalidReturnCommand(String arg, String reason) {
