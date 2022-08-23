@@ -26,10 +26,12 @@ public class InternalArrayListArgument extends InternalArgument {
         super(value);
     }
 
+    @Override
     public String getTypeTag() {
         return null;
     }
 
+    @Override
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
                 generateGets(),
@@ -129,6 +131,7 @@ public class InternalArrayListArgument extends InternalArgument {
         return new InternalArrayListArgument(getList(target).subList((int) parameters.get(0).getValue(), (int) parameters.get(1).getValue()));
     }
 
+    @Override
     public StaticFunctionList getStaticFunctions() {
         return staticMerge(super.getStaticFunctions(),
                 staticExpandDefinition(
@@ -142,18 +145,22 @@ public class InternalArrayListArgument extends InternalArgument {
         return new InternalArrayListArgument(new ArrayList<>());
     }
 
+    @Override
     public void setValue(Object arg) {
         value = (ArrayList<InternalArgument>) arg;
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
 
+    @Override
     public void setValue(InternalArgument arg) {
         value = getList(arg);
     }
 
+    @Override
     public String forCommand() {
         StringBuilder out = new StringBuilder("[");
         if (value.size() != 0) {

@@ -1,11 +1,12 @@
 package me.willkroboth.ConfigCommands;
 
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
-import me.willkroboth.ConfigCommands.RegisteredCommands.ConfigCommandBuilder;
+import me.willkroboth.ConfigCommands.HelperClasses.DebuggableState;
 import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
+import me.willkroboth.ConfigCommands.RegisteredCommands.CommandTreeBuilder;
 import me.willkroboth.ConfigCommands.SystemCommands.SystemCommandHandler;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -71,6 +72,10 @@ public class ConfigCommandsHandler {
         logger.logDebug(debugMode, message, objects);
     }
 
+    public static void logDebug(DebuggableState state, String message, Object... objects) {
+        logger.logDebug(state.isDebug(), message, objects);
+    }
+
     public static void logWarning(String message, Object... objects) {
         logger.warn(message, objects);
     }
@@ -95,7 +100,7 @@ public class ConfigCommandsHandler {
 
         InternalArgument.createFunctionMaps();
 
-        ConfigCommandBuilder.registerCommandsFromConfig(getConfigFile().getConfigurationSection("commands"), debugMode);
+        CommandTreeBuilder.registerCommandsFromConfig(getConfigFile().getConfigurationSection("commands"), debugMode);
 
         SystemCommandHandler.setUpCommands(plugin);
 

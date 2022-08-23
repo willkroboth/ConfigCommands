@@ -25,10 +25,12 @@ public class InternalCommandSenderArgument extends InternalArgument {
         super(value);
     }
 
+    @Override
     public String getTypeTag() {
         return null;
     }
 
+    @Override
     public FunctionList getFunctions() {
         return merge(
                 super.getFunctions(),
@@ -141,11 +143,13 @@ public class InternalCommandSenderArgument extends InternalArgument {
         return InternalVoidArgument.getInstance();
     }
 
+    @Override
     public void setValue(Object arg) {
         value = (CommandSender) arg;
         opSender = OpSender.makeOpSender(value);
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
@@ -154,11 +158,13 @@ public class InternalCommandSenderArgument extends InternalArgument {
         return opSender;
     }
 
+    @Override
     public void setValue(InternalArgument arg) {
         value = (CommandSender) arg.getValue();
         opSender = OpSender.makeOpSender(value);
     }
 
+    @Override
     public String forCommand() {
         return value.getName();
     }

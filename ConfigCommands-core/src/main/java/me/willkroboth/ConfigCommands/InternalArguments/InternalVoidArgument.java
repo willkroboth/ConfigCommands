@@ -13,22 +13,29 @@ public class InternalVoidArgument extends InternalArgument {
 
     public static InternalVoidArgument getInstance(){ return instance; }
 
+    @Override
     public String getTypeTag() { return null; }
 
+    @Override
     public FunctionList getFunctions() {
         return entries();
     }
 
+    @Override
     public StaticFunctionList getStaticFunctions() {
         return staticEntries();
     }
 
     // not used
+    @Override
     public void setValue(Object arg) { }
 
+    @Override
     public Object getValue() { return null; }
 
+    @Override
     public void setValue(InternalArgument arg) { }
 
+    @Override
     public String forCommand() { return ""; }
 }

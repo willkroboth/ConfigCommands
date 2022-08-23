@@ -1,12 +1,11 @@
 package me.willkroboth.ConfigCommands.RegisteredCommands;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.ParseException;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,8 +23,8 @@ public abstract class Expression {
         return staticClassMap;
     }
 
-    public static Expression parseExpression(String string, HashMap<String, Class<? extends InternalArgument>> argumentVariables,
-                                             boolean localDebug) throws RegistrationException {
+    public static Expression parseExpression(String string, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                             boolean localDebug) throws ParseException {
         if (string.charAt(0) == '"' && string.charAt(string.length() - 1) == '"') {
             // basic string for basic initialization
             return new StringConstant(string.substring(1, string.length() - 1));
@@ -96,7 +95,7 @@ public abstract class Expression {
                             } else {
                                 if (!(word.charAt(0) == '<' && word.charAt(word.length() - 1) == '>'))
                                     throw new ParseException(string, "Target \"" + word + "\" Does not match constant class or variable format.");
-                                if (!argumentVariables.containsKey(word))
+                                if (!argumentClasses.containsKey(word))
                                     throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
                                 ConfigCommandsHandler.logDebug(localDebug, "Target identified as valid variable.");
 
@@ -143,7 +142,7 @@ public abstract class Expression {
 
                                     Expression parameter;
                                     try {
-                                        parameter = parseExpression(word, argumentVariables, localDebug);
+                                        parameter = parseExpression(word, argumentClasses, localDebug);
                                     } catch (ParseException e) {
                                         throw new ParseException(string, "\n" + e.getMessage());
                                     }
@@ -159,10 +158,10 @@ public abstract class Expression {
                                 if (!isStaticClass) {
                                     try {
                                         assert targetExpression != null;
-                                        target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentVariables));
+                                        target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentClasses));
                                     } catch (IllegalArgumentException e) {
                                         throw new ParseException(string, "Could not turn InternalArgument class returned by expression: \""
-                                                + targetExpression + "\" (" + targetExpression.getEvaluationType(argumentVariables) + ") into an object. " +
+                                                + targetExpression + "\" (" + targetExpression.getEvaluationType(argumentClasses) + ") into an object. " +
                                                 "This issue must be fixed in the plugin's code, so please contact the plugin's author.");
                                     }
 
@@ -174,7 +173,7 @@ public abstract class Expression {
 
                                 ArgList parameters = new ArgList();
                                 for (Expression parameterExpression : parameterExpressions) {
-                                    parameters.add(parameterExpression.getEvaluationType(argumentVariables));
+                                    parameters.add(parameterExpression.getEvaluationType(argumentClasses));
                                 }
                                 if (localDebug) {
                                     StringBuilder parametersString = new StringBuilder("[");
@@ -226,7 +225,7 @@ public abstract class Expression {
 
                             Expression parameter;
                             try {
-                                parameter = parseExpression(word, argumentVariables, localDebug);
+                                parameter = parseExpression(word, argumentClasses, localDebug);
                             } catch (ParseException e) {
                                 throw new ParseException(string, "\n" + e.getMessage());
                             }
@@ -253,7 +252,7 @@ public abstract class Expression {
                     // expression is just a variable name
                     if (!(word.charAt(0) == '<' && word.charAt(word.length() - 1) == '>'))
                         throw new ParseException(string, "Target \"" + word + "\" Does not match variable format.");
-                    if (!argumentVariables.containsKey(word))
+                    if (!argumentClasses.containsKey(word))
                         throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
                     ConfigCommandsHandler.logDebug(localDebug, "Expression found to be a valid variable reference");
                     targetExpression = new Variable(word);
@@ -273,9 +272,9 @@ public abstract class Expression {
 
     public abstract String toString();
 
-    public abstract Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables);
+    public abstract Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses);
 
-    public abstract InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables,
+    public abstract InternalArgument evaluate(Map<String, InternalArgument> argumentVariables,
                                               boolean localDebug) throws CommandRunException;
 }
 
@@ -294,23 +293,23 @@ class FunctionCall extends Expression{
         return "(" + targetExpression.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
     }
 
-    public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
-        InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argument_variables));
+    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses){
+        InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentClasses));
 
         ArgList parameters = new ArgList();
         for(Expression parameterExpression: parameterExpressions){
-            parameters.add(parameterExpression.getEvaluationType(argument_variables));
+            parameters.add(parameterExpression.getEvaluationType(argumentClasses));
         }
 
         return target.getReturnTypeForFunction(function, parameters);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         ConfigCommandsHandler.logDebug(localDebug, "Evaluating FunctionCall");
 
         ConfigCommandsHandler.logDebug(localDebug, "Target expression is: %s", targetExpression);
         ConfigCommandsHandler.increaseIndentation();
-        InternalArgument target = targetExpression.evaluate(argument_variables, localDebug);
+        InternalArgument target = targetExpression.evaluate(argumentVariables, localDebug);
         ConfigCommandsHandler.decreaseIndentation();
 
         ConfigCommandsHandler.logDebug(localDebug, "Function is: " + function);
@@ -319,7 +318,7 @@ class FunctionCall extends Expression{
         for(Expression parameterExpression: parameterExpressions){
             ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
             ConfigCommandsHandler.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argument_variables, localDebug));
+            parameters.add(parameterExpression.evaluate(argumentVariables, localDebug));
             ConfigCommandsHandler.decreaseIndentation();
         }
 
@@ -347,16 +346,16 @@ class StaticFunctionCall extends Expression{
         return "(" + targetClass.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
     }
 
-    public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
+    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses){
         ArgList parameters = new ArgList();
         for(Expression parameterExpression: parameterExpressions){
-            parameters.add(parameterExpression.getEvaluationType(argument_variables));
+            parameters.add(parameterExpression.getEvaluationType(argumentClasses));
         }
 
         return targetClass.getReturnTypeForStaticFunction(function, parameters);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         ConfigCommandsHandler.logDebug(localDebug, "Evaluating StaticFunctionCall");
 
         ConfigCommandsHandler.logDebug(localDebug, "Target class is: %s", targetClass);
@@ -367,7 +366,7 @@ class StaticFunctionCall extends Expression{
         for(Expression parameterExpression: parameterExpressions){
             ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
             ConfigCommandsHandler.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argument_variables, localDebug));
+            parameters.add(parameterExpression.evaluate(argumentVariables, localDebug));
             ConfigCommandsHandler.decreaseIndentation();
         }
 
@@ -387,17 +386,17 @@ class Variable extends Expression{
 
     public String toString() { return name; }
 
-    public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables) {
-        return argument_variables.get(name);
+    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
+        return argumentClasses.get(name);
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         if (localDebug) {
             ConfigCommandsHandler.logNormal("Evaluating Variable");
             ConfigCommandsHandler.logNormal("Variable name is: %s", name);
-            ConfigCommandsHandler.logNormal("Class %s with value %s ", argument_variables.get(name).getClass().getSimpleName(), argument_variables.get(name).forCommand());
+            ConfigCommandsHandler.logNormal("Class %s with value %s ", argumentVariables.get(name).getClass().getSimpleName(), argumentVariables.get(name).forCommand());
         }
-        return argument_variables.get(name);
+        return argumentVariables.get(name);
     }
 }
 
@@ -409,11 +408,11 @@ class StringConstant extends Expression{
 
     public String toString() { return "\"" + value.getValue() + "\""; }
 
-    public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables) {
+    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
         return InternalStringArgument.class;
     }
 
-    public InternalArgument evaluate(HashMap<String, InternalArgument> argument_variables, boolean localDebug) throws CommandRunException {
+    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         ConfigCommandsHandler.logDebug(localDebug, "Evaluating Constant");
         ConfigCommandsHandler.logDebug(localDebug, "Constant is %s", this);
         return value;

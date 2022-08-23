@@ -1,6 +1,6 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
@@ -11,11 +11,9 @@ import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
+import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class InternalStringArgument extends InternalArgument {
     private String value;
@@ -27,22 +25,21 @@ public class InternalStringArgument extends InternalArgument {
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) throws IncorrectArgumentKey {
-        String type = (String) arg.get("subtype");
-        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: " + type);
-        command.withArguments(
-                type == null ? new StringArgument(name):
-                switch (type) {
-                    case "string" -> new StringArgument(name);
-                    case "text" -> new TextArgument(name);
-                    case "greedy" -> new GreedyStringArgument(name);
-                    default -> throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
-                }
-        );
-        argument_keys.add(name);
-        argument_variable_classes.put(name, InternalStringArgument.class);
+    @Override
+    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+        ConfigurationSection info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, name);
+        String type = info.getString("subtype");
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: %s", type);
+        if (type == null) return new StringArgument(name);
+        return switch (type) {
+            case "string" -> new StringArgument(name);
+            case "text" -> new TextArgument(name);
+            case "greedy" -> new GreedyStringArgument(name);
+            default -> throw new IncorrectArgumentKey(name, "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+        };
     }
 
+    @Override
     public FunctionList getFunctions() {
         return merge(
                 super.getFunctions(),
@@ -92,18 +89,18 @@ public class InternalStringArgument extends InternalArgument {
 
         );
     }
-    
-    private String getString(InternalArgument target){
+
+    private String getString(InternalArgument target) {
         return (String) target.getValue();
     }
-    
-    private int getInt(InternalArgument target){
+
+    private int getInt(InternalArgument target) {
         return (int) target.getValue();
     }
 
     private InternalArgument substring(InternalArgument target, List<InternalArgument> parameters) {
         String result;
-        if(parameters.size() == 1){
+        if (parameters.size() == 1) {
             result = getString(target).substring(getInt(parameters.get(0)));
         } else {
             result = getString(target).substring(getInt(parameters.get(0)), getInt(parameters.get(1)));
@@ -113,7 +110,7 @@ public class InternalStringArgument extends InternalArgument {
 
     private InternalArgument lastIndexOf(InternalArgument target, List<InternalArgument> parameters) {
         int result;
-        if(parameters.size() == 1){
+        if (parameters.size() == 1) {
             result = getString(target).lastIndexOf(getString(parameters.get(0)));
         } else {
             result = getString(target).lastIndexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
@@ -123,7 +120,7 @@ public class InternalStringArgument extends InternalArgument {
 
     private InternalArgument indexOf(InternalArgument target, List<InternalArgument> parameters) {
         int result;
-        if(parameters.size() == 1){
+        if (parameters.size() == 1) {
             result = getString(target).indexOf(getString(parameters.get(0)));
         } else {
             result = getString(target).indexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
@@ -171,21 +168,33 @@ public class InternalStringArgument extends InternalArgument {
         String s = (String) target.getValue();
         try {
             return new InternalIntegerArgument(Integer.parseInt(s));
-        } catch (NumberFormatException ignored){
+        } catch (NumberFormatException ignored) {
             throw new CommandRunException("NumberFormatException: value: \"" + s + "\" could not be interpreted as int.");
         }
     }
 
-    public InternalStringArgument join(InternalArgument target, List<InternalArgument> parameters){
+    public InternalStringArgument join(InternalArgument target, List<InternalArgument> parameters) {
         String arg = parameters.get(0).forCommand();
         return new InternalStringArgument(target.getValue() + arg);
     }
 
-    public void setValue(Object arg) { value = (String) arg; }
+    @Override
+    public void setValue(Object arg) {
+        value = (String) arg;
+    }
 
-    public Object getValue() { return value; }
+    @Override
+    public Object getValue() {
+        return value;
+    }
 
-    public void setValue(InternalArgument arg) { value = (String) arg.getValue(); }
+    @Override
+    public void setValue(InternalArgument arg) {
+        value = (String) arg.getValue();
+    }
 
-    public String forCommand() { return value; }
+    @Override
+    public String forCommand() {
+        return value;
+    }
 }

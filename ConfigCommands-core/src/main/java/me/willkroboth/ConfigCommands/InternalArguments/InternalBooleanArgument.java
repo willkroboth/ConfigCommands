@@ -1,16 +1,13 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class InternalBooleanArgument extends InternalArgument {
     private boolean value;
@@ -22,12 +19,12 @@ public class InternalBooleanArgument extends InternalArgument {
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) {
-        command.withArguments(new BooleanArgument(name));
-        argument_keys.add(name);
-        argument_variable_classes.put(name, InternalBooleanArgument.class);
+    @Override
+    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) {
+        return new BooleanArgument(name);
     }
 
+    @Override
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
                 expandDefinition(strings("and", "&&"), args(args(InternalBooleanArgument.class)),
@@ -59,6 +56,7 @@ public class InternalBooleanArgument extends InternalArgument {
         return new InternalBooleanArgument(!targetValue);
     }
 
+    @Override
     public StaticFunctionList getStaticFunctions() {
         return staticMerge(super.getStaticFunctions(),
                 staticExpandDefinition(strings("", "new"), args(args(InternalStringArgument.class)),
@@ -71,18 +69,22 @@ public class InternalBooleanArgument extends InternalArgument {
         return new InternalBooleanArgument(Boolean.parseBoolean(value));
     }
 
+    @Override
     public void setValue(Object arg) {
         value = (boolean) arg;
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
 
+    @Override
     public void setValue(InternalArgument arg) {
         value = (boolean) arg.getValue();
     }
 
+    @Override
     public String forCommand() {
         return "" + value;
     }
