@@ -8,7 +8,7 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.CompilerState;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
 
 class Goto extends FunctionLine {

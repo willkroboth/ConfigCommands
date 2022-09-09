@@ -3,7 +3,7 @@ package me.willkroboth.ConfigCommands.HelperClasses;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;

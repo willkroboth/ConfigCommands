@@ -9,7 +9,7 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalBooleanArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.CompilerState;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
 
 import java.util.Arrays;

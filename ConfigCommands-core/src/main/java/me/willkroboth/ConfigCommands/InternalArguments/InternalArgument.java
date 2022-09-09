@@ -9,7 +9,7 @@ import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;

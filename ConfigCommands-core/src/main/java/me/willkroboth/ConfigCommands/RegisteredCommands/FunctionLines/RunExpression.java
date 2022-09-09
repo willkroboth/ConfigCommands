@@ -4,7 +4,7 @@ import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.FunctionSyntax.InvalidRunExpression;
 import me.willkroboth.ConfigCommands.Exceptions.ParseException;
 import me.willkroboth.ConfigCommands.RegisteredCommands.CompilerState;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
 
 class RunExpression extends FunctionLine {

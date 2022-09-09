@@ -6,7 +6,7 @@ import me.willkroboth.ConfigCommands.Exceptions.ParseException;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.CompilerState;
-import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
 
 import java.util.Collections;

@@ -1,11 +1,10 @@
-package me.willkroboth.ConfigCommands.RegisteredCommands;
+package me.willkroboth.ConfigCommands.RegisteredCommands.Expressions;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.ParseException;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -276,145 +275,4 @@ public abstract class Expression {
 
     public abstract InternalArgument evaluate(Map<String, InternalArgument> argumentVariables,
                                               boolean localDebug) throws CommandRunException;
-}
-
-class FunctionCall extends Expression{
-    private final Expression targetExpression;
-    private final String function;
-    private final List<? extends Expression> parameterExpressions;
-
-    public FunctionCall(Expression targetExpression, String function, List<? extends Expression> parameterExpressions){
-        this.targetExpression = targetExpression;
-        this.function = function;
-        this.parameterExpressions = parameterExpressions;
-    }
-
-    public String toString() {
-        return "(" + targetExpression.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
-    }
-
-    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses){
-        InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentClasses));
-
-        ArgList parameters = new ArgList();
-        for(Expression parameterExpression: parameterExpressions){
-            parameters.add(parameterExpression.getEvaluationType(argumentClasses));
-        }
-
-        return target.getReturnTypeForFunction(function, parameters);
-    }
-
-    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
-        ConfigCommandsHandler.logDebug(localDebug, "Evaluating FunctionCall");
-
-        ConfigCommandsHandler.logDebug(localDebug, "Target expression is: %s", targetExpression);
-        ConfigCommandsHandler.increaseIndentation();
-        InternalArgument target = targetExpression.evaluate(argumentVariables, localDebug);
-        ConfigCommandsHandler.decreaseIndentation();
-
-        ConfigCommandsHandler.logDebug(localDebug, "Function is: " + function);
-
-        List<InternalArgument> parameters = new ArrayList<>();
-        for(Expression parameterExpression: parameterExpressions){
-            ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
-            ConfigCommandsHandler.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argumentVariables, localDebug));
-            ConfigCommandsHandler.decreaseIndentation();
-        }
-
-        ConfigCommandsHandler.logDebug(localDebug, "Running function");
-        ConfigCommandsHandler.increaseIndentation();
-        InternalArgument result = target.runFunction(function, parameters);
-        ConfigCommandsHandler.decreaseIndentation();
-        ConfigCommandsHandler.logDebug(localDebug, "Result is %s with value %s", result, result.getValue());
-        return result;
-    }
-}
-
-class StaticFunctionCall extends Expression{
-    private final InternalArgument targetClass;
-    private final String function;
-    private final List<? extends Expression> parameterExpressions;
-
-    StaticFunctionCall(InternalArgument targetClass, String function, List<? extends Expression> parameterExpressions) {
-        this.targetClass = targetClass;
-        this.function = function;
-        this.parameterExpressions = parameterExpressions;
-    }
-
-    public String toString() {
-        return "(" + targetClass.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
-    }
-
-    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses){
-        ArgList parameters = new ArgList();
-        for(Expression parameterExpression: parameterExpressions){
-            parameters.add(parameterExpression.getEvaluationType(argumentClasses));
-        }
-
-        return targetClass.getReturnTypeForStaticFunction(function, parameters);
-    }
-
-    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
-        ConfigCommandsHandler.logDebug(localDebug, "Evaluating StaticFunctionCall");
-
-        ConfigCommandsHandler.logDebug(localDebug, "Target class is: %s", targetClass);
-
-        ConfigCommandsHandler.logDebug(localDebug, "Function is: %s", function);
-
-        List<InternalArgument> parameters = new ArrayList<>();
-        for(Expression parameterExpression: parameterExpressions){
-            ConfigCommandsHandler.logDebug(localDebug, "Parameter expression is: %s", parameterExpression);
-            ConfigCommandsHandler.increaseIndentation();
-            parameters.add(parameterExpression.evaluate(argumentVariables, localDebug));
-            ConfigCommandsHandler.decreaseIndentation();
-        }
-
-        ConfigCommandsHandler.logDebug(localDebug, "Running function");
-        ConfigCommandsHandler.increaseIndentation();
-        InternalArgument result = targetClass.runStaticFunction(function, parameters);
-        ConfigCommandsHandler.decreaseIndentation();
-        ConfigCommandsHandler.logDebug(localDebug, "Result is %s with value %s", result, result.getValue());
-        return result;
-    }
-}
-
-class Variable extends Expression{
-    private final String name;
-
-    public Variable(String name){ this.name = name; }
-
-    public String toString() { return name; }
-
-    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
-        return argumentClasses.get(name);
-    }
-
-    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
-        if (localDebug) {
-            ConfigCommandsHandler.logNormal("Evaluating Variable");
-            ConfigCommandsHandler.logNormal("Variable name is: %s", name);
-            ConfigCommandsHandler.logNormal("Class %s with value %s ", argumentVariables.get(name).getClass().getSimpleName(), argumentVariables.get(name).forCommand());
-        }
-        return argumentVariables.get(name);
-    }
-}
-
-class StringConstant extends Expression{
-    private final InternalStringArgument value;
-    public StringConstant(String value){
-        this.value = new InternalStringArgument(value);
-    }
-
-    public String toString() { return "\"" + value.getValue() + "\""; }
-
-    public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
-        return InternalStringArgument.class;
-    }
-
-    public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
-        ConfigCommandsHandler.logDebug(localDebug, "Evaluating Constant");
-        ConfigCommandsHandler.logDebug(localDebug, "Constant is %s", this);
-        return value;
-    }
 }
