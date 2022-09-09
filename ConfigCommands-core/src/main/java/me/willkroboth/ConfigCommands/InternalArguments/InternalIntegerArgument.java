@@ -9,6 +9,7 @@ import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionL
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import org.bukkit.configuration.ConfigurationSection;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class InternalIntegerArgument extends InternalArgument {
@@ -22,7 +23,7 @@ public class InternalIntegerArgument extends InternalArgument {
     }
 
     @Override
-    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         int min = Integer.MIN_VALUE;
         int max = Integer.MAX_VALUE;
         if(argumentInfo != null) {

@@ -12,6 +12,7 @@ import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -25,8 +26,10 @@ public class InternalStringArgument extends InternalArgument {
         super(value);
     }
 
+
     @Override
-    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+        if(argumentInfo == null) return new StringArgument(name);
         ConfigurationSection info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, name);
         String type = info.getString("subtype");
         ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: %s", type);

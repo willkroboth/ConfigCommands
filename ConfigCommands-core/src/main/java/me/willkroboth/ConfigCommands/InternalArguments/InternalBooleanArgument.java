@@ -7,6 +7,7 @@ import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class InternalBooleanArgument extends InternalArgument {
@@ -20,7 +21,7 @@ public class InternalBooleanArgument extends InternalArgument {
     }
 
     @Override
-    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) {
+    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) {
         return new BooleanArgument(name);
     }
 

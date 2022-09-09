@@ -10,6 +10,8 @@ import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.RegisteredCommands.Expression;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
@@ -360,7 +362,7 @@ public abstract class InternalArgument implements FunctionCreator {
         return name;
     }
 
-    // Note: while getTypeTag and addThisArgument both have default methods, at least one should be overridden
+    // Note: while getTypeTag and createArgument both have default methods, at least one should be overridden
     // Most common override for getTypeTag should be to return null to disable being added as an argument
     public String getTypeTag(){
         // default type tag is the name
@@ -368,12 +370,12 @@ public abstract class InternalArgument implements FunctionCreator {
         return getName();
     }
 
-    protected <T> T assertArgumentInfoClass(Object argumentInfo, Class<? extends T> clazz, String arg) throws IncorrectArgumentKey {
+    protected <T> T assertArgumentInfoClass(@NotNull Object argumentInfo, Class<? extends T> clazz, String arg) throws IncorrectArgumentKey {
         if (clazz.isAssignableFrom(argumentInfo.getClass())) return clazz.cast(argumentInfo);
         throw new IncorrectArgumentKey(arg, "argumentInfo", "Expected argumentInfo to have class " + clazz.getSimpleName());
     }
 
-    public Argument<?> createArgument(String name, Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey{
+    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey{
         throw new IncorrectArgumentKey(name, "type", getTypeTag() + " cannot be an argument");
     }
 
