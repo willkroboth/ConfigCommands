@@ -10,7 +10,7 @@ import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class InternalBooleanArgument extends InternalArgument {
+public class InternalBooleanArgument extends InternalArgument implements CommandArgument{
     private boolean value;
 
     public InternalBooleanArgument() {

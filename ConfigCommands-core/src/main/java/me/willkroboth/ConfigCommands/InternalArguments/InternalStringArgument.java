@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class InternalStringArgument extends InternalArgument {
+public class InternalStringArgument extends InternalArgument implements CommandArgument {
     private String value;
 
     public InternalStringArgument() {

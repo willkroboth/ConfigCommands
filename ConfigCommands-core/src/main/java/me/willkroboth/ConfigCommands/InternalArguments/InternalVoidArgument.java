@@ -14,9 +14,6 @@ public class InternalVoidArgument extends InternalArgument {
     public static InternalVoidArgument getInstance(){ return instance; }
 
     @Override
-    public String getTypeTag() { return null; }
-
-    @Override
     public FunctionList getFunctions() {
         return entries();
     }

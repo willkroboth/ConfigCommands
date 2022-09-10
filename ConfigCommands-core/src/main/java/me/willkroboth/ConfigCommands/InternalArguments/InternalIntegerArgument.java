@@ -12,7 +12,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class InternalIntegerArgument extends InternalArgument {
+public class InternalIntegerArgument extends InternalArgument implements CommandArgument{
     private int value;
 
     public InternalIntegerArgument() {

@@ -27,11 +27,6 @@ public class InternalArrayListArgument extends InternalArgument {
     }
 
     @Override
-    public String getTypeTag() {
-        return null;
-    }
-
-    @Override
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
                 generateGets(),
