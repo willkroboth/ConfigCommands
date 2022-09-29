@@ -1,12 +1,7 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Functions.Definition;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,47 +27,70 @@ public class InternalArrayListArgument extends InternalArgument {
 
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
-                generateGets(),
-                generateSets(),
-                expandDefinition(
-                        strings("add"), AllInternalArguments.get(),
-                        new Function(this::add, InternalVoidArgument.class)
-                ),
-                expandDefinition(strings("contains"), AllInternalArguments.get(),
-                        new Function(this::contains, InternalBooleanArgument.class)),
-                expandDefinition(strings("indexOf"), AllInternalArguments.get(),
-                        new Function(this::indexOf, InternalIntegerArgument.class)),
-                expandDefinition(strings("lastIndexOf"), AllInternalArguments.get(),
-                        new Function(this::lastIndexOf, InternalIntegerArgument.class)),
-                entries(
-                        entry(new Definition("addAll", args(InternalArrayListArgument.class)),
-                                new Function(this::addAll, InternalVoidArgument.class)),
-                        entry(new Definition("remove", args(InternalIntegerArgument.class)),
-                                new Function(this::remove, InternalVoidArgument.class)),
-                        entry(new Definition("size", args()),
-                                new Function(this::size, InternalIntegerArgument.class)),
-                        entry(new Definition("subList", args(InternalIntegerArgument.class, InternalIntegerArgument.class)),
-                                new Function(this::subList, InternalArrayListArgument.class))
+                functions(
+                        new Function("add")
+                                .withDescription("Adds an item to this list")
+                                .withParameters(new Parameter(InternalArgument.class, "item", "The item to add"))
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::add)
+                                .withExamples(
+                                        "<list> = ArrayList.new() -> []",
+                                        "do <list>.add(Integer.new(\"10\")) -> [10]",
+                                        "do <list>.add(\"a\") -> [10, \"a\"]",
+                                        "do <list>.add(Boolean.(\"true\")) -> [10, \"a\", true]"
+                                ),
+                        new Function("addAll")
+                                .withParameters(new Parameter(InternalArrayListArgument.class))
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::addAll),
+                        // TODO: Write descriptions and examples and such for everything
+                        new Function("contains")
+                                .withParameters(new Parameter(InternalArgument.class))
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::contains),
+                        new Function("get")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class),
+                                        new Parameter(InternalArgument.class)
+                                )
+                                .returns((parameters) -> {
+                                    // If no parameters are given (when outputting return type), return most general class
+                                    if(parameters.size() != 2) return InternalArgument.class;
+                                    // Returns a type defined by the second argument
+                                    return parameters.get(1);
+                                })
+                                .executes(this::get),
+                        new Function("indexOf")
+                                .withParameters(new Parameter(InternalArgument.class))
+                                .returns(InternalIntegerArgument.class)
+                                .executes(this::indexOf),
+                        new Function("lastIndexOf")
+                                .withParameters(new Parameter(InternalArgument.class))
+                                .returns(InternalIntegerArgument.class)
+                                .executes(this::lastIndexOf),
+                        new Function("remove")
+                                .withParameters(new Parameter(InternalIntegerArgument.class))
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::remove),
+                        new Function("set")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class),
+                                        new Parameter(InternalArgument.class)
+                                )
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::set),
+                        new Function("size")
+                                .returns(InternalIntegerArgument.class)
+                                .executes(this::size),
+                        new Function("subList")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class),
+                                        new Parameter(InternalIntegerArgument.class)
+                                )
+                                .returns(InternalArrayListArgument.class)
+                                .executes(this::subList)
                 )
         );
-    }
-
-    private FunctionList generateGets() {
-        FunctionList gets = new FunctionList();
-        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
-            gets.add(entry(new Definition("get", args(InternalIntegerArgument.class, clazz)),
-                    new Function(this::get, clazz)));
-        }
-        return gets;
-    }
-
-    private FunctionList generateSets() {
-        FunctionList sets = new FunctionList();
-        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
-            sets.add(entry(new Definition("set", args(InternalIntegerArgument.class, clazz)),
-                    new Function(this::set, InternalVoidArgument.class)));
-        }
-        return sets;
     }
 
     private ArrayList<InternalArgument> getList(InternalArgument target) {
@@ -130,10 +148,17 @@ public class InternalArrayListArgument extends InternalArgument {
     }
 
     public StaticFunctionList getStaticFunctions() {
-        return staticMerge(super.getStaticFunctions(),
-                staticExpandDefinition(
-                        strings("", "new"), args(args()),
-                        new StaticFunction(this::initialize, InternalArrayListArgument.class)
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .withDescription("Creates a new list with no elements")
+                                .returns(InternalArrayListArgument.class)
+                                .executes(this::initialize)
+                                .withExamples(
+                                        "ArrayList.new() -> []",
+                                        "ArrayList.() -> []"
+                                )
                 )
         );
     }

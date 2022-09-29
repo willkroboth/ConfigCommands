@@ -1,10 +1,10 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.NMS.OpSender;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.Parameter;
+import me.willkroboth.ConfigCommands.NMS.OpSender;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -30,33 +30,49 @@ public class InternalCommandSenderArgument extends InternalArgument {
     }
 
     public FunctionList getFunctions() {
-        return merge(
-                super.getFunctions(),
-                entries(
-                        entry(new Definition("dispatchCommand", args(InternalStringArgument.class)),
-                                new Function(this::dispatchCommand, InternalStringArgument.class)),
-                        entry(new Definition("getName", args()),
-                                new Function(this::getSenderName, InternalStringArgument.class)),
-                        entry(new Definition("getType", args()),
-                                new Function(this::getType, InternalStringArgument.class)),
-                        entry(new Definition("hasPermission", args(InternalStringArgument.class)),
-                                new Function(this::hasPermission, InternalBooleanArgument.class)),
-                        entry(new Definition("isCommandBlock", args()),
-                                new Function(this::isCommandBlock, InternalBooleanArgument.class)),
-                        entry(new Definition("isConsole", args()),
-                                new Function(this::isConsole, InternalBooleanArgument.class)),
-                        entry(new Definition("isEntity", args()),
-                                new Function(this::isEntity, InternalBooleanArgument.class)),
-                        entry(new Definition("isOp", args()),
-                                new Function(this::isOp, InternalBooleanArgument.class)),
-                        entry(new Definition("isPlayer", args()),
-                                new Function(this::isPlayer, InternalBooleanArgument.class)),
-                        entry(new Definition("isProxy", args()),
-                                new Function(this::isProxy, InternalBooleanArgument.class)),
-                        entry(new Definition("sendMessage", args(InternalStringArgument.class)),
-                                new Function(this::sendMessage, InternalVoidArgument.class)),
-                        entry(new Definition("setOp", args(InternalBooleanArgument.class)),
-                                new Function(this::setOp, InternalVoidArgument.class))
+        return merge(super.getFunctions(),
+                // TODO: Add function info
+                functions(
+                        new Function("dispatchCommand")
+                                .withParameters(new Parameter(InternalStringArgument.class))
+                                .returns(InternalStringArgument.class)
+                                .executes(this::dispatchCommand),
+                        new Function("getName")
+                                .returns(InternalStringArgument.class)
+                                .executes(this::getSenderName),
+                        new Function("getType")
+                                .returns(InternalStringArgument.class)
+                                .executes(this::getType),
+                        new Function("hasPermission")
+                                .withParameters(new Parameter(InternalStringArgument.class))
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::hasPermission),
+                        new Function("isCommandBlock")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isCommandBlock),
+                        new Function("isConsole")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isConsole),
+                        new Function("isEntity")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isEntity),
+                        new Function("isOp")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isOp),
+                        new Function("isPlayer")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isPlayer),
+                        new Function("isProxy")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::isProxy),
+                        new Function("sendMessage")
+                                .withParameters(new Parameter(InternalStringArgument.class))
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::sendMessage),
+                        new Function("setOp")
+                                .withParameters(new Parameter(InternalBooleanArgument.class))
+                                .returns(InternalVoidArgument.class)
+                                .executes(this::setOp)
                 )
         );
     }

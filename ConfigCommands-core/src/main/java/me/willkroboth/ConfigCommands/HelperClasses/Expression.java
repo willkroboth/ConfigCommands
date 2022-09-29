@@ -1,12 +1,11 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.ParseException;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.ArgList;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalStringArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,7 +171,7 @@ public abstract class Expression {
                                     }
                                 }
 
-                                ArgList parameters = new ArgList();
+                                List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
                                 for (Expression parameterExpression : parameterExpressions) {
                                     parameters.add(parameterExpression.getEvaluationType(argumentVariables));
                                 }
@@ -297,7 +296,7 @@ class FunctionCall extends Expression{
     public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
         InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argument_variables));
 
-        ArgList parameters = new ArgList();
+        List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
         for(Expression parameterExpression: parameterExpressions){
             parameters.add(parameterExpression.getEvaluationType(argument_variables));
         }
@@ -348,7 +347,7 @@ class StaticFunctionCall extends Expression{
     }
 
     public Class<? extends InternalArgument> getEvaluationType(HashMap<String, Class<? extends InternalArgument>> argument_variables){
-        ArgList parameters = new ArgList();
+        List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
         for(Expression parameterExpression: parameterExpressions){
             parameters.add(parameterExpression.getEvaluationType(argument_variables));
         }

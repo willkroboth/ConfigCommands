@@ -4,24 +4,27 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
 import java.util.List;
 
-public class StaticFunction{
-    private final InternalArgumentStaticFunction function;
-    private final Class<? extends InternalArgument> returnType;
+public class StaticFunction extends AbstractFunction<StaticFunction> {
+    // Executes
+    @FunctionalInterface
+    public interface InternalArgumentStaticFunction {
+        InternalArgument apply(List<InternalArgument> parameters);
+    }
+    private InternalArgumentStaticFunction executes;
 
-    public StaticFunction(InternalArgumentStaticFunction function, Class<? extends InternalArgument> returnType) {
-        this.function = function;
-        this.returnType = returnType;
+    // Set information
+    public StaticFunction(String name) {
+        super(name);
     }
 
-    public InternalArgumentStaticFunction getFunction(){
-        return function;
+    public StaticFunction executes(InternalArgumentStaticFunction executes) {
+        this.executes = executes;
+
+        return this;
     }
 
-    public Class<? extends InternalArgument> getReturnType() {
-        return returnType;
-    }
-
-    public InternalArgument run(List<InternalArgument> args) {
-        return function.apply(args);
+    // Use information
+    public InternalArgument run(List<InternalArgument> parameters) {
+        return executes.apply(parameters);
     }
 }

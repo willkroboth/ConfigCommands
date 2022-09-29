@@ -4,22 +4,28 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
 import java.util.List;
 
-public class Function{
-    private final InternalArgumentFunction function;
-    private final Class<? extends InternalArgument> returnType;
-
-    public Function(InternalArgumentFunction function, Class<? extends InternalArgument> returnType) {
-        this.function = function;
-        this.returnType = returnType;
+public class Function extends AbstractFunction<Function> {
+    // Executes
+    @FunctionalInterface
+    public interface InternalArgumentFunction {
+        InternalArgument apply(InternalArgument target, List<InternalArgument> parameters);
     }
 
-    public InternalArgumentFunction getFunction(){
-        return function;
+    private InternalArgumentFunction executes;
+
+    // Set information
+    public Function(String name) {
+        super(name);
     }
 
-    public Class<? extends InternalArgument> getReturnType() {
-        return returnType;
+    public Function executes(InternalArgumentFunction executes) {
+        this.executes = executes;
+
+        return this;
     }
 
-    public InternalArgument run(InternalArgument target, List<InternalArgument> args) { return function.apply(target, args); }
+    // Use information
+    public InternalArgument run(InternalArgument target, List<InternalArgument> parameters) {
+        return executes.apply(target, parameters);
+    }
 }

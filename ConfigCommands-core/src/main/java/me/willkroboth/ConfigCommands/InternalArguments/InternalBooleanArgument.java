@@ -2,10 +2,7 @@ package me.willkroboth.ConfigCommands.InternalArguments;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.BooleanArgument;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,12 +27,23 @@ public class InternalBooleanArgument extends InternalArgument {
 
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
-                expandDefinition(strings("and", "&&"), args(args(InternalBooleanArgument.class)),
-                        new Function(this::and, InternalBooleanArgument.class)),
-                expandDefinition(strings("or", "||"), args(args(InternalBooleanArgument.class)),
-                        new Function(this::or, InternalBooleanArgument.class)),
-                expandDefinition(strings("not", "!"), args(args()),
-                        new Function(this::not, InternalBooleanArgument.class))
+                // TODO: Add function info
+                functions(
+                        new Function("and")
+                                .withAliases("&&")
+                                .withParameters(new Parameter(InternalBooleanArgument.class))
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::and),
+                        new Function("not")
+                                .withAliases("!")
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::not),
+                        new Function("or")
+                                .withAliases("||")
+                                .withParameters(new Parameter(InternalBooleanArgument.class))
+                                .returns(InternalBooleanArgument.class)
+                                .executes(this::or)
+                )
         );
     }
 
@@ -60,9 +68,13 @@ public class InternalBooleanArgument extends InternalArgument {
     }
 
     public StaticFunctionList getStaticFunctions() {
-        return staticMerge(super.getStaticFunctions(),
-                staticExpandDefinition(strings("", "new"), args(args(InternalStringArgument.class)),
-                        new StaticFunction(this::initialize, InternalBooleanArgument.class))
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .returns(InternalArrayListArgument.class)
+                                .executes(this::initialize)
+                )
         );
     }
 

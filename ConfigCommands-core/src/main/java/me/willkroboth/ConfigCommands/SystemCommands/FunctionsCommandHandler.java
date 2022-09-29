@@ -8,9 +8,7 @@ import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
-import me.willkroboth.ConfigCommands.Functions.Definition;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.*;
 import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.ChatColor;
@@ -24,10 +22,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FunctionsCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
@@ -69,55 +64,6 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         sender.sendMessage("Type back to return to previous step.");
         activeUsers.put(sender, new CommandContext(null, "", FunctionsCommandHandler::chooseAddOn));
         handleMessage(sender, "", null);
-    }
-
-    private static void displayInformation(CommandSender sender, Object[] parameters) {
-        String addOn = (String) parameters[0];
-
-        if (ConfigCommandAddOn.getAddOn(addOn) == null) {
-            sender.sendMessage(ChatColor.RED + "Invalid command: addOn \"" + addOn + "\" does not exist");
-            return;
-        }
-
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
-
-        List<String> names = InternalArgument.getNames(internalArguments);
-        String internalArgument = (String) parameters[1];
-        if (!names.contains(internalArgument)) {
-            sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for the given addOn");
-            return;
-        }
-        InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
-
-        String staticChoice = (String) parameters[2];
-
-        if (staticChoice.equals("static")) {
-            Map<Definition, StaticFunction> functions = InternalArgument.getStaticFunctions(argument.getClass());
-            Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases((String) parameters[3], functions);
-            if (aliases.size() == 0) {
-                sender.sendMessage(ChatColor.RED + "Invalid command: did not find nonStatic function \"" + parameters[3] + "\" for the given internalArgument");
-                return;
-            }
-
-            names = InternalArgument.getStaticNames(aliases);
-            sender.sendMessage("Aliases: " + names);
-
-            sender.sendMessage("Possible parameters:" + InternalArgument.getStaticParameterString(aliases));
-        } else if (staticChoice.equals("nonStatic")) {
-            Map<Definition, Function> functions = InternalArgument.getFunctions(argument.getClass());
-            Map<Definition, Function> aliases = InternalArgument.getAliases((String) parameters[3], functions);
-            if (aliases.size() == 0) {
-                sender.sendMessage(ChatColor.RED + "Invalid command: did not find static function \"" + parameters[3] + "\" for the given internalArgument");
-                return;
-            }
-
-            names = InternalArgument.getNames(aliases);
-            sender.sendMessage("Aliases: " + names);
-
-            sender.sendMessage("Possible parameters:" + InternalArgument.getParameterString(aliases));
-        } else {
-            sender.sendMessage(ChatColor.RED + "Invalid command: expected static or nonStatic but found \"" + staticChoice + "\"");
-        }
     }
 
     // events
@@ -223,33 +169,29 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static void chooseFunction(CommandSender sender, String message, CommandContext context) {
+        Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
         if (message.isBlank()) {
             sender.sendMessage("Choose the function you need help with.");
 
-            Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
-
-            sender.sendMessage("Functions: " + InternalArgument.getNames(InternalArgument.getFunctions(clazz)));
-            sender.sendMessage("StaticFunctions: " + InternalArgument.getStaticNames(InternalArgument.getStaticFunctions(clazz)));
+            sender.sendMessage("Functions: " + Arrays.toString(InternalArgument.getFunctionsFor(clazz).getNames()));
+            sender.sendMessage("StaticFunctions: " + Arrays.toString(InternalArgument.getStaticFunctionsFor(clazz).getNames()));
         } else {
-            Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
 
-            Map<Definition, Function> functions = InternalArgument.getFunctions(clazz);
-            List<String> names = InternalArgument.getNames(functions);
-            if (names.contains(message)) {
-                Map<Definition, Function> aliases = InternalArgument.getAliases(message, functions);
+            FunctionList functions = InternalArgument.getFunctionsFor(clazz);
+            if (functions.hasName(message)) {
+                Function function = functions.getFromName(message);
 
-                context = setContext(sender, context, aliases, FunctionsCommandHandler::displayInformation);
+                context = setContext(sender, context, function, FunctionsCommandHandler::displayInformation);
 
                 context.doNextStep(sender, "");
                 return;
             }
 
-            Map<Definition, StaticFunction> staticFunctions = InternalArgument.getStaticFunctions(clazz);
-            List<String> staticNames = InternalArgument.getStaticNames(staticFunctions);
-            if (staticNames.contains(message)) {
-                Map<Definition, StaticFunction> aliases = InternalArgument.getStaticAliases(message, staticFunctions);
+            StaticFunctionList staticFunctions = InternalArgument.getStaticFunctionsFor(clazz);
+            if (staticFunctions.hasName(message)) {
+                StaticFunction staticFunction = staticFunctions.getFromName(message);
 
-                context = setContext(sender, context, aliases, FunctionsCommandHandler::displayStaticInformation);
+                context = setContext(sender, context, staticFunction, FunctionsCommandHandler::displayInformation);
 
                 context.doNextStep(sender, "");
                 return;
@@ -273,39 +215,58 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
         String staticChoice = (String) info.previousArgs()[2];
         if (staticChoice.equals("static")) {
-            names = InternalArgument.getStaticNames(InternalArgument.getStaticFunctions(argument.getClass()));
+            return InternalArgument.getStaticFunctionsFor(argument.getClass()).getNames();
         } else if (staticChoice.equals("nonStatic")) {
-            names = InternalArgument.getNames(InternalArgument.getFunctions(argument.getClass()));
+            return InternalArgument.getFunctionsFor(argument.getClass()).getNames();
         } else {
             return new String[0];
         }
-
-        return names.toArray(new String[0]);
     }
 
     private static void displayInformation(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
-            Map<Definition, Function> aliases = (Map<Definition, Function>) context.getPreviousChoice();
+            InternalArgument argument = (InternalArgument) context.getPreviousContext().getPreviousChoice();
+            sender.sendMessage("Class: " + argument.getName());
 
-            List<String> names = InternalArgument.getNames(aliases);
-            sender.sendMessage("Aliases: " + names);
-
-            sender.sendMessage("Possible parameters:" + InternalArgument.getParameterString(aliases));
-            sender.sendMessage("");
+            AbstractFunction<?> function = (AbstractFunction<?>) context.getPreviousChoice();
+            if(function instanceof Function) {
+                sender.sendMessage("Nonstatic function");
+            } else if (function instanceof StaticFunction) {
+                sender.sendMessage("Static function");
+            }
+            function.outputInformation(sender);
+            sender.sendMessage("Type anything to continue");
+        } else {
             handleMessage(sender, "back", null);
         }
     }
 
-    private static void displayStaticInformation(CommandSender sender, String message, CommandContext context) {
-        if (message.isBlank()) {
-            Map<Definition, StaticFunction> aliases = (Map<Definition, StaticFunction>) context.getPreviousChoice();
+    private static void displayInformation(CommandSender sender, Object[] parameters) {
+        String addOn = (String) parameters[0];
 
-            List<String> names = InternalArgument.getStaticNames(aliases);
-            sender.sendMessage("Aliases: " + names);
+        if (ConfigCommandAddOn.getAddOn(addOn) == null) {
+            sender.sendMessage(ChatColor.RED + "Invalid command: addOn \"" + addOn + "\" does not exist");
+            return;
+        }
 
-            sender.sendMessage("Possible parameters:" + InternalArgument.getStaticParameterString(aliases));
-            sender.sendMessage("");
-            handleMessage(sender, "back", null);
+        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
+
+        List<String> names = InternalArgument.getNames(internalArguments);
+        String internalArgument = (String) parameters[1];
+        if (!names.contains(internalArgument)) {
+            sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for the given addOn");
+            return;
+        }
+        InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
+
+        String staticChoice = (String) parameters[2];
+
+        if (staticChoice.equals("static")) {
+            InternalArgument.getStaticFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
+        } else if (staticChoice.equals("nonStatic")) {
+            InternalArgument.getFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
+        } else {
+            sender.sendMessage(ChatColor.RED + "Invalid command: expected static or nonStatic but found \"" + staticChoice + "\"");
         }
     }
 }
