@@ -79,7 +79,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                 )
                                 .returns((parameters) -> {
                                     // If no parameters are given (when outputting return type), return most general class
-                                    if(parameters.size() != 2) return InternalArgument.class;
+                                    if (parameters.size() != 2) return InternalArgument.class;
                                     // Returns a type defined by the second argument
                                     return parameters.get(1);
                                 })

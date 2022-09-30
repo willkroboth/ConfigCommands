@@ -10,6 +10,7 @@ public interface FunctionCreator {
         out.addAll(List.of(functions));
         return out;
     }
+
     default StaticFunctionList functions(StaticFunction... functions) {
         StaticFunctionList out = new StaticFunctionList();
         out.addAll(List.of(functions));

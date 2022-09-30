@@ -113,41 +113,41 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
             }
         }
 
-        if(description != null) sender.sendMessage("Description: " + description);
+        if (description != null) sender.sendMessage("Description: " + description);
 
-        if(parameters.size() == 0) {
+        if (parameters.size() == 0) {
             sender.sendMessage("No parameters");
-        } else if(parameters.size() == 1) {
+        } else if (parameters.size() == 1) {
             sender.sendMessage("Parameters:");
-            for(Parameter parameter : parameters.get(0)) {
+            for (Parameter parameter : parameters.get(0)) {
                 sender.sendMessage("  - " + parameter);
             }
         } else {
             sender.sendMessage("Multiple input combinations available:");
-            for(Parameter[] parameterArray : parameters) {
+            for (Parameter[] parameterArray : parameters) {
                 sender.sendMessage("  Parameters:");
-                for(Parameter parameter : parameterArray) {
+                for (Parameter parameter : parameterArray) {
                     sender.sendMessage("    - " + parameter);
                 }
             }
         }
 
-        if(returnMessage == null) {
+        if (returnMessage == null) {
             sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())));
         } else {
             sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())) + " - " + returnMessage);
         }
 
-        if(throwMessages.size() != 0) {
+        if (throwMessages.size() != 0) {
             sender.sendMessage("Throws:");
-            for(String throwMessage : throwMessages) {
+            for (String throwMessage : throwMessages) {
                 sender.sendMessage("  - " + throwMessage);
             }
         }
 
-        if(examples.size() != 0) {
+        if (examples.size() != 0) {
             sender.sendMessage("Examples:");
-            for(String example : examples) {
+            for (String example : examples) {
                 sender.sendMessage("  - " + example);
             }
         }

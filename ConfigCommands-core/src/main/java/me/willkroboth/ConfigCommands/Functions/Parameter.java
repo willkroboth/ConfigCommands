@@ -37,8 +37,8 @@ public class Parameter {
 
     @Override
     public String toString() {
-        if(name == null) return typeString;
-        if(parameterMessage == null) return typeString + " " + name;
+        if (name == null) return typeString;
+        if (parameterMessage == null) return typeString + " " + name;
         return typeString + " " + name + " -> " + parameterMessage;
     }
 }
