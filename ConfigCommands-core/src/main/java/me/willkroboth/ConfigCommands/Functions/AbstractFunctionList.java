@@ -41,7 +41,8 @@ public class AbstractFunctionList<T extends AbstractFunction<T>> extends ArrayLi
                     if(parameters.length != parameterTypes.size()) continue;
                     int i = 0;
                     for(Parameter parameter : parameters) {
-                        if(!parameterTypes.get(i).isAssignableFrom(parameter.getType())) continue parameterLoop;
+                        if(!parameter.getType().isAssignableFrom(parameterTypes.get(i))) continue parameterLoop;
+                        i++;
                     }
                     return true;
                 }
@@ -60,7 +61,8 @@ public class AbstractFunctionList<T extends AbstractFunction<T>> extends ArrayLi
                     if(parameters.length != parameterTypes.size()) continue;
                     int i = 0;
                     for(Parameter parameter : parameters) {
-                        if(!parameterTypes.get(i).isAssignableFrom(parameter.getType())) continue parameterLoop;
+                        if(!parameter.getType().isAssignableFrom(parameterTypes.get(i))) continue parameterLoop;
+                        i++;
                     }
                     return function;
                 }
