@@ -262,8 +262,12 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         String staticChoice = (String) parameters[2];
 
         if (staticChoice.equals("static")) {
+            sender.sendMessage("Class: " + argument.getName());
+            sender.sendMessage("Static function");
             InternalArgument.getStaticFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
         } else if (staticChoice.equals("nonStatic")) {
+            sender.sendMessage("Class: " + argument.getName());
+            sender.sendMessage("Nonstatic function");
             InternalArgument.getFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
         } else {
             sender.sendMessage(ChatColor.RED + "Invalid command: expected static or nonStatic but found \"" + staticChoice + "\"");
