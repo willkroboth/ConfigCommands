@@ -125,6 +125,10 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
         } else {
             sender.sendMessage("Multiple input combinations available:");
             for (Parameter[] parameterArray : parameters) {
+                if(parameterArray.length == 0) {
+                    sender.sendMessage("  No parameters");
+                    continue;
+                }
                 sender.sendMessage("  Parameters:");
                 for (Parameter parameter : parameterArray) {
                     sender.sendMessage("    - " + parameter);
