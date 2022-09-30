@@ -239,6 +239,13 @@ public class InternalArrayListArgument extends InternalArgument {
                                         throw new CommandRunException(e);
                                     }
                                 })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.subList(Integer.(\"1\"), Integer.(\"3\")) -> [\"b\", \"c\"]",
+                                        "do <list>.subList(Integer.(\"0\"), <list>.size()) -> [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.subList(Integer.(\"-1\"), Integer.(\"5\")) -> IndexOutOfBounds because start (-1) < 0 and end (5) > <list>.size() (4)",
+                                        "do <list>.subList(Integer.(\"3\"), Integer.(\"1\")) -> IllegalArgumentException because start (3) > end (1)"
+                                )
                 )
         );
     }
