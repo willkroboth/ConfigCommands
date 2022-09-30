@@ -6,11 +6,13 @@ import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public class InternalBooleanArgument extends InternalArgument implements CommandArgument{
+public class InternalBooleanArgument extends InternalArgument implements CommandArgument {
     private boolean value;
 
     public InternalBooleanArgument() {
@@ -25,6 +27,16 @@ public class InternalBooleanArgument extends InternalArgument implements Command
         return new BooleanArgument(name);
     }
 
+    @Override
+    public boolean editArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, @Nullable Object argumentInfo) {
+        sender.sendMessage("There are no options to configure for a BooleanArgument");
+        return true;
+    }
+
+    @Override
+    public String[] formatArgumentInfo(Object argumentInfo) {
+        return new String[]{"There are no options to configure for a BooleanArgument"};
+    }
     @Override
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),

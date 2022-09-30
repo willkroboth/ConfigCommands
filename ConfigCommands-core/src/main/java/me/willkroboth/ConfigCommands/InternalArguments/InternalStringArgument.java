@@ -11,6 +11,8 @@ import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +31,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
 
     @Override
     public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
-        if(argumentInfo == null) return new StringArgument(name);
+        if (argumentInfo == null) return new StringArgument(name);
         ConfigurationSection info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, name);
         String type = info.getString("subtype");
         ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: %s", type);
@@ -40,6 +42,63 @@ public class InternalStringArgument extends InternalArgument implements CommandA
             case "greedy" -> new GreedyStringArgument(name);
             default -> throw new IncorrectArgumentKey(name, "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
         };
+    }
+
+    private static final List<String> acceptableSubtypes = List.of("string", "text", "greedy");
+
+    @Override
+    public boolean editArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, @Nullable Object argumentInfo) {
+        ConfigurationSection info;
+        if (argumentInfo == null) {
+            info = argument.createSection("argumentInfo");
+        } else {
+            try {
+                info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, "");
+            } catch (IncorrectArgumentKey ignored) {
+                argument.set("argumentInfo", null);
+                info = argument.createSection("argumentInfo");
+            }
+        }
+        String subtype = info.getString("subtype");
+
+        if (message.isBlank()) {
+            if (subtype == null) {
+                sender.sendMessage("Subtype is null");
+            } else {
+                sender.sendMessage("Subtype is " + subtype);
+                if (!acceptableSubtypes.contains(subtype)) {
+                    sender.sendMessage(ChatColor.YELLOW + "Subtype is invalid!");
+                }
+            }
+            sender.sendMessage("Valid subtypes:");
+            sender.sendMessage("  string: One word with letters, numbers, and underscore");
+            sender.sendMessage("  text: A single word or any characters inside quotes");
+            sender.sendMessage("  greedy: Any characters, but only at the end of the command");
+            sender.sendMessage("What would you like the new subtype to be?");
+        } else if (acceptableSubtypes.contains(message)) {
+            info.set("subtype", message);
+            ConfigCommandsHandler.saveConfigFile();
+            sender.sendMessage("Subtype set to " + message);
+            return true;
+        } else {
+            sender.sendMessage("\"" + message + "\" is not a recognized subtype");
+        }
+        return false;
+    }
+
+    @Override
+    public String[] formatArgumentInfo(Object argumentInfo) {
+        if (argumentInfo == null) return new String[]{ChatColor.YELLOW + "ArgumentInfo is invalid!"};
+        ConfigurationSection info;
+        try {
+            info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, "");
+        } catch (IncorrectArgumentKey ignored) {
+            return new String[]{ChatColor.YELLOW + "ArgumentInfo is invalid!"};
+        }
+
+        String type = info.getString("subtype");
+        if (type == null) return new String[]{"subtype: null -> string by default"};
+        return new String[]{"subtype: " + type + (acceptableSubtypes.contains(type) ? "" : ChatColor.YELLOW + " (invalid!)")};
     }
 
     @Override

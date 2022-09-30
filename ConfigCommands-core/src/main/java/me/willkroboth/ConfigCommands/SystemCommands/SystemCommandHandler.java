@@ -23,7 +23,7 @@ public abstract class SystemCommandHandler {
         commands.addAll(List.of(
                 new HelpCommandHandler(),
                 new FunctionsCommandHandler(),
-//                new BuildCommandHandler(),
+                new BuildCommandHandler(),
 //                new ReloadCommandHandler(),
                 new DebugCommandHandler()
         ));

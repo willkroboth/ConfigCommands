@@ -4,9 +4,8 @@ import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
 
-public class IndentedCommandSenderMessenger extends IndentedStringHandler{
+public class IndentedCommandSenderMessenger extends IndentedStringHandler {
     private final CommandSender sender;
-    private int indentation;
 
     public IndentedCommandSenderMessenger(CommandSender sender) {
         super("  ");
@@ -19,5 +18,9 @@ public class IndentedCommandSenderMessenger extends IndentedStringHandler{
 
     public void sendMessage(String... messages) {
         Arrays.stream(messages).map(this::formatMessage).forEach(sender::sendMessage);
+    }
+
+    public CommandSender getSender() {
+        return sender;
     }
 }

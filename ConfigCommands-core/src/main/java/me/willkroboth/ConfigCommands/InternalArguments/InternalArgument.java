@@ -10,6 +10,9 @@ import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
@@ -361,6 +364,14 @@ public abstract class InternalArgument implements FunctionCreator {
         } catch (RuntimeException e) {
             throw new IncorrectArgumentKey(name, "argumentInfo", e.getMessage());
         }
+    }
+
+    public static boolean passEditArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).editArgumentInfo(sender, message, argument, argumentInfo);
+    }
+
+    public static String[] formatArgumentInfo(String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).formatArgumentInfo(argumentInfo);
     }
 
     // defining important variables for logic and function
