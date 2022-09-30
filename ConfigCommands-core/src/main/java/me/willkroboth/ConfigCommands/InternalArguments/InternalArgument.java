@@ -71,7 +71,9 @@ public abstract class InternalArgument implements FunctionCreator {
     }
 
     public static String getNameForType(Class<? extends InternalArgument> type) {
-        return type.equals(InternalArgument.class) ? "Any" : getInternalArgument(type).getName();
+        if(type.equals(InternalArgument.class)) return "Any";
+        if(type.equals(InternalVoidArgument.class)) return "Nothing";
+        return getInternalArgument(type).getName();
     }
 
     // registering subclasses
