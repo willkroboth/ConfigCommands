@@ -6,7 +6,6 @@ import me.willkroboth.ConfigCommands.Functions.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InternalBooleanArgument extends InternalArgument {
@@ -25,62 +24,8 @@ public class InternalBooleanArgument extends InternalArgument {
         argument_variable_classes.put(name, InternalBooleanArgument.class);
     }
 
-    public FunctionList getFunctions() {
-        return merge(super.getFunctions(),
-                // TODO: Add function info
-                functions(
-                        new Function("and")
-                                .withAliases("&&")
-                                .withParameters(new Parameter(InternalBooleanArgument.class))
-                                .returns(InternalBooleanArgument.class)
-                                .executes(this::and),
-                        new Function("not")
-                                .withAliases("!")
-                                .returns(InternalBooleanArgument.class)
-                                .executes(this::not),
-                        new Function("or")
-                                .withAliases("||")
-                                .withParameters(new Parameter(InternalBooleanArgument.class))
-                                .returns(InternalBooleanArgument.class)
-                                .executes(this::or)
-                )
-        );
-    }
-
-    private InternalBooleanArgument and(InternalArgument target, List<InternalArgument> parameters) {
-        boolean value = (boolean) parameters.get(0).getValue();
-        boolean targetValue = (boolean) target.getValue();
-
-        return new InternalBooleanArgument(value && targetValue);
-    }
-
-    private InternalBooleanArgument or(InternalArgument target, List<InternalArgument> parameters) {
-        boolean value = (boolean) parameters.get(0).getValue();
-        boolean targetValue = (boolean) target.getValue();
-
-
-        return new InternalBooleanArgument(value || targetValue);
-    }
-
-    private InternalBooleanArgument not(InternalArgument target, List<InternalArgument> parameters) {
-        boolean targetValue = (boolean) target.getValue();
-        return new InternalBooleanArgument(!targetValue);
-    }
-
-    public StaticFunctionList getStaticFunctions() {
-        return merge(super.getStaticFunctions(),
-                functions(
-                        new StaticFunction("new")
-                                .withAliases("")
-                                .returns(InternalArrayListArgument.class)
-                                .executes(this::initialize)
-                )
-        );
-    }
-
-    public InternalArgument initialize(List<InternalArgument> o) {
-        String value = (String) (o).get(0).getValue();
-        return new InternalBooleanArgument(Boolean.parseBoolean(value));
+    private boolean getBoolean(InternalArgument argument) {
+        return (boolean) argument.getValue();
     }
 
     public void setValue(Object arg) {
@@ -97,5 +42,74 @@ public class InternalBooleanArgument extends InternalArgument {
 
     public String forCommand() {
         return "" + value;
+    }
+
+    public FunctionList getFunctions() {
+        return merge(super.getFunctions(),
+                functions(
+                        new Function("and")
+                                .withAliases("&&")
+                                .withDescription("Performs the logical and operation with another Boolean")
+                                .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
+                                .returns(InternalBooleanArgument.class, "True if this and the other boolean are true, and false otherwise")
+                                .executes((target, parameters) -> {
+                                    return new InternalBooleanArgument(getBoolean(target) && getBoolean(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "do Boolean.(\"true\").and(Boolean.(\"true\")) -> Boolean.(\"true\")",
+                                        "do Boolean.(\"false\").and(Boolean.(\"true\")) -> Boolean.(\"false\")",
+                                        "do Boolean.(\"true\").&&(Boolean.(\"false\")) -> Boolean.(\"false\")",
+                                        "do Boolean.(\"false\").&&(Boolean.(\"false\")) -> Boolean.(\"false\")"
+                                ),
+                        new Function("not")
+                                .withAliases("!")
+                                .withDescription("Performs the logical not operation on this Boolean")
+                                .returns(InternalBooleanArgument.class, "True if this Boolean is true, and false otherwise")
+                                .executes((target, parameters) -> {
+                                    return new InternalBooleanArgument(!getBoolean(target));
+                                })
+                                .withExamples(
+                                        "Boolean.(\"true\").not() -> Boolean.(\"false\")",
+                                        "Boolean.(\"false\").!() -> Boolean.(\"true\")"
+                                ),
+                        new Function("or")
+                                .withAliases("||")
+                                .withDescription("Performs the logical or operation with another Boolean")
+                                .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
+                                .returns(InternalBooleanArgument.class, "True if this or the other Boolean is true, and false otherwise")
+                                .executes((target, parameters) -> {
+                                    return new InternalBooleanArgument(getBoolean(target) || getBoolean(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "do Boolean.(\"true\").or(Boolean.(\"true\")) -> Boolean.(\"true\")",
+                                        "do Boolean.(\"false\").or(Boolean.(\"true\")) -> Boolean.(\"true\")",
+                                        "do Boolean.(\"true\").||(Boolean.(\"false\")) -> Boolean.(\"true\")",
+                                        "do Boolean.(\"false\").||(Boolean.(\"false\")) -> Boolean.(\"false\")"
+                                )
+                )
+        );
+    }
+
+    public StaticFunctionList getStaticFunctions() {
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .withDescription("Creates a new Boolean with the given value")
+                                .withParameters()
+                                .withParameters(new Parameter(InternalStringArgument.class, "value", "the value for the Boolean"))
+                                .returns(InternalBooleanArgument.class, "True if the value string equals \"true\", ignoring case, and false if it is not equal or not given")
+                                .executes(parameters -> {
+                                    if (parameters.size() == 0) return new InternalBooleanArgument(false);
+                                    return new InternalBooleanArgument(Boolean.parseBoolean((String) parameters.get(0).getValue()));
+                                })
+                                .withExamples(
+                                        "Boolean.new(\"true\") -> True",
+                                        "Boolean.new(\"false\") -> False",
+                                        "Boolean.(\"yes\") -> False",
+                                        "Boolean.() -> False"
+                                )
+                )
+        );
     }
 }
