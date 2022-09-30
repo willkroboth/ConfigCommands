@@ -286,6 +286,15 @@ public abstract class InternalArgument implements FunctionCreator {
         throw new IncorrectArgumentKey(arg.toString(), "type", getName() + " cannot be an argument");
     }
 
+    // abstract functions for dealing with value
+    public abstract void setValue(Object arg);
+
+    public abstract Object getValue();
+
+    public abstract void setValue(InternalArgument arg);
+
+    public abstract String forCommand();
+
     // manage function arrays
     private static final Map<Class<? extends InternalArgument>, FunctionList> addedFunctions = new HashMap<>();
 
@@ -294,7 +303,9 @@ public abstract class InternalArgument implements FunctionCreator {
                 functions(
                         new Function("forCommand")
                                 .returns(InternalStringArgument.class, "The String that represents this argument in a command")
-                                .executes(this::internalForCommand)
+                                .executes((target, parameters) -> {
+                                    return new InternalStringArgument(target.forCommand());
+                                })
                 )
         );
     }
@@ -335,11 +346,6 @@ public abstract class InternalArgument implements FunctionCreator {
         return addedStaticFunctions.get(clazz);
     }
 
-    // connecting forCommand to the InternalArguments
-    private InternalStringArgument internalForCommand(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalStringArgument(target.forCommand());
-    }
-
     // interacts with functions
     public final boolean hasFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
         return functions.get(myClass()).hasFunction(function, parameterTypes);
@@ -374,15 +380,6 @@ public abstract class InternalArgument implements FunctionCreator {
 
         return staticFunctions.get(myClass()).getFunction(function, parameterTypes).run(parameters);
     }
-
-    // abstract functions for dealing with value
-    public abstract void setValue(Object arg);
-
-    public abstract Object getValue();
-
-    public abstract void setValue(InternalArgument arg);
-
-    public abstract String forCommand();
 
     // class managing methods
 
