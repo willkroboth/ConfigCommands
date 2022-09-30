@@ -24,10 +24,6 @@ public class InternalBooleanArgument extends InternalArgument {
         argument_variable_classes.put(name, InternalBooleanArgument.class);
     }
 
-    private boolean getBoolean(InternalArgument argument) {
-        return (boolean) argument.getValue();
-    }
-
     public void setValue(Object arg) {
         value = (boolean) arg;
     }
@@ -42,6 +38,10 @@ public class InternalBooleanArgument extends InternalArgument {
 
     public String forCommand() {
         return "" + value;
+    }
+
+    private boolean getBoolean(InternalArgument argument) {
+        return (boolean) argument.getValue();
     }
 
     public FunctionList getFunctions() {
