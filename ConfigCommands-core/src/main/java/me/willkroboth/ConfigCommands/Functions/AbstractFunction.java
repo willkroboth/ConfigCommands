@@ -13,6 +13,7 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
     private final List<String> aliases = new ArrayList<>();
     private String description = null;
     private String returnMessage = null;
+    private final List<String> throwMessages = new ArrayList<>();
     private final List<String> examples = new ArrayList<>();
 
     // Input-output information
@@ -73,6 +74,12 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
         return instance;
     }
 
+    public T withThrowMessages(String... messages) {
+        this.throwMessages.addAll(List.of(messages));
+
+        return instance;
+    }
+
     public T withExamples(String... examples) {
         this.examples.addAll(List.of(examples));
 
@@ -129,6 +136,13 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
             sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())));
         } else {
             sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())) + " - " + returnMessage);
+        }
+
+        if(throwMessages.size() != 0) {
+            sender.sendMessage("Throws:");
+            for(String throwMessage : throwMessages) {
+                sender.sendMessage("  - " + throwMessage);
+            }
         }
 
         if(examples.size() != 0) {
