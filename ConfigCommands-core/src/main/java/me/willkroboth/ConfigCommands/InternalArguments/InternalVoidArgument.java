@@ -12,7 +12,6 @@ public class InternalVoidArgument extends InternalArgument {
     // InternalArgument class needs to be able to initialize object when registering
     // Otherwise, the singleton instance should be used
     protected InternalVoidArgument() {
-        super(null);
     }
 
     public static InternalVoidArgument getInstance() {
@@ -21,14 +20,6 @@ public class InternalVoidArgument extends InternalArgument {
 
     public String getTypeTag() {
         return null;
-    }
-
-    public FunctionList getFunctions() {
-        return functions(new Function[0]);
-    }
-
-    public StaticFunctionList getStaticFunctions() {
-        return functions(new StaticFunction[0]);
     }
 
     // not used
@@ -44,5 +35,13 @@ public class InternalVoidArgument extends InternalArgument {
 
     public String forCommand() {
         return "";
+    }
+
+    public FunctionList getFunctions() {
+        return functions(new Function[0]);
+    }
+
+    public StaticFunctionList getStaticFunctions() {
+        return functions(new StaticFunction[0]);
     }
 }
