@@ -60,6 +60,7 @@ public class InternalIntegerArgument extends InternalArgument {
                         // TODO: Add function info
                         new StaticFunction("new")
                                 .withAliases("")
+                                .withParameters()
                                 .withParameters(new Parameter(InternalStringArgument.class))
                                 .returns(InternalIntegerArgument.class)
                                 .executes(this::initialize)
