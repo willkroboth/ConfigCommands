@@ -11,7 +11,6 @@ import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class InternalIntegerArgument extends InternalArgument {
@@ -54,36 +53,6 @@ public class InternalIntegerArgument extends InternalArgument {
         argument_variable_classes.put(name, InternalIntegerArgument.class);
     }
 
-    public StaticFunctionList getStaticFunctions() {
-        return merge(super.getStaticFunctions(),
-                functions(
-                        // TODO: Add function info
-                        new StaticFunction("new")
-                                .withAliases("")
-                                .withParameters()
-                                .withParameters(new Parameter(InternalStringArgument.class))
-                                .returns(InternalIntegerArgument.class)
-                                .executes(this::initialize)
-                )
-        );
-    }
-
-    public InternalArgument initialize(List<InternalArgument> arguments) {
-        int result = 0;
-        if (arguments.size() == 1) {
-            InternalStringArgument arg = (InternalStringArgument) arguments.get(0);
-            String word = (String) arg.getValue();
-            try {
-                result = Integer.parseInt(word);
-            } catch (NumberFormatException e) {
-                throw new CommandRunException("Word: \"" + word + "\" cannot be parsed as int.");
-            }
-        }
-
-        return new InternalIntegerArgument(result);
-    }
-
-    // value
     public void setValue(Object arg) {
         value = (int) arg;
     }
@@ -98,5 +67,37 @@ public class InternalIntegerArgument extends InternalArgument {
 
     public String forCommand() {
         return "" + value;
+    }
+
+    public StaticFunctionList getStaticFunctions() {
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .withDescription("Creates a new Integer")
+                                .withParameters()
+                                .withParameters(new Parameter(InternalStringArgument.class, "value", "The value for the new Integer"))
+                                .returns(InternalIntegerArgument.class, "An Integer containing the given value, or 0 if no value is given")
+                                .withThrowMessages("NumberFormatException if the given value cannot be interpreted as an Integer")
+                                .executes(parameters -> {
+                                    int result = 0;
+                                    if (parameters.size() == 1) {
+                                        try {
+                                            result = Integer.parseInt((String) parameters.get(0).getValue());
+                                        } catch (NumberFormatException e) {
+                                            throw new CommandRunException(e);
+                                        }
+                                    }
+
+                                    return new InternalIntegerArgument(result);
+                                })
+                                .withExamples(
+                                        "Integer.new(\"10\") -> 10",
+                                        "Integer.(\"-5\") -> -5",
+                                        "Integer.new() -> 0",
+                                        "Integer.(\"Hello\") -> NumberFormatException"
+                                )
+                )
+        );
     }
 }
