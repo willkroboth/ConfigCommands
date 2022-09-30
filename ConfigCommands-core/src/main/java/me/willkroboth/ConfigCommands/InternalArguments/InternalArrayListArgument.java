@@ -24,6 +24,31 @@ public class InternalArrayListArgument extends InternalArgument {
         return null;
     }
 
+    public void setValue(Object arg) {
+        value = (ArrayList<InternalArgument>) arg;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(InternalArgument arg) {
+        value = getList(arg);
+    }
+
+    public String forCommand() {
+        StringBuilder out = new StringBuilder("[");
+        if (value.size() != 0) {
+            for (InternalArgument element : value) {
+                out.append(element.forCommand());
+                out.append(", ");
+            }
+            out.delete(out.length() - 2, out.length());
+        }
+        out.append("]");
+        return out.toString();
+    }
+
     private ArrayList<InternalArgument> getList(InternalArgument target) {
         return (ArrayList<InternalArgument>) target.getValue();
     }
@@ -234,30 +259,5 @@ public class InternalArrayListArgument extends InternalArgument {
                                 )
                 )
         );
-    }
-
-    public void setValue(Object arg) {
-        value = (ArrayList<InternalArgument>) arg;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(InternalArgument arg) {
-        value = getList(arg);
-    }
-
-    public String forCommand() {
-        StringBuilder out = new StringBuilder("[");
-        if (value.size() != 0) {
-            for (InternalArgument element : value) {
-                out.append(element.forCommand());
-                out.append(", ");
-            }
-            out.delete(out.length() - 2, out.length());
-        }
-        out.append("]");
-        return out.toString();
     }
 }
