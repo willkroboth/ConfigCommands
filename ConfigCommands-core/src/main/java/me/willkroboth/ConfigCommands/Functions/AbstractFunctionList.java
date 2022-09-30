@@ -34,6 +34,8 @@ public class AbstractFunctionList<T extends AbstractFunction<T>> extends ArrayLi
     public boolean hasFunction(String name, List<Class<? extends InternalArgument>> parameterTypes) {
         for (T function : this) {
             if (function.getName().equals(name) || function.getAliases().contains(name)) {
+                if(function.getParameters().size() == 0 && parameterTypes.size() == 0) return true;
+
                 parameterLoop:
                 for (Parameter[] parameters : function.getParameters()) {
                     if(parameters.length != parameterTypes.size()) continue;
@@ -51,6 +53,8 @@ public class AbstractFunctionList<T extends AbstractFunction<T>> extends ArrayLi
     public T getFunction(String name, List<Class<? extends InternalArgument>> parameterTypes) {
         for (T function : this) {
             if (function.getName().equals(name) || function.getAliases().contains(name)) {
+                if(function.getParameters().size() == 0 && parameterTypes.size() == 0) return function;
+
                 parameterLoop:
                 for (Parameter[] parameters : function.getParameters()) {
                     if(parameters.length != parameterTypes.size()) continue;
