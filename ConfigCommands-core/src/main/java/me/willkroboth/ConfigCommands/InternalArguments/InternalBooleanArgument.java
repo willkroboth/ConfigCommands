@@ -56,10 +56,10 @@ public class InternalBooleanArgument extends InternalArgument {
                                     return new InternalBooleanArgument(getBoolean(target) && getBoolean(parameters.get(0)));
                                 })
                                 .withExamples(
-                                        "do Boolean.(\"true\").and(Boolean.(\"true\")) -> Boolean.(\"true\")",
-                                        "do Boolean.(\"false\").and(Boolean.(\"true\")) -> Boolean.(\"false\")",
-                                        "do Boolean.(\"true\").&&(Boolean.(\"false\")) -> Boolean.(\"false\")",
-                                        "do Boolean.(\"false\").&&(Boolean.(\"false\")) -> Boolean.(\"false\")"
+                                        "do Boolean.(\"true\").and(Boolean.(\"true\")) -> True",
+                                        "do Boolean.(\"false\").and(Boolean.(\"true\")) -> False",
+                                        "do Boolean.(\"true\").&&(Boolean.(\"false\")) -> False",
+                                        "do Boolean.(\"false\").&&(Boolean.(\"false\")) -> False"
                                 ),
                         new Function("not")
                                 .withAliases("!")
@@ -69,8 +69,8 @@ public class InternalBooleanArgument extends InternalArgument {
                                     return new InternalBooleanArgument(!getBoolean(target));
                                 })
                                 .withExamples(
-                                        "Boolean.(\"true\").not() -> Boolean.(\"false\")",
-                                        "Boolean.(\"false\").!() -> Boolean.(\"true\")"
+                                        "Boolean.(\"true\").not() -> False",
+                                        "Boolean.(\"false\").!() -> True"
                                 ),
                         new Function("or")
                                 .withAliases("||")
@@ -81,10 +81,10 @@ public class InternalBooleanArgument extends InternalArgument {
                                     return new InternalBooleanArgument(getBoolean(target) || getBoolean(parameters.get(0)));
                                 })
                                 .withExamples(
-                                        "do Boolean.(\"true\").or(Boolean.(\"true\")) -> Boolean.(\"true\")",
-                                        "do Boolean.(\"false\").or(Boolean.(\"true\")) -> Boolean.(\"true\")",
-                                        "do Boolean.(\"true\").||(Boolean.(\"false\")) -> Boolean.(\"true\")",
-                                        "do Boolean.(\"false\").||(Boolean.(\"false\")) -> Boolean.(\"false\")"
+                                        "do Boolean.(\"true\").or(Boolean.(\"true\")) -> True",
+                                        "do Boolean.(\"false\").or(Boolean.(\"true\")) -> True",
+                                        "do Boolean.(\"true\").||(Boolean.(\"false\")) -> True",
+                                        "do Boolean.(\"false\").||(Boolean.(\"false\")) -> False"
                                 )
                 )
         );
