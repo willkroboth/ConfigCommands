@@ -108,7 +108,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                     // Returns a type defined by the second argument
                                     return parameters.get(1);
                                 })
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <list>.size()",
                                         "ClassCastException when the item found at the given index is not an instance of the reference class"
                                 )
@@ -165,7 +165,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                 .withDescription("Removes an item from the list")
                                 .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index to remove"))
                                 .returns(InternalVoidArgument.class)
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <list>.size()"
                                 )
                                 .executes((target, parameters) -> {
@@ -190,7 +190,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         new Parameter(InternalArgument.class, "item", "The item to add to the list")
                                 )
                                 .returns(InternalVoidArgument.class)
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <list>.size()"
                                 )
                                 .executes((target, parameters) -> {
@@ -228,7 +228,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         new Parameter(InternalIntegerArgument.class, "end", "The index just after the last element to include")
                                 )
                                 .returns(InternalArrayListArgument.class, "A new list with the elements of this list between start and end")
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when start < 0 or end > <list>.size()",
                                         "IllegalArgumentException when start > end"
                                 )

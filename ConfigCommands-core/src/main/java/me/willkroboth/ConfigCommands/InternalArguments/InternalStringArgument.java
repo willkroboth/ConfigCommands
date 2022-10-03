@@ -73,7 +73,7 @@ public class InternalStringArgument extends InternalArgument {
                                 .withDescription("Gets the character at the given index")
                                 .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index of the character"))
                                 .returns(InternalStringArgument.class)
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <string>.length()"
                                 )
                                 .executes((target, parameters) -> {
@@ -254,7 +254,7 @@ public class InternalStringArgument extends InternalArgument {
                                 )
                                 .returns(InternalStringArgument.class, "A new string that contains all the characters in this string at or after the " +
                                         "start index and before but not at the end index. When the end index is not given, it defaults to <string>.length()")
-                                .withThrowMessages(
+                                .throwsException(
                                         "IndexOutOfBoundsException when start < 0, end > <string>.length(), or start > end"
                                 )
                                 .executes((target, parameters) -> {
@@ -279,7 +279,7 @@ public class InternalStringArgument extends InternalArgument {
                         new Function("toInt")
                                 .withDescription("Turns this string into an Integer")
                                 .returns(InternalIntegerArgument.class, "The number this string represents in base 10")
-                                .withThrowMessages("NumberFormatException when this string cannot be interpreted as an Integer")
+                                .throwsException("NumberFormatException when this string cannot be interpreted as an Integer")
                                 .executes((target, parameters) -> {
                                     try {
                                         return new InternalIntegerArgument(Integer.parseInt(getString(target)));

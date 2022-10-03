@@ -78,7 +78,7 @@ public class InternalIntegerArgument extends InternalArgument {
                                 .withParameters()
                                 .withParameters(new Parameter(InternalStringArgument.class, "value", "The value for the new Integer"))
                                 .returns(InternalIntegerArgument.class, "An Integer containing the given value, or 0 if no value is given")
-                                .withThrowMessages("NumberFormatException if the given value cannot be interpreted as an Integer")
+                                .throwsException("NumberFormatException if the given value cannot be interpreted as an Integer")
                                 .executes(parameters -> {
                                     int result = 0;
                                     if (parameters.size() == 1) {

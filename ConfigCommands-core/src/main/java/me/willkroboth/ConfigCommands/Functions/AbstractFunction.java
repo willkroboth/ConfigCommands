@@ -74,7 +74,7 @@ public abstract class AbstractFunction<T extends AbstractFunction<T>> {
         return instance;
     }
 
-    public T withThrowMessages(String... messages) {
+    public T throwsException(String... messages) {
         this.throwMessages.addAll(List.of(messages));
 
         return instance;

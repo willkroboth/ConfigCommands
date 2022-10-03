@@ -57,7 +57,7 @@ public class InternalCommandSenderArgument extends InternalArgument {
                                 .withDescription("Runs a command using this CommandSender")
                                 .withParameters(new Parameter(InternalStringArgument.class, "command", "The command to run"))
                                 .returns(InternalStringArgument.class, "The result of the command")
-                                .withThrowMessages(
+                                .throwsException(
                                         "CommandRunException when a problem occurs while running the command"
                                 )
                                 .executes((target, parameters) -> {
@@ -84,7 +84,7 @@ public class InternalCommandSenderArgument extends InternalArgument {
                         new Function("getType")
                                 .returns(InternalStringArgument.class, "The type of this CommandSender, either " +
                                         "\"player\", \"entity\", \"commandBlock\", \"console\", or \"proxy\"")
-                                .withThrowMessages(
+                                .throwsException(
                                         "Exception when this CommandSender doesn't seem to be one of the above types"
                                 )
                                 .executes((target, parameters) -> {
