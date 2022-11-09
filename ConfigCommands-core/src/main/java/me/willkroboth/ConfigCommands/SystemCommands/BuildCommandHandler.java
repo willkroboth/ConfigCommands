@@ -99,8 +99,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 if (message.equals("##")) {
                     sender.sendMessage("Closing the ConfigCommand build menu.");
                     sender.sendMessage("All command changes will take effect once server restarts.");
-                    // TODO: Resolve reloading
-//                    sender.sendMessage("If you changed the commands of a registered command, you can update it using /configcommands reload");
+                    sender.sendMessage("If you changed the execution of a registered argument path, you can update it using /configcommands reload");
                     activeUsers.remove(sender);
                     commandsBeingEditing.remove(sender);
                     argumentPaths.remove(sender);
@@ -747,9 +746,6 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
 
                 commands.set(command.getName(), null);
                 ConfigCommandsHandler.saveConfigFile();
-
-                // TODO: Resolve ReloadCommandHandler
-                // ReloadCommandHandler.updateKey(command.getName(), message);
 
                 context = goBack(sender, 2, context);
                 context = setContext(sender, context, newSection, BuildCommandHandler::editCommand);

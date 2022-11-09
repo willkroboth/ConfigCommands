@@ -1,16 +1,21 @@
 package me.willkroboth.ConfigCommands.RegisteredCommands;
 
+import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandTree;
+import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalCommandSenderArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
+import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.*;
 
-public class CommandTreeBuilder extends CommandTree {
+public class CommandTreeBuilder extends CommandTree implements ReloadableExecutable {
     public static void registerCommandsFromConfig(ConfigurationSection commands, boolean globalDebug) {
         ConfigCommandsHandler.logNormal("");
         if (commands == null) {
@@ -86,11 +91,13 @@ public class CommandTreeBuilder extends CommandTree {
     public CommandTreeBuilder(String name, ConfigurationSection command, boolean globalDebug) throws RegistrationException {
         //set name
         super(name);
+        this.name = name;
 
         // set debug variable
         boolean localDebug = command.getBoolean("debug", false);
         ConfigCommandsHandler.logDebug(localDebug && !globalDebug, "Debug turned on for %s", name);
         localDebug = globalDebug || localDebug;
+        this.localDebug = localDebug;
 
         // set help
         String shortDescription = command.getString("shortDescription");
@@ -125,7 +132,7 @@ public class CommandTreeBuilder extends CommandTree {
 
         ConfigCommandsHandler.logNormal("Building CommandTree...");
 
-        Map<String, Class<? extends InternalArgument>> argumentClasses = getDefaultArgs();
+        argumentClasses = getDefaultArgs();
         if (localDebug) {
             ConfigCommandsHandler.logNormal("Default arguments available:");
             ConfigCommandsHandler.increaseIndentation();
@@ -134,12 +141,16 @@ public class CommandTreeBuilder extends CommandTree {
             }
             ConfigCommandsHandler.decreaseIndentation();
         }
+        List<String> argumentPath = new ArrayList<>(List.of(name));
+
         // set executes
         List<String> executes = command.getStringList("executes");
         if (executes.size() != 0) {
             ConfigCommandsHandler.logDebug(localDebug, "Adding executes");
             ConfigCommandsHandler.increaseIndentation();
-            super.executes(new ExecutesBuilder(executes, argumentClasses, localDebug));
+            executor = new ExecutesBuilder(executes, argumentClasses, localDebug);
+            super.executes(this::execute);
+            ReloadCommandHandler.addCommand(argumentPath, this);
             ConfigCommandsHandler.decreaseIndentation();
         } else {
             ConfigCommandsHandler.logDebug(localDebug, "Not executable at this stage");
@@ -150,15 +161,56 @@ public class CommandTreeBuilder extends CommandTree {
         if (then == null || then.getKeys(false).size() == 0) {
             ConfigCommandsHandler.logDebug(localDebug, "No branches");
         } else {
+
             ConfigCommandsHandler.logDebug(localDebug, "Adding branches");
             ConfigCommandsHandler.increaseIndentation();
             for (String branchName : then.getKeys(false)) {
                 ConfigCommandsHandler.logDebug(localDebug, "Adding branch %s", branchName);
                 ConfigCommandsHandler.increaseIndentation();
-                super.then(new ArgumentTreeBuilder(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), localDebug));
+                super.then(new ArgumentTreeBuilder(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), localDebug, argumentPath));
                 ConfigCommandsHandler.decreaseIndentation();
             }
             ConfigCommandsHandler.decreaseIndentation();
         }
+    }
+
+    private ExecutesBuilder executor;
+
+    // Stored information for reloading executor
+    private final String name;
+    private final Map<String, Class<? extends InternalArgument>> argumentClasses;
+    private final boolean localDebug;
+
+    private void execute(CommandSender sender, Object[] args) {
+        if (executor != null) executor.run(sender, args);
+    }
+
+    @Override
+    public void reloadExecution(CommandSender sender) throws WrapperCommandSyntaxException {
+        ConfigCommandsHandler.reloadConfigFile();
+        FileConfiguration config = ConfigCommandsHandler.getConfigFile();
+        ConfigurationSection commandSection = config.getConfigurationSection("commands");
+
+        if (commandSection == null || commandSection.getKeys(false).size() == 0)
+            throw CommandAPI.fail("No commands found in config.yml");
+
+        ConfigurationSection command = commandSection.getConfigurationSection(name);
+        if (command == null)
+            throw CommandAPI.fail("No data was found for the command (Did you change it's name?)");
+
+        List<String> executes = command.getStringList("executes");
+        if (executes.size() == 0) {
+            sender.sendMessage("No executes found, disabling command");
+            executor = null;
+            return;
+        }
+
+        try {
+            executor = new ExecutesBuilder(executes, argumentClasses, localDebug);
+        } catch (RegistrationException e) {
+            throw CommandAPI.fail("Could not apply new commands: " + e.getMessage());
+        }
+
+        sender.sendMessage("Command successfully updated!");
     }
 }
