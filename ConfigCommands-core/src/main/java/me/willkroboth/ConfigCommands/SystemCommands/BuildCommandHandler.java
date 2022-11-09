@@ -819,7 +819,9 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         String type = argument.getString("type");
         messenger.sendMessage("Type: \"" + type + "\"");
 
-        if (!InternalArgument.getArgumentTypes().contains(type)) {
+        if(type == null) {
+            messenger.sendMessage("Type defaults to LiteralArgument");
+        } else if (!InternalArgument.getArgumentTypes().contains(type)) {
             messenger.sendMessage(ChatColor.YELLOW + "Type is invalid!");
         } else {
             messenger.sendMessage("ArgumentInfo:");
