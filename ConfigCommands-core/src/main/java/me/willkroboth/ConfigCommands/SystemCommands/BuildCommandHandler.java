@@ -590,6 +590,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             context.doNextStep(sender, "");
         } else if (InternalArgument.getArgumentTypes().contains(message)) {
             argument.set("type", message);
+            ConfigCommandsHandler.saveConfigFile();
             sender.sendMessage("Type set to " + message);
 
             context = goBack(sender, 1, context);
