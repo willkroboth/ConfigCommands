@@ -140,7 +140,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Current " + section + ": \"" + value + "\"");
             }
             sender.sendMessage("Please type the " + section + " you would like to use or back to go back.");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
@@ -176,7 +176,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("No commands found");
                 sender.sendMessage("Type \"create\" to make a new command");
             }
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             sender.sendMessage("There is no step to go back to");
         } else {
             if (keys.contains(message)) {
@@ -200,7 +200,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     private static void createCommand(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
             sender.sendMessage("What should the command be called?");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             sender.sendMessage("Cancelling command creation");
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
@@ -237,7 +237,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             sender.sendMessage("  7. Edit arguments");
             sender.sendMessage("  8. Edit executes");
             sender.sendMessage("  9. Delete entire command");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             commandsBeingEditing.remove(sender);
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
@@ -306,7 +306,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             }
             sender.sendMessage("Type '?' for help with the command format.");
             sender.sendMessage("Type \"functions\" to use /configcommands functions to get help with functions");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else if (message.matches("\\d+")) {
@@ -371,7 +371,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 }
                 sender.sendMessage("Type an index to place the new command at");
             }
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else if (message.matches("\\d+")) {
@@ -413,7 +413,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Type the name of an argument to edit it");
                 sender.sendMessage("Type anything else to start creating an argument with that name");
             }
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
@@ -444,7 +444,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             sender.sendMessage("  6. Edit arguments");
             sender.sendMessage("  7. Edit executes");
             sender.sendMessage("  8. Delete argument");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             List<String> path = argumentPaths.get(sender);
             path.remove(path.size() - 1);
             if (path.size() == 0)
@@ -507,7 +507,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Current permission: \"" + value + "\"");
             }
             sender.sendMessage("Please type the permission you would like to use null to remove the permission");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
@@ -526,7 +526,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editArgumentInfo(CommandSender sender, String message, CommandContext context) {
-        if (message.equals("back")) {
+        if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
             return;
@@ -579,7 +579,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             sender.sendMessage("What will the argument type be?");
             sender.sendMessage("Type '?' for a list of valid argument types");
             sender.sendMessage("Type null for a LiteralArgument");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, forwardedFromArgumentInfo.contains(sender) ? 2 : 1, context);
             forwardedFromArgumentInfo.remove(sender);
             context.doNextStep(sender, "");
@@ -610,7 +610,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         if (message.isBlank()) {
             sender.sendMessage("Current name: " + argument.getName());
             sender.sendMessage("What would you like the new name to be?");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
@@ -667,7 +667,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Type a number to delete the corresponding alias");
                 sender.sendMessage("Type anything else to add it as an alias");
             }
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else if (message.matches("\\d+")) {
@@ -706,7 +706,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Current permission: \"" + permission + "\"");
             }
             sender.sendMessage("Please type the permission you would like to use or back to go back.");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
@@ -731,7 +731,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         if (message.isBlank()) {
             sender.sendMessage("Current name: " + command.getName());
             sender.sendMessage("What would you like the new name to be?");
-        } else if (message.equals("back")) {
+        } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
         } else {
