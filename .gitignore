@@ -28,3 +28,6 @@
 /ConfigCommands-nms/ConfigCommands-nms.iml
 /ConfigCommands-nms/ConfigCommands-nms-dependency/ConfigCommands-nms-dependency.iml
 /ConfigCommands-plugin/ConfigCommands-plugin.iml
+
+# Test server
+/TestServer/

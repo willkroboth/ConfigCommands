@@ -1,27 +1,47 @@
 package me.willkroboth.ConfigCommands.Functions;
 
+import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalVoidArgument;
 
 import java.util.List;
 
-public class StaticFunction{
-    private final InternalArgumentStaticFunction function;
-    private final Class<? extends InternalArgument> returnType;
-
-    public StaticFunction(InternalArgumentStaticFunction function, Class<? extends InternalArgument> returnType) {
-        this.function = function;
-        this.returnType = returnType;
+public class StaticFunction extends AbstractFunction<StaticFunction> {
+    // Executes
+    @FunctionalInterface
+    public interface InternalArgumentStaticFunction {
+        InternalArgument apply(List<InternalArgument> parameters) throws CommandRunException;
     }
 
-    public InternalArgumentStaticFunction getFunction(){
-        return function;
+    @FunctionalInterface
+    public interface InternalArgumentStaticFunctionVoidReturn {
+        void apply(List<InternalArgument> parameters) throws CommandRunException;
     }
 
-    public Class<? extends InternalArgument> getReturnType() {
-        return returnType;
+    private InternalArgumentStaticFunction executes;
+
+    // Set information
+    public StaticFunction(String name) {
+        super(name);
     }
 
-    public InternalArgument run(List<InternalArgument> args) {
-        return function.apply(args);
+    public StaticFunction executes(InternalArgumentStaticFunction executes) {
+        this.executes = executes;
+
+        return this;
+    }
+
+    public StaticFunction executes(InternalArgumentStaticFunctionVoidReturn executes) {
+        this.executes = (parameters) -> {
+            executes.apply(parameters);
+            return InternalVoidArgument.getInstance();
+        };
+
+        return this;
+    }
+
+    // Use information
+    public InternalArgument run(List<InternalArgument> parameters) {
+        return executes.apply(parameters);
     }
 }

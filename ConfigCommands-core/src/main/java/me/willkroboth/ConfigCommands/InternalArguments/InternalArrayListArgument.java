@@ -1,16 +1,10 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Functions.Definition;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class InternalArrayListArgument extends InternalArgument {
     private ArrayList<InternalArgument> value;
@@ -28,118 +22,6 @@ public class InternalArrayListArgument extends InternalArgument {
 
     public String getTypeTag() {
         return null;
-    }
-
-    public FunctionList getFunctions() {
-        return merge(super.getFunctions(),
-                generateGets(),
-                generateSets(),
-                expandDefinition(
-                        strings("add"), AllInternalArguments.get(),
-                        new Function(this::add, InternalVoidArgument.class)
-                ),
-                expandDefinition(strings("contains"), AllInternalArguments.get(),
-                        new Function(this::contains, InternalBooleanArgument.class)),
-                expandDefinition(strings("indexOf"), AllInternalArguments.get(),
-                        new Function(this::indexOf, InternalIntegerArgument.class)),
-                expandDefinition(strings("lastIndexOf"), AllInternalArguments.get(),
-                        new Function(this::lastIndexOf, InternalIntegerArgument.class)),
-                entries(
-                        entry(new Definition("addAll", args(InternalArrayListArgument.class)),
-                                new Function(this::addAll, InternalVoidArgument.class)),
-                        entry(new Definition("remove", args(InternalIntegerArgument.class)),
-                                new Function(this::remove, InternalVoidArgument.class)),
-                        entry(new Definition("size", args()),
-                                new Function(this::size, InternalIntegerArgument.class)),
-                        entry(new Definition("subList", args(InternalIntegerArgument.class, InternalIntegerArgument.class)),
-                                new Function(this::subList, InternalArrayListArgument.class))
-                )
-        );
-    }
-
-    private FunctionList generateGets() {
-        FunctionList gets = new FunctionList();
-        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
-            gets.add(entry(new Definition("get", args(InternalIntegerArgument.class, clazz)),
-                    new Function(this::get, clazz)));
-        }
-        return gets;
-    }
-
-    private FunctionList generateSets() {
-        FunctionList sets = new FunctionList();
-        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
-            sets.add(entry(new Definition("set", args(InternalIntegerArgument.class, clazz)),
-                    new Function(this::set, InternalVoidArgument.class)));
-        }
-        return sets;
-    }
-
-    private ArrayList<InternalArgument> getList(InternalArgument target) {
-        return (ArrayList<InternalArgument>) target.getValue();
-    }
-
-    public InternalVoidArgument add(InternalArgument target, List<InternalArgument> parameters) {
-        getList(target).add(parameters.get(0));
-        return InternalVoidArgument.getInstance();
-    }
-
-    private InternalArgument addAll(InternalArgument target, List<InternalArgument> parameters) {
-        getList(target).addAll(getList(parameters.get(0)));
-        return InternalVoidArgument.getInstance();
-    }
-
-    private InternalArgument contains(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalBooleanArgument(getList(target).contains(parameters.get(0)));
-    }
-
-    public InternalArgument get(InternalArgument target, List<InternalArgument> parameters) {
-        InternalIntegerArgument index = (InternalIntegerArgument) parameters.get(0);
-        InternalArgument classReference = parameters.get(1);
-
-        InternalArgument out = getList(target).get((int) index.getValue());
-        if (!out.getClass().equals(classReference.getClass()))
-            throw new CommandRunException("Tried to get " + classReference.getClass() + " from index " + index.getValue() + " but found " + out.getClass());
-        return out;
-    }
-
-    private InternalArgument indexOf(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalIntegerArgument(getList(target).indexOf(parameters.get(0)));
-    }
-
-    private InternalArgument remove(InternalArgument target, List<InternalArgument> parameters) {
-        getList(target).remove((int) parameters.get(0).getValue());
-        return InternalVoidArgument.getInstance();
-    }
-
-    private InternalArgument lastIndexOf(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalIntegerArgument(getList(target).lastIndexOf(parameters.get(0)));
-    }
-
-    private InternalArgument set(InternalArgument target, List<InternalArgument> parameters) {
-        getList(target).set((int) parameters.get(0).getValue(), parameters.get(1));
-        return InternalVoidArgument.getInstance();
-    }
-
-    private InternalArgument size(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalIntegerArgument(getList(target).size());
-    }
-
-    private InternalArgument subList(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalArrayListArgument(getList(target).subList((int) parameters.get(0).getValue(), (int) parameters.get(1).getValue()));
-    }
-
-    public StaticFunctionList getStaticFunctions() {
-        return staticMerge(super.getStaticFunctions(),
-                staticExpandDefinition(
-                        strings("", "new"), args(args()),
-                        new StaticFunction(this::initialize, InternalArrayListArgument.class)
-                )
-        );
-    }
-
-    public InternalArgument initialize(List<InternalArgument> parameters) {
-        return new InternalArrayListArgument(new ArrayList<>());
     }
 
     public void setValue(Object arg) {
@@ -165,5 +47,224 @@ public class InternalArrayListArgument extends InternalArgument {
         }
         out.append("]");
         return out.toString();
+    }
+
+    private ArrayList<InternalArgument> getList(InternalArgument target) {
+        return (ArrayList<InternalArgument>) target.getValue();
+    }
+
+    public FunctionList getFunctions() {
+        return merge(super.getFunctions(),
+                functions(
+                        new Function("add")
+                                .withDescription("Adds an item to this list")
+                                .withParameters(new Parameter(InternalArgument.class, "item", "The item to add"))
+                                .returns(InternalVoidArgument.class)
+                                .executes((target, parameters) -> {
+                                    getList(target).add(parameters.get(0));
+                                })
+                                .withExamples(
+                                        "<list> = ArrayList.new() -> []",
+                                        "do <list>.add(Integer.new(\"10\")) -> [10]",
+                                        "do <list>.add(\"a\") -> [10, \"a\"]",
+                                        "do <list>.add(Boolean.(\"true\")) -> [10, \"a\", true]"
+                                ),
+                        new Function("addAll")
+                                .withDescription("Adds multiple items to this list from another list")
+                                .withParameters(new Parameter(InternalArrayListArgument.class, "list", "A list of the items to add"))
+                                .returns(InternalVoidArgument.class)
+                                .executes((target, parameters) -> {
+                                    getList(target).addAll(getList(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "<list1> has [\"a\", \"b\"], <list2> has [\"c\", \"d\"]",
+                                        "do <list1>.addAll(<list2>)",
+                                        "  <list1> now has [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list2>.addAll(<list1>)",
+                                        "  <list2> now has [\"c\",\"d\", \"a\", \"b\", \"c\", \"d\"]"
+                                ),
+                        new Function("contains")
+                                .withDescription("Checks if the list has the given item")
+                                .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
+                                .returns(InternalBooleanArgument.class, "True if the item is in the list, and false otherwise")
+                                .executes((target, parameters) -> {
+                                    return new InternalBooleanArgument(getList(target).contains(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\"]",
+                                        "do <list>.contains(\"a\") -> True",
+                                        "do <list>.contains(\"d\") -> False",
+                                        "do <list>.contains(Integer.(\"10\")) -> False"
+                                ),
+                        new Function("get")
+                                .withDescription("Gets an item from the list")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class, "index", "The index of the element"),
+                                        new Parameter(InternalArgument.class, "class", "The class of the element, represented by an object")
+                                )
+                                .returns((parameters) -> {
+                                    // If no parameters are given (when outputting return type), return most general class
+                                    if (parameters.size() != 2) return InternalArgument.class;
+                                    // Returns a type defined by the second argument
+                                    return parameters.get(1);
+                                })
+                                .throwsException(
+                                        "IndexOutOfBoundsException when index < 0 or index >= <list>.size()",
+                                        "ClassCastException when the item found at the given index is not an instance of the reference class"
+                                )
+                                .executes((target, parameters) -> {
+                                    InternalIntegerArgument index = (InternalIntegerArgument) parameters.get(0);
+                                    InternalArgument classReference = parameters.get(1);
+
+                                    InternalArgument out;
+                                    try {
+                                        out = getList(target).get((int) index.getValue());
+                                    } catch (IndexOutOfBoundsException e) {
+                                        throw new CommandRunException(e);
+                                    }
+
+                                    if (!classReference.getClass().isAssignableFrom(out.getClass()))
+                                        throw new CommandRunException(new ClassCastException("Cannot turn object with class " + out.getName() + " into a " + classReference.getName()));
+
+                                    return out;
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", 10]",
+                                        "do <list>.get(Integer.(\"0\"), \"\") -> \"a\"",
+                                        "do <list>.get(Integer.(\"1\"), Integer.()) -> 10",
+                                        "do <list>.get(Integer.(\"3\"), \"\") -> IndexOutOfBounds",
+                                        "do <list>.get(Integer.(\"0\"), Integer.()) -> ClassCastException"
+                                ),
+                        new Function("indexOf")
+                                .withDescription("Gives the index of an item in the list")
+                                .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
+                                .returns(InternalIntegerArgument.class, "The index of the given item in the list, or -1 if the list dose not have the item")
+                                .executes((target, parameters) -> {
+                                    return new InternalIntegerArgument(getList(target).indexOf(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\"]",
+                                        "do <list>.indexOf(\"a\") -> 0",
+                                        "do <list>.indexOf(\"c\") -> 2",
+                                        "do <list>.indexOf(\"d\") -> -1"
+                                ),
+                        new Function("lastIndexOf")
+                                .withDescription("Gives the greatest index where the given item can be found")
+                                .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
+                                .returns(InternalIntegerArgument.class, "The greatest index of the given item in the list, or -1 if the list dose not have the item")
+                                .executes((target, parameters) -> {
+                                    return new InternalIntegerArgument(getList(target).lastIndexOf(parameters.get(0)));
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"b\", \"a\"]",
+                                        "do <list>.lastIndexOf(\"a\") -> 3",
+                                        "do <list>.lastIndexOf(\"b\") -> 2",
+                                        "do <list>.lastIndexOf(\"d\") -> -1"
+                                ),
+                        new Function("remove")
+                                .withDescription("Removes an item from the list")
+                                .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index to remove"))
+                                .returns(InternalVoidArgument.class)
+                                .throwsException(
+                                        "IndexOutOfBoundsException when index < 0 or index >= <list>.size()"
+                                )
+                                .executes((target, parameters) -> {
+                                    try {
+                                        getList(target).remove((int) parameters.get(0).getValue());
+                                    } catch (IndexOutOfBoundsException e) {
+                                        throw new CommandRunException(e);
+                                    }
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.remove(Integer.(\"0\"))",
+                                        "  <list> now has [\"b\", \"c\", \"d\"]",
+                                        "do <list>.remove(Integer.(\"1\"))",
+                                        "  <list> now has [\"b\", \"d\"]",
+                                        "do <list>.remove(Integer.(\"2\")) -> IndexOutOfBounds"
+                                ),
+                        new Function("set")
+                                .withDescription("Replaces the item at the given index with a new item")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class, "index", "The index to put the new item at"),
+                                        new Parameter(InternalArgument.class, "item", "The item to add to the list")
+                                )
+                                .returns(InternalVoidArgument.class)
+                                .throwsException(
+                                        "IndexOutOfBoundsException when index < 0 or index >= <list>.size()"
+                                )
+                                .executes((target, parameters) -> {
+                                    try {
+                                        getList(target).set((int) parameters.get(0).getValue(), parameters.get(1));
+                                    } catch (IndexOutOfBoundsException e) {
+                                        throw new CommandRunException(e);
+                                    }
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.set(Integer.(\"1\"), \"Hello\")",
+                                        "  <list> now has [\"a\", \"Hello\", \"c\", \"d\"]",
+                                        "do <list>.set(Integer.(\"2\"), Integer.(\"10\"))",
+                                        "  <list> now has [\"a\", \"Hello\", 10, \"d\"]",
+                                        "do <list>.set(Integer.(\"4\"), \"\") -> IndexOutOfBounds"
+                                ),
+                        new Function("size")
+                                .withDescription("Gives the size of the list")
+                                .returns(InternalIntegerArgument.class, "The number of elements currently in the list")
+                                .executes((target, parameters) -> {
+                                    return new InternalIntegerArgument(getList(target).size());
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\"]",
+                                        "do <list>.size() -> 2",
+                                        "do <list>.add(\"c\")",
+                                        "  <list> now has [\"a\", \"b\", \"c\"]",
+                                        "do <list>.size() -> 3"
+                                ),
+                        new Function("subList")
+                                .withDescription("Creates a new list with the items from a section of this list")
+                                .withParameters(
+                                        new Parameter(InternalIntegerArgument.class, "start", "The index of the first element to include"),
+                                        new Parameter(InternalIntegerArgument.class, "end", "The index just after the last element to include")
+                                )
+                                .returns(InternalArrayListArgument.class, "A new list with the elements of this list between start and end")
+                                .throwsException(
+                                        "IndexOutOfBoundsException when start < 0 or end > <list>.size()",
+                                        "IllegalArgumentException when start > end"
+                                )
+                                .executes((target, parameters) -> {
+                                    try {
+                                        return new InternalArrayListArgument(getList(target).subList((int) parameters.get(0).getValue(), (int) parameters.get(1).getValue()));
+                                    } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
+                                        throw new CommandRunException(e);
+                                    }
+                                })
+                                .withExamples(
+                                        "<list> has [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.subList(Integer.(\"1\"), Integer.(\"3\")) -> [\"b\", \"c\"]",
+                                        "do <list>.subList(Integer.(\"0\"), <list>.size()) -> [\"a\", \"b\", \"c\", \"d\"]",
+                                        "do <list>.subList(Integer.(\"-1\"), Integer.(\"5\")) -> IndexOutOfBounds because start (-1) < 0 and end (5) > <list>.size() (4)",
+                                        "do <list>.subList(Integer.(\"3\"), Integer.(\"1\")) -> IllegalArgumentException because start (3) > end (1)"
+                                )
+                )
+        );
+    }
+
+    public StaticFunctionList getStaticFunctions() {
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .withDescription("Creates a new list with no elements")
+                                .returns(InternalArrayListArgument.class)
+                                .executes(parameters -> {
+                                    return new InternalArrayListArgument(new ArrayList<>());
+                                })
+                                .withExamples(
+                                        "ArrayList.new() -> []",
+                                        "ArrayList.() -> []"
+                                )
+                )
+        );
     }
 }
