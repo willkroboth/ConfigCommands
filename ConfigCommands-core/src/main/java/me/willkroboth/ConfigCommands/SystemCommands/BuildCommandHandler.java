@@ -73,6 +73,9 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         Player player = event.getPlayer();
         activeUsers.remove(player);
         commandsBeingEditing.remove(player);
+        argumentPaths.remove(player);
+        forwardedFromArgumentInfo.remove(player);
+        passToFunctionCommand.remove(player);
     }
 
     @EventHandler
@@ -101,6 +104,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                     activeUsers.remove(sender);
                     commandsBeingEditing.remove(sender);
                     argumentPaths.remove(sender);
+                    forwardedFromArgumentInfo.remove(sender);
                 } else {
                     activeUsers.get(sender).doNextStep(sender, message);
                 }
