@@ -586,7 +586,8 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             argument.set("type", null);
             sender.sendMessage("Type set to null");
 
-            context = goBack(sender, 1, context);
+            context = goBack(sender, forwardedFromArgumentInfo.contains(sender) ? 2 : 1, context);
+            forwardedFromArgumentInfo.remove(sender);
             context.doNextStep(sender, "");
         } else if (InternalArgument.getArgumentTypes().contains(message)) {
             argument.set("type", message);
