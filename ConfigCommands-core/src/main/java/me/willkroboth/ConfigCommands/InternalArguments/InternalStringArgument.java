@@ -27,7 +27,6 @@ public class InternalStringArgument extends InternalArgument implements CommandA
         super(value);
     }
 
-
     @Override
     public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         if (argumentInfo == null) return new StringArgument(name);

@@ -64,8 +64,6 @@ public abstract class InternalArgument implements FunctionCreator {
         return names;
     }
 
-
-
     public static Set<String> getArgumentTypes() {
         return typeMap.keySet();
     }
@@ -75,8 +73,8 @@ public abstract class InternalArgument implements FunctionCreator {
     }
 
     public static String getNameForType(Class<? extends InternalArgument> type) {
-        if(type.equals(InternalArgument.class)) return "Any";
-        if(type.equals(InternalVoidArgument.class)) return "Nothing";
+        if (type.equals(InternalArgument.class)) return "Any";
+        if (type.equals(InternalVoidArgument.class)) return "Nothing";
         return getInternalArgument(type).getName();
     }
 
