@@ -152,6 +152,17 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         }
     }
 
+    private static ConfigurationSection renameSection(ConfigurationSection section, String newName) {
+        ConfigurationSection parent = section.getParent();
+        assert parent != null;
+        ConfigurationSection newSection = parent.createSection(newName);
+        for(String key : section.getKeys(false)) {
+            newSection.set(key, section.get(key));
+        }
+        parent.set(section.getName(), null);
+        return newSection;
+    }
+
     private static void chooseCommand(CommandSender sender, String message, CommandContext context) {
         FileConfiguration config = ConfigCommandsHandler.getConfigFile();
         ConfigurationSection commands = config.getConfigurationSection("commands");
@@ -421,8 +432,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
                 sender.sendMessage("Created argument " + message);
                 ConfigCommandsHandler.saveConfigFile();
             }
-            argumentPaths.computeIfAbsent(sender, k -> new ArrayList<>());
-            argumentPaths.get(sender).add(message);
+            argumentPaths.computeIfAbsent(sender, k -> new ArrayList<>()).add(message);
 
             context = setContext(sender, context, then.getConfigurationSection(message), BuildCommandHandler::editArgument);
             context.doNextStep(sender, "");
@@ -446,8 +456,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         } else if (message.equalsIgnoreCase("back")) {
             List<String> path = argumentPaths.get(sender);
             path.remove(path.size() - 1);
-            if (path.size() == 0)
-                argumentPaths.remove(sender);
+            if (path.size() == 0) argumentPaths.remove(sender);
 
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
@@ -505,7 +514,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             } else {
                 sender.sendMessage("Current permission: \"" + value + "\"");
             }
-            sender.sendMessage("Please type the permission you would like to use null to remove the permission");
+            sender.sendMessage("Please type the permission you would like to use or null to remove the permission");
         } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
@@ -619,15 +628,14 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
 
             Set<String> keys = parent.getKeys(false);
             if (!keys.contains(message)) {
-                parent.set(message, argument);
-                parent.set(argument.getName(), null);
+                ConfigurationSection newSection = renameSection(argument, message);
                 ConfigCommandsHandler.saveConfigFile();
 
                 List<String> path = argumentPaths.get(sender);
                 path.set(path.size() - 1, message);
 
                 context = goBack(sender, 2, context);
-                context = setContext(sender, context, message, BuildCommandHandler::editArgument);
+                context = setContext(sender, context, newSection, BuildCommandHandler::editArgument);
                 context.doNextStep(sender, "");
             } else {
                 sender.sendMessage("That name is already in use!");
@@ -740,12 +748,10 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
 
             Set<String> keys = commands.getKeys(false);
             if (!keys.contains(message)) {
-                commands.set(message, command);
-                ConfigurationSection newSection = commands.getConfigurationSection(message);
-                commandsBeingEditing.put(sender, message);
-
-                commands.set(command.getName(), null);
+                ConfigurationSection newSection = renameSection(command, message);
                 ConfigCommandsHandler.saveConfigFile();
+
+                commandsBeingEditing.put(sender, message);
 
                 context = goBack(sender, 2, context);
                 context = setContext(sender, context, newSection, BuildCommandHandler::editCommand);
