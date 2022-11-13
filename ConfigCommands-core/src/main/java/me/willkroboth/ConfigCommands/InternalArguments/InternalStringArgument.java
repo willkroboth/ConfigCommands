@@ -1,6 +1,6 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
@@ -8,14 +8,16 @@ import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.Function;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 import me.willkroboth.ConfigCommands.Functions.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.Parameter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-public class InternalStringArgument extends InternalArgument {
+public class InternalStringArgument extends InternalArgument implements CommandArgument {
     private String value;
 
     public InternalStringArgument() {
@@ -25,34 +27,95 @@ public class InternalStringArgument extends InternalArgument {
         super(value);
     }
 
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name, ArrayList<String> argument_keys, HashMap<String, Class<? extends InternalArgument>> argument_variable_classes, boolean localDebug) throws IncorrectArgumentKey {
-        String type = (String) arg.get("subtype");
-        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: " + type);
-        command.withArguments(
-                type == null ? new StringArgument(name) :
-                        switch (type) {
-                            case "string" -> new StringArgument(name);
-                            case "text" -> new TextArgument(name);
-                            case "greedy" -> new GreedyStringArgument(name);
-                            default -> throw new IncorrectArgumentKey(arg.toString(), "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
-                        }
-        );
-        argument_keys.add(name);
-        argument_variable_classes.put(name, InternalStringArgument.class);
+
+    @Override
+    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+        if (argumentInfo == null) return new StringArgument(name);
+        ConfigurationSection info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, name);
+        String type = info.getString("subtype");
+        ConfigCommandsHandler.logDebug(localDebug, "Arg has subtype: %s", type);
+        if (type == null) return new StringArgument(name);
+        return switch (type) {
+            case "string" -> new StringArgument(name);
+            case "text" -> new TextArgument(name);
+            case "greedy" -> new GreedyStringArgument(name);
+            default -> throw new IncorrectArgumentKey(name, "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+        };
     }
 
+    private static final List<String> acceptableSubtypes = List.of("string", "text", "greedy");
+
+    @Override
+    public boolean editArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, @Nullable Object argumentInfo) {
+        ConfigurationSection info;
+        if (argumentInfo == null) {
+            info = argument.createSection("argumentInfo");
+        } else {
+            try {
+                info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, "");
+            } catch (IncorrectArgumentKey ignored) {
+                argument.set("argumentInfo", null);
+                info = argument.createSection("argumentInfo");
+            }
+        }
+        String subtype = info.getString("subtype");
+
+        if (message.isBlank()) {
+            if (subtype == null) {
+                sender.sendMessage("Subtype is null");
+            } else {
+                sender.sendMessage("Subtype is " + subtype);
+                if (!acceptableSubtypes.contains(subtype)) {
+                    sender.sendMessage(ChatColor.YELLOW + "Subtype is invalid!");
+                }
+            }
+            sender.sendMessage("Valid subtypes:");
+            sender.sendMessage("  string: One word with letters, numbers, and underscore");
+            sender.sendMessage("  text: A single word or any characters inside quotes");
+            sender.sendMessage("  greedy: Any characters, but only at the end of the command");
+            sender.sendMessage("What would you like the new subtype to be?");
+        } else if (acceptableSubtypes.contains(message)) {
+            info.set("subtype", message);
+            ConfigCommandsHandler.saveConfigFile();
+            sender.sendMessage("Subtype set to " + message);
+            return true;
+        } else {
+            sender.sendMessage("\"" + message + "\" is not a recognized subtype");
+        }
+        return false;
+    }
+
+    @Override
+    public String[] formatArgumentInfo(Object argumentInfo) {
+        if (argumentInfo == null) return new String[]{ChatColor.YELLOW + "ArgumentInfo is invalid!"};
+        ConfigurationSection info;
+        try {
+            info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, "");
+        } catch (IncorrectArgumentKey ignored) {
+            return new String[]{ChatColor.YELLOW + "ArgumentInfo is invalid!"};
+        }
+
+        String type = info.getString("subtype");
+        if (type == null) return new String[]{"subtype: null -> string by default"};
+        return new String[]{"subtype: " + type + (acceptableSubtypes.contains(type) ? "" : ChatColor.YELLOW + " (invalid!)")};
+    }
+
+    @Override
     public void setValue(Object arg) {
         value = (String) arg;
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
 
+    @Override
     public void setValue(InternalArgument arg) {
         value = (String) arg.getValue();
     }
 
+    @Override
     public String forCommand() {
         return value;
     }

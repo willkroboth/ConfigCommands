@@ -1,18 +1,11 @@
 package me.willkroboth.ConfigCommands.SystemCommands;
 
 import dev.jorel.commandapi.ArgumentTree;
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.SuggestionInfo;
-import dev.jorel.commandapi.arguments.ArgumentSuggestions;
-import dev.jorel.commandapi.arguments.StringArgument;
-import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
-import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
-import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandBuilder;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import dev.jorel.commandapi.arguments.LiteralArgument;
+import dev.jorel.commandapi.executors.CommandExecutor;
+import me.willkroboth.ConfigCommands.RegisteredCommands.ReloadableExecutable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,77 +13,79 @@ import java.util.Map;
 public class ReloadCommandHandler extends SystemCommandHandler {
     // command configuration
     protected ArgumentTree getArgumentTree() {
-        return super.getArgumentTree()
-                .then(new StringArgument("command")
-                        .replaceSuggestions(ArgumentSuggestions.strings(ReloadCommandHandler::getCommandNames))
-                        .executes(ReloadCommandHandler::reloadCommand)
-                );
+        ArgumentTree tree = super.getArgumentTree();
+        commands.generateArgumentTrees().forEach(tree::then);
+        return tree;
     }
 
     private static final String[] helpMessages = new String[]{
             "Reloads a command's code from the config.yml, allowing its behavior to change without restarting the server.",
             "Usage:",
-            "\t/configcommands reload <command>"
+            "\t/configcommands reload <command> <arguments>..."
     };
 
     protected String[] getHelpMessages() {
         return helpMessages;
     }
 
-    // command functions
-    private static final Map<String, ConfigCommandBuilder> commands = new HashMap<>();
-    private static final Map<String, String> nameToKey = new HashMap<>();
-    private static final Map<String, String> keyToName = new HashMap<>();
+    private static class ArgumentPathTree {
+        Map<String, ArgumentPathNode> children = new HashMap<>();
 
-    // accessed by ConfigCommandHandler
-    public static void addCommand(ConfigCommandBuilder configCommandBuilder, String key) {
-        commands.put(configCommandBuilder.getName(), configCommandBuilder);
-        nameToKey.put(configCommandBuilder.getName(), key);
-        keyToName.put(key, configCommandBuilder.getName());
+        public void put(List<String> argumentPath, ReloadableExecutable command) {
+            children.computeIfAbsent(argumentPath.get(0), k -> new ArgumentPathNode()).put(argumentPath.subList(1, argumentPath.size()), command);
+        }
+
+        public List<ArgumentTree> generateArgumentTrees() {
+            List<ArgumentTree> out = new ArrayList<>(children.size());
+            for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
+                ArgumentTree tree = new LiteralArgument(node.getKey());
+
+                ReloadableExecutable command = node.getValue().command;
+                if (command != null) tree.executes(reloadCommand(command));
+
+                node.getValue().generateArgumentTrees().forEach(tree::then);
+                out.add(tree);
+            }
+            return out;
+        }
     }
 
-    // accessed by BuildCommandHandler
-    protected static void updateKey(String oldKey, String newKey) {
-        String name = keyToName.get(oldKey);
-        nameToKey.put(name, newKey);
-        keyToName.remove(oldKey);
-        keyToName.put(newKey, name);
+    private static class ArgumentPathNode {
+        Map<String, ArgumentPathNode> children = new HashMap<>();
+        ReloadableExecutable command;
+
+        public void put(List<String> argumentPath, ReloadableExecutable command) {
+            if (argumentPath.size() == 0) {
+                this.command = command;
+            } else {
+                children.computeIfAbsent(argumentPath.get(0), k -> new ArgumentPathNode()).put(argumentPath.subList(1, argumentPath.size()), command);
+            }
+        }
+
+        public List<ArgumentTree> generateArgumentTrees() {
+            List<ArgumentTree> out = new ArrayList<>(children.size());
+            for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
+                ArgumentTree tree = new LiteralArgument(node.getKey());
+
+                ReloadableExecutable command = node.getValue().command;
+                if (command != null) tree.executes(reloadCommand(command));
+
+                node.getValue().generateArgumentTrees().forEach(tree::then);
+                out.add(tree);
+            }
+            return out;
+        }
     }
 
-    private static String[] getCommandNames(SuggestionInfo suggestionInfo) {
-        return commands.keySet().toArray(new String[0]);
+    private static CommandExecutor reloadCommand(ReloadableExecutable command) {
+        return (sender, args) -> command.reloadExecution(sender);
     }
 
-    private static void reloadCommand(CommandSender sender, Object[] args) throws WrapperCommandSyntaxException {
-        String name = (String) args[0];
-        if (!commands.containsKey(name)) {
-            throw CommandAPI.fail("Command: \"" + name + "\" was not created by ConfigCommands.");
-        }
-        ConfigCommandsHandler.reloadConfigFile();
-        FileConfiguration config = ConfigCommandsHandler.getConfigFile();
-        ConfigurationSection commandSection = config.getConfigurationSection("commands");
+    // Command functions
+    private static final ArgumentPathTree commands = new ArgumentPathTree();
 
-        if (commandSection == null || commandSection.getKeys(false).size() == 0) {
-            throw CommandAPI.fail("No commands found in config.yml");
-        }
-
-        String key = nameToKey.get(name);
-        ConfigurationSection command = commandSection.getConfigurationSection(key);
-        if (command == null) {
-            throw CommandAPI.fail("No data was found for the command");
-        }
-
-        List<String> commandsToRun = command.getStringList("commands");
-        if (commandsToRun.size() == 0) {
-            throw CommandAPI.fail(key + " has no commands. Skipping.");
-        }
-
-        try {
-            commands.get(name).refreshExecutor(commandsToRun);
-        } catch (RegistrationException e) {
-            throw CommandAPI.fail("Could not apply new commands: " + e.getMessage());
-        }
-
-        sender.sendMessage("Command successfully updated!");
+    // Accessed by CommandTreeBuilder and ArgumentTreeBuilder
+    public static void addCommand(List<String> argumentPath, ReloadableExecutable command) {
+        commands.put(argumentPath, command);
     }
 }

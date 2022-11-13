@@ -1,15 +1,15 @@
 debug: false
 commands:
   echo:
-    name: echo
-    args:
-      - name: <string>
-        type: String
-        subtype: greedy
     shortDescription: Echos input back to you.
     fullDescription: Takes in a string and sends it back to you.
     aliases:
       - cat
     permission: configcommands.echo
-    commands:
-      - do <sender>.sendMessage(<string>)
+    then:
+      string:
+        type: String
+        argumentInfo:
+          subtype: greedy
+        executes:
+          - do <sender>.sendMessage(<string>)

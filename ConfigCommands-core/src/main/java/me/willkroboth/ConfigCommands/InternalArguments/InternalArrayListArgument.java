@@ -20,22 +20,22 @@ public class InternalArrayListArgument extends InternalArgument {
         super(value);
     }
 
-    public String getTypeTag() {
-        return null;
-    }
-
+    @Override
     public void setValue(Object arg) {
         value = (ArrayList<InternalArgument>) arg;
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
 
+    @Override
     public void setValue(InternalArgument arg) {
         value = getList(arg);
     }
 
+    @Override
     public String forCommand() {
         StringBuilder out = new StringBuilder("[");
         if (value.size() != 0) {
@@ -53,6 +53,7 @@ public class InternalArrayListArgument extends InternalArgument {
         return (ArrayList<InternalArgument>) target.getValue();
     }
 
+    @Override
     public FunctionList getFunctions() {
         return merge(super.getFunctions(),
                 functions(

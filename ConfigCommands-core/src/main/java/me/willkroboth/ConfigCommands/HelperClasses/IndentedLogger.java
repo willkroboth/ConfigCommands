@@ -3,32 +3,12 @@ package me.willkroboth.ConfigCommands.HelperClasses;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class IndentedLogger {
+public class IndentedLogger extends IndentedStringHandler{
     private final Logger logger;
-    private int indentation = 0;
 
     public IndentedLogger(Logger l) {
+        super("\t");
         logger = l;
-    }
-
-    public void setIndentation(int i) {
-        indentation = i;
-    }
-
-    public int getIndentation() {
-        return indentation;
-    }
-
-    public void increaseIndentation() {
-        indentation++;
-    }
-
-    public void decreaseIndentation() {
-        indentation--;
-    }
-
-    private String formatMessage(String message, Object... args) {
-        return "\t".repeat(indentation) + String.format(message, args);
     }
 
     public void info(String message, Object... args) {

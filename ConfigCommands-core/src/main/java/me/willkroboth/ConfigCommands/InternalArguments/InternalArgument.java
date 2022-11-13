@@ -1,14 +1,16 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.Argument;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
 import me.willkroboth.ConfigCommands.Functions.FunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
-import me.willkroboth.ConfigCommands.HelperClasses.Expression;
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AddThisArgumentConsumer;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 
@@ -62,8 +64,10 @@ public abstract class InternalArgument implements FunctionCreator {
         return names;
     }
 
+
+
     public static Set<String> getArgumentTypes() {
-        return argumentMap.keySet();
+        return typeMap.keySet();
     }
 
     public static List<Class<? extends InternalArgument>> getRegisteredInternalArguments() {
@@ -119,7 +123,7 @@ public abstract class InternalArgument implements FunctionCreator {
         if (debugMode) logger.info("All classes registered");
     }
 
-    private static final Map<String, AddThisArgumentConsumer> argumentMap = new HashMap<>();
+    private static final Map<String, CommandArgument> typeMap = new HashMap<>();
 
     private static void registerInternalArgument(Class<? extends InternalArgument> clazz, String pluginName, boolean debugMode, Logger logger) {
         if (clazz.isAssignableFrom(InternalVoidArgument.class)) return;
@@ -139,12 +143,9 @@ public abstract class InternalArgument implements FunctionCreator {
         Expression.addToClassMap(object);
         foundClases.add(clazz);
 
-        String type = object.getTypeTag();
-        if (type == null) {
-            if (debugMode)
-                logger.info(clazz + " gave null typeTag. It will not be able to be used as a command argument");
-        } else {
-            argumentMap.put(type, object::addArgument);
+        if (object instanceof CommandArgument ca) {
+            if (debugMode) logger.info(clazz + " can be added to commands");
+            typeMap.put(ca.getTypeTag(), ca);
         }
     }
 
@@ -235,31 +236,29 @@ public abstract class InternalArgument implements FunctionCreator {
         return name;
     }
 
-    public static void addArgument(Map<?, ?> arg, CommandAPICommand command,
-                                   ArrayList<String> argument_keys,
-                                   HashMap<String, Class<? extends InternalArgument>> argument_variable_classes,
-                                   boolean localDebug)
-            throws IncorrectArgumentKey {
-        String name = (String) arg.get("name");
-        if (name == null) throw new IncorrectArgumentKey(arg.toString(), "name", "Key not found.");
-        name = formatArgumentName(name);
-        ConfigCommandsHandler.logDebug(localDebug, "Arg has name: " + name);
-        if (argument_keys.contains(name))
-            throw new IncorrectArgumentKey(arg.toString(), "name", "Argument with this name already exists!");
+    public static Argument<?> convertArgumentInformation(String name, String type,
+                                                         Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                         Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+        if (!typeMap.containsKey(type))
+            throw new IncorrectArgumentKey(name, "type", "\"" + type + "\" is not a recognized type that can be added to a command.");
 
-        String type = (String) arg.get("type");
-        if (type == null) throw new IncorrectArgumentKey(arg.toString(), "type", "Key not found.");
-        ConfigCommandsHandler.logDebug(localDebug, "Arg has type: " + type);
-        if (!argumentMap.containsKey(type))
-            throw new IncorrectArgumentKey(arg.toString(), "type", "Type \"" + type + "\" was not found");
-
+        CommandArgument object = typeMap.get(type);
+        String argumentName = formatArgumentName(name);
+        argumentClasses.put(argumentName, object.myClass());
+        ConfigCommandsHandler.logDebug(localDebug, "Argument %s available as %s", argumentName, object.getClass().getSimpleName());
         try {
-            argumentMap.get(type).add(arg, command, name, argument_keys, argument_variable_classes, localDebug);
-        } catch (IncorrectArgumentKey e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IncorrectArgumentKey(arg.toString(), false, e.getMessage());
+            return object.createArgument(name, argumentInfo, localDebug);
+        } catch (RuntimeException e) {
+            throw new IncorrectArgumentKey(name, "argumentInfo", e.getMessage());
         }
+    }
+
+    public static boolean passEditArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).editArgumentInfo(sender, message, argument, argumentInfo);
+    }
+
+    public static String[] formatArgumentInfo(String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).formatArgumentInfo(argumentInfo);
     }
 
     // defining important variables for logic and function
@@ -269,31 +268,6 @@ public abstract class InternalArgument implements FunctionCreator {
         name = name.substring(8, name.length() - 8);
         return name;
     }
-
-    // Note: while getTypeTag and addThisArgument both have default methods, at least one should be overridden
-    // Most common override for getTypeTag should be to return null to disable being added as an argument
-    public String getTypeTag() {
-        // default type tag is the name
-        // classes may override with null to disable being added as argument to commands
-        return getName();
-    }
-
-    public void addArgument(Map<?, ?> arg, CommandAPICommand command, String name,
-                            ArrayList<String> argument_keys,
-                            HashMap<String, Class<? extends InternalArgument>> argument_variable_classes,
-                            boolean localDebug) throws IncorrectArgumentKey {
-        // default result from adding argument is to reject being added
-        throw new IncorrectArgumentKey(arg.toString(), "type", getName() + " cannot be an argument");
-    }
-
-    // abstract functions for dealing with value
-    public abstract void setValue(Object arg);
-
-    public abstract Object getValue();
-
-    public abstract void setValue(InternalArgument arg);
-
-    public abstract String forCommand();
 
     // manage function arrays
     private static final Map<Class<? extends InternalArgument>, FunctionList> addedFunctions = new HashMap<>();
@@ -380,6 +354,15 @@ public abstract class InternalArgument implements FunctionCreator {
 
         return staticFunctions.get(myClass()).getFunction(function, parameterTypes).run(parameters);
     }
+
+    // abstract functions for dealing with value
+    public abstract void setValue(Object arg);
+
+    public abstract Object getValue();
+
+    public abstract void setValue(InternalArgument arg);
+
+    public abstract String forCommand();
 
     // class managing methods
 

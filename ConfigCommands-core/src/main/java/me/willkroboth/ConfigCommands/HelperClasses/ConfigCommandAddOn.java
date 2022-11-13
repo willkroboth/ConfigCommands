@@ -2,7 +2,9 @@ package me.willkroboth.ConfigCommands.HelperClasses;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
+import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -93,5 +95,5 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
     protected abstract String getPackageName();
 
 
-    public String toString() { return this.getName(); }
+    public @NotNull String toString() { return this.getName(); }
 }
