@@ -15,7 +15,7 @@ public interface CommandArgument {
     // Dealing with argumentInfo object
     default <T> T assertArgumentInfoClass(@NotNull Object argumentInfo, Class<? extends T> clazz, String arg) throws IncorrectArgumentKey {
         if (clazz.isAssignableFrom(argumentInfo.getClass())) return clazz.cast(argumentInfo);
-        throw new IncorrectArgumentKey(arg, "argumentInfo", "Expected argumentInfo to have class " + clazz.getSimpleName());
+        throw new IncorrectArgumentKey(arg, "argumentInfo", "Expected argumentInfo to be a " + clazz.getSimpleName());
     }
 
     Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey;
