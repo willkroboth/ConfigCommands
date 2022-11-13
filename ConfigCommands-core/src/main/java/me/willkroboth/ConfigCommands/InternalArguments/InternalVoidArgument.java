@@ -1,7 +1,9 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
+import me.willkroboth.ConfigCommands.Functions.Function;
+import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 
 public class InternalVoidArgument extends InternalArgument {
     // singleton class is best for this because it never stores a value
@@ -13,14 +15,13 @@ public class InternalVoidArgument extends InternalArgument {
 
     public static InternalVoidArgument getInstance(){ return instance; }
 
-    @Override
     public FunctionList getFunctions() {
-        return entries();
+        return functions(new Function[0]);
     }
 
     @Override
     public StaticFunctionList getStaticFunctions() {
-        return staticEntries();
+        return functions(new StaticFunction[0]);
     }
 
     // not used

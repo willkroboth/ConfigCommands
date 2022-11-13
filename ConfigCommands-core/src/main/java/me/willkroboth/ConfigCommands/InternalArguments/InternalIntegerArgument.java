@@ -5,13 +5,12 @@ import dev.jorel.commandapi.arguments.IntegerArgument;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.StaticFunctionList;
+import me.willkroboth.ConfigCommands.Functions.Parameter;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 
 public class InternalIntegerArgument extends InternalArgument implements CommandArgument {
     private int value;
@@ -133,32 +132,6 @@ public class InternalIntegerArgument extends InternalArgument implements Command
     }
 
     @Override
-    public StaticFunctionList getStaticFunctions() {
-        return staticMerge(
-                super.getStaticFunctions(),
-                staticExpandDefinition(strings("", "new"), args(args(), args(InternalStringArgument.class)),
-                        new StaticFunction(this::initialize, InternalIntegerArgument.class)
-                )
-        );
-    }
-
-    public InternalArgument initialize(List<InternalArgument> arguments) {
-        int result = 0;
-        if (arguments.size() == 1) {
-            InternalStringArgument arg = (InternalStringArgument) arguments.get(0);
-            String word = (String) arg.getValue();
-            try {
-                result = Integer.parseInt(word);
-            } catch (NumberFormatException e) {
-                throw new CommandRunException("Word: \"" + word + "\" cannot be parsed as int.");
-            }
-        }
-
-        return new InternalIntegerArgument(result);
-    }
-
-    // value
-    @Override
     public void setValue(Object arg) {
         value = (int) arg;
     }
@@ -176,5 +149,38 @@ public class InternalIntegerArgument extends InternalArgument implements Command
     @Override
     public String forCommand() {
         return "" + value;
+    }
+
+    @Override
+    public StaticFunctionList getStaticFunctions() {
+        return merge(super.getStaticFunctions(),
+                functions(
+                        new StaticFunction("new")
+                                .withAliases("")
+                                .withDescription("Creates a new Integer")
+                                .withParameters()
+                                .withParameters(new Parameter(InternalStringArgument.class, "value", "The value for the new Integer"))
+                                .returns(InternalIntegerArgument.class, "An Integer containing the given value, or 0 if no value is given")
+                                .throwsException("NumberFormatException if the given value cannot be interpreted as an Integer")
+                                .executes(parameters -> {
+                                    int result = 0;
+                                    if (parameters.size() == 1) {
+                                        try {
+                                            result = Integer.parseInt((String) parameters.get(0).getValue());
+                                        } catch (NumberFormatException e) {
+                                            throw new CommandRunException(e);
+                                        }
+                                    }
+
+                                    return new InternalIntegerArgument(result);
+                                })
+                                .withExamples(
+                                        "Integer.new(\"10\") -> 10",
+                                        "Integer.(\"-5\") -> -5",
+                                        "Integer.new() -> 0",
+                                        "Integer.(\"Hello\") -> NumberFormatException"
+                                )
+                )
+        );
     }
 }

@@ -1,25 +1,47 @@
 package me.willkroboth.ConfigCommands.Functions;
 
+import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalVoidArgument;
 
 import java.util.List;
 
-public class Function{
-    private final InternalArgumentFunction function;
-    private final Class<? extends InternalArgument> returnType;
-
-    public Function(InternalArgumentFunction function, Class<? extends InternalArgument> returnType) {
-        this.function = function;
-        this.returnType = returnType;
+public class Function extends AbstractFunction<Function> {
+    // Executes
+    @FunctionalInterface
+    public interface InternalArgumentFunction {
+        InternalArgument apply(InternalArgument target, List<InternalArgument> parameters) throws CommandRunException;
     }
 
-    public InternalArgumentFunction getFunction(){
-        return function;
+    @FunctionalInterface
+    public interface InternalArgumentFunctionVoidReturn {
+        void apply(InternalArgument target, List<InternalArgument> parameters) throws CommandRunException;
     }
 
-    public Class<? extends InternalArgument> getReturnType() {
-        return returnType;
+    private InternalArgumentFunction executes;
+
+    // Set information
+    public Function(String name) {
+        super(name);
     }
 
-    public InternalArgument run(InternalArgument target, List<InternalArgument> args) { return function.apply(target, args); }
+    public Function executes(InternalArgumentFunction executes) {
+        this.executes = executes;
+
+        return this;
+    }
+
+    public Function executes(InternalArgumentFunctionVoidReturn executes) {
+        this.executes = (target, parameters) -> {
+            executes.apply(target, parameters);
+            return InternalVoidArgument.getInstance();
+        };
+
+        return this;
+    }
+
+    // Use information
+    public InternalArgument run(InternalArgument target, List<InternalArgument> parameters) {
+        return executes.apply(target, parameters);
+    }
 }

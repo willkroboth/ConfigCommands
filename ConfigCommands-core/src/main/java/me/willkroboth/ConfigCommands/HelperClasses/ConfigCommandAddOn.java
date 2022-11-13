@@ -1,7 +1,6 @@
 package me.willkroboth.ConfigCommands.HelperClasses;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,7 +40,7 @@ public abstract class ConfigCommandAddOn extends JavaPlugin {
         if (ConfigCommandsHandler.isDebugMode()) {
             ConfigCommandsHandler.logNormal(
                     "All recognized InternalArguments:\n\t%s",
-                    AllInternalArguments.getFlat().toString().replace(", ", ",\n\t")
+                    InternalArgument.getRegisteredInternalArguments().toString().replace(", ", ",\n\t")
             );
             ConfigCommandsHandler.logNormal(
                     "Static class map:\n\t%s",

@@ -3,12 +3,10 @@ package me.willkroboth.ConfigCommands.InternalArguments;
 import dev.jorel.commandapi.arguments.Argument;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.Definition;
 import me.willkroboth.ConfigCommands.Functions.Function;
 import me.willkroboth.ConfigCommands.Functions.FunctionCreator;
-import me.willkroboth.ConfigCommands.Functions.NonGenericVarargs.*;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
-import me.willkroboth.ConfigCommands.InternalArguments.HelperClasses.AllInternalArguments;
+import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 import me.willkroboth.ConfigCommands.RegisteredCommands.Expressions.Expression;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -53,7 +51,6 @@ public abstract class InternalArgument implements FunctionCreator {
 
     // providing and processing information related to InternalArguments
     private static final Map<String, List<InternalArgument>> pluginToInternalArguments = new HashMap<>();
-    private static final Map<Class<? extends InternalArgument>, InternalArgument> classToObject = new HashMap<>();
 
     public static List<InternalArgument> getPluginInternalArguments(String pluginName) {
         return pluginToInternalArguments.get(pluginName.toLowerCase(Locale.ROOT));
@@ -67,135 +64,26 @@ public abstract class InternalArgument implements FunctionCreator {
         return names;
     }
 
-    public static Map<Definition, Function> getFunctions(Class<? extends InternalArgument> clazz) {
-        return functions.get(clazz);
-    }
 
-    public static Map<Definition, StaticFunction> getStaticFunctions(Class<? extends InternalArgument> clazz) {
-        return staticFunctions.get(clazz);
-    }
-
-    public static List<String> getNames(Map<Definition, Function> functions) {
-        List<String> names = new ArrayList<>();
-
-        for (Definition definition : functions.keySet()) {
-            String name = definition.getName();
-            if (!names.contains(name)) {
-                names.add(name);
-            }
-        }
-
-        return names;
-    }
-
-    public static List<String> getStaticNames(Map<Definition, StaticFunction> functions) {
-        List<String> names = new ArrayList<>();
-
-        for (Definition definition : functions.keySet()) {
-            String name = definition.getName();
-            if (!names.contains(name)) {
-                names.add(name);
-            }
-        }
-
-        return names;
-    }
-
-    public static Map<Definition, Function> getAliases(String name, Map<Definition, Function> functions) {
-        List<Function> targets = new ArrayList<>();
-        for (Definition definition : functions.keySet()) {
-            if (definition.getName().equals(name)) {
-                targets.add(functions.get(definition));
-            }
-        }
-
-        Map<Definition, Function> out = new HashMap<>();
-        for (Definition definition : functions.keySet()) {
-            if (definition.getName().equals(name) || targets.contains(functions.get(definition))) {
-                out.put(definition, functions.get(definition));
-            }
-        }
-
-        return out;
-    }
-
-    public static Map<Definition, StaticFunction> getStaticAliases(String name, Map<Definition, StaticFunction> functions) {
-        List<StaticFunction> targets = new ArrayList<>();
-        for (Definition definition : functions.keySet()) {
-            if (definition.getName().equals(name)) {
-                targets.add(functions.get(definition));
-            }
-        }
-
-        Map<Definition, StaticFunction> out = new HashMap<>();
-        for (Definition definition : functions.keySet()) {
-            if (definition.getName().equals(name) || targets.contains(functions.get(definition))) {
-                out.put(definition, functions.get(definition));
-            }
-        }
-
-        return out;
-    }
-
-    public static String getParameterString(Map<Definition, Function> aliases) {
-        if (aliases.size() == 0) return "\n  none";
-        StringBuilder out = new StringBuilder();
-
-        for (Definition definition : aliases.keySet()) {
-            Function function = aliases.get(definition);
-            List<Class<? extends InternalArgument>> parameter = definition.getParameters();
-
-            out.append("\n  var.");
-            out.append(definition.getName());
-            out.append('(');
-            if (parameter.size() != 0) {
-                for (Class<? extends InternalArgument> clazz : parameter) {
-                    out.append(classToObject.get(clazz).getName());
-                    out.append(", ");
-                }
-                out.delete(out.length() - 2, out.length());
-            }
-            out.append(") -> ");
-            Class<? extends InternalArgument> clazz = function.getReturnType();
-            out.append(clazz.isAssignableFrom(InternalVoidArgument.class) ? "Void" : classToObject.get(clazz).getName());
-        }
-
-        return out.toString();
-    }
-
-    public static String getStaticParameterString(Map<Definition, StaticFunction> aliases) {
-        if (aliases.size() == 0) return "\n  none";
-        StringBuilder out = new StringBuilder();
-
-        for (Definition definition : aliases.keySet()) {
-            StaticFunction function = aliases.get(definition);
-            List<Class<? extends InternalArgument>> parameter = definition.getParameters();
-
-            out.append("\n  Class.");
-            out.append(definition.getName());
-            out.append('(');
-            if (parameter.size() != 0) {
-                for (Class<? extends InternalArgument> clazz : parameter) {
-                    out.append(classToObject.get(clazz).getName());
-                    out.append(", ");
-                }
-                out.delete(out.length() - 2, out.length());
-            }
-            out.append(") -> ");
-            Class<? extends InternalArgument> clazz = function.getReturnType();
-            out.append(clazz.isAssignableFrom(InternalVoidArgument.class) ? "Void" : classToObject.get(clazz).getName());
-        }
-
-        return out.toString();
-    }
 
     public static Set<String> getArgumentTypes() {
         return typeMap.keySet();
     }
 
+    public static List<Class<? extends InternalArgument>> getRegisteredInternalArguments() {
+        return foundClases;
+    }
+
+    public static String getNameForType(Class<? extends InternalArgument> type) {
+        if(type.equals(InternalArgument.class)) return "Any";
+        if(type.equals(InternalVoidArgument.class)) return "Nothing";
+        return getInternalArgument(type).getName();
+    }
+
     // registering subclasses
-    private static final Map<Class<? extends InternalArgument>, Map<Definition, Function>> functions = new HashMap<>();
-    private static final Map<Class<? extends InternalArgument>, Map<Definition, StaticFunction>> staticFunctions = new HashMap<>();
+    private static final List<Class<? extends InternalArgument>> foundClases = new ArrayList<>();
+    private static final Map<Class<? extends InternalArgument>, FunctionList> functions = new HashMap<>();
+    private static final Map<Class<? extends InternalArgument>, StaticFunctionList> staticFunctions = new HashMap<>();
 
     private static <T> Set<T> convertSet(Set<Class<?>> classes) {
         return new HashSet<>((Collection<? extends T>) classes);
@@ -251,10 +139,9 @@ public abstract class InternalArgument implements FunctionCreator {
             return;
         }
         pluginToInternalArguments.get(pluginName.toLowerCase(Locale.ROOT)).add(object);
-        classToObject.put(clazz, object);
 
-        AllInternalArguments.addToAllClasses(clazz);
         Expression.addToClassMap(object);
+        foundClases.add(clazz);
 
         if (object instanceof CommandArgument ca) {
             if (debugMode) logger.info(clazz + " can be added to commands");
@@ -311,13 +198,13 @@ public abstract class InternalArgument implements FunctionCreator {
         ConfigCommandsHandler.logNormal("");
         ConfigCommandsHandler.logNormal("Initializing function maps");
         ConfigCommandsHandler.increaseIndentation();
-        for (Class<? extends InternalArgument> clazz : AllInternalArguments.getFlat()) {
+        for (Class<? extends InternalArgument> clazz : foundClases) {
             InternalArgument object = getInternalArgument(clazz);
 
             ConfigCommandsHandler.logDebug(object.toString());
             try {
-                functions.put(clazz, Map.ofEntries(object.getFunctions().toArray(new FunctionEntry[0])));
-                staticFunctions.put(clazz, Map.ofEntries(object.getStaticFunctions().toArray(new StaticFunctionEntry[0])));
+                functions.put(clazz, object.getFunctions());
+                staticFunctions.put(clazz, object.getStaticFunctions());
             } catch (Exception e) {
                 ConfigCommandsHandler.logError("Unexpected fatal exception when setting function map for %s", object);
 
@@ -387,11 +274,18 @@ public abstract class InternalArgument implements FunctionCreator {
 
     public FunctionList getFunctions() {
         return merge(InternalArgument.getAddedFunctions(myClass()),
-                entries(
-                        entry(new Definition("forCommand", args()),
-                                new Function(this::internalForCommand, InternalStringArgument.class))
+                functions(
+                        new Function("forCommand")
+                                .returns(InternalStringArgument.class, "The String that represents this argument in a command")
+                                .executes((target, parameters) -> {
+                                    return new InternalStringArgument(target.forCommand());
+                                })
                 )
         );
+    }
+
+    public static FunctionList getFunctionsFor(Class<? extends InternalArgument> clazz) {
+        return functions.get(clazz);
     }
 
     public static void addFunctions(Class<? extends InternalArgument> clazz, FunctionList functionsToAdd) {
@@ -411,6 +305,10 @@ public abstract class InternalArgument implements FunctionCreator {
         return InternalArgument.getAddedStaticFunctions(myClass());
     }
 
+    public static StaticFunctionList getStaticFunctionsFor(Class<? extends InternalArgument> clazz) {
+        return staticFunctions.get(clazz);
+    }
+
     public static void addStaticFunctions(Class<? extends InternalArgument> clazz, StaticFunctionList functionsToAdd) {
         if (functionsToAdd == null) return;
         if (!addedStaticFunctions.containsKey(clazz)) addedStaticFunctions.put(clazz, new StaticFunctionList());
@@ -422,44 +320,39 @@ public abstract class InternalArgument implements FunctionCreator {
         return addedStaticFunctions.get(clazz);
     }
 
-    // connecting forCommand to the InternalArguments
-    private InternalStringArgument internalForCommand(InternalArgument target, List<InternalArgument> parameters) {
-        return new InternalStringArgument(target.forCommand());
-    }
-
     // interacts with functions
-    public final boolean hasFunction(String function, ArgList parameterTypes) {
-        return functions.get(myClass()).containsKey(new Definition(function, parameterTypes));
+    public final boolean hasFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+        return functions.get(myClass()).hasFunction(function, parameterTypes);
     }
 
-    public final boolean hasStaticFunction(String function, ArgList parameterTypes) {
-        return staticFunctions.get(myClass()).containsKey(new Definition(function, parameterTypes));
+    public final boolean hasStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+        return staticFunctions.get(myClass()).hasFunction(function, parameterTypes);
     }
 
-    public final Class<? extends InternalArgument> getReturnTypeForFunction(String function, ArgList parameterTypes) {
-        return functions.get(myClass()).get(new Definition(function, parameterTypes)).getReturnType();
+    public final Class<? extends InternalArgument> getReturnTypeForFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+        return functions.get(myClass()).getFunction(function, parameterTypes).getReturnType(parameterTypes);
     }
 
-    public final Class<? extends InternalArgument> getReturnTypeForStaticFunction(String function, ArgList parameterTypes) {
-        return staticFunctions.get(myClass()).get(new Definition(function, parameterTypes)).getReturnType();
+    public final Class<? extends InternalArgument> getReturnTypeForStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
+        return staticFunctions.get(myClass()).getFunction(function, parameterTypes).getReturnType(parameterTypes);
     }
 
     public final InternalArgument runFunction(String function, List<InternalArgument> parameters) {
-        ArgList parameterTypes = new ArgList();
+        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
         for (InternalArgument p : parameters) {
             parameterTypes.add(p.getClass());
         }
 
-        return functions.get(myClass()).get(new Definition(function, parameterTypes)).run(this, parameters);
+        return functions.get(myClass()).getFunction(function, parameterTypes).run(this, parameters);
     }
 
     public final InternalArgument runStaticFunction(String function, List<InternalArgument> parameters) {
-        ArgList parameterTypes = new ArgList();
+        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
         for (InternalArgument p : parameters) {
             parameterTypes.add(p.getClass());
         }
 
-        return staticFunctions.get(myClass()).get(new Definition(function, parameterTypes)).run(parameters);
+        return staticFunctions.get(myClass()).getFunction(function, parameterTypes).run(parameters);
     }
 
     // abstract functions for dealing with value
@@ -472,6 +365,7 @@ public abstract class InternalArgument implements FunctionCreator {
     public abstract String forCommand();
 
     // class managing methods
+
     public Class<? extends InternalArgument> myClass() {
         return getClass();
     }
@@ -490,4 +384,3 @@ public abstract class InternalArgument implements FunctionCreator {
         return getClass().getSimpleName().hashCode();
     }
 }
-
