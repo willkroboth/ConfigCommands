@@ -3,6 +3,8 @@ version: 4.0.0
 author: willkroboth
 main: me.willkroboth.ConfigCommands.ConfigCommands
 api-version: 1.16
+description: A plugin for registering commands from a config.yml file
+website: https://github.com/willkroboth/ConfigCommands
 depend:
   - CommandAPI
 libraries:
