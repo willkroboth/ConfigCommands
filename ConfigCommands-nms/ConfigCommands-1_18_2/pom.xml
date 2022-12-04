@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ConfigCommands-nms</artifactId>
         <groupId>me.willkroboth</groupId>
-        <version>3.0.0</version>
+        <version>4.0.0</version>
     </parent>
 
     <artifactId>ConfigCommands-1_18_2</artifactId>

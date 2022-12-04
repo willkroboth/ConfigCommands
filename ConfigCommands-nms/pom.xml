@@ -7,21 +7,24 @@
     <parent>
         <artifactId>ConfigCommands</artifactId>
         <groupId>me.willkroboth</groupId>
-        <version>3.0.0</version>
+        <version>4.0.0</version>
     </parent>
 
     <artifactId>ConfigCommands-nms</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>ConfigCommands-1_19_1</module>
         <module>ConfigCommands-1_19</module>
+        <module>ConfigCommands-1_19-common</module>
+
         <module>ConfigCommands-1_18_2</module>
         <module>ConfigCommands-1_18</module>
+
         <module>ConfigCommands-1_17</module>
+
         <module>ConfigCommands-1_16_5</module>
 
         <module>ConfigCommands-nms-dependency</module>
-        <module>ConfigCommands-1_19_1</module>
-        <module>ConfigCommands-1_19-common</module>
     </modules>
 
     <!-- shared dependencies -->

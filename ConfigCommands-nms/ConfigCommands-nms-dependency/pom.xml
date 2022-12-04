@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ConfigCommands-nms</artifactId>
         <groupId>me.willkroboth</groupId>
-        <version>3.0.0</version>
+        <version>4.0.0</version>
     </parent>
 
     <artifactId>ConfigCommands-nms-dependency</artifactId>
@@ -68,7 +68,7 @@
                         </goals>
                         <configuration>
                             <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
-                            <!-- remove duplicate references to 1_19-common -->
+                            <!-- remove duplicate references to unmapped 1_19-common -->
                             <filters>
                                 <filter>
                                     <artifact>${project.groupId}:ConfigCommands-1_19</artifact>
