@@ -1,6 +1,7 @@
 package me.willkroboth.ConfigCommands.RegisteredCommands;
 
-import dev.jorel.commandapi.executors.CommandExecutor;
+import dev.jorel.commandapi.executors.ExecutorType;
+import dev.jorel.commandapi.executors.IExecutorNormal;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
@@ -11,15 +12,24 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
-public class ExecutesBuilder implements CommandExecutor {
+public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
     private final InterpreterState defaultState;
     private final Stack<InterpreterState> interpreterStateStack;
     private InterpreterState currentState;
 
-    public ExecutesBuilder(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                           boolean localDebug) throws RegistrationException {
+    private final ExecutorType type;
+
+    public CommandExecutorBuilder(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                  ExecutorType type, boolean localDebug) throws RegistrationException {
         defaultState = FunctionLine.parseExecutes(executes, new LinkedHashMap<>(argumentClasses), localDebug);
         interpreterStateStack = new Stack<>();
+
+        this.type = type;
+    }
+
+    @Override
+    public ExecutorType getType() {
+        return type;
     }
 
     @Override

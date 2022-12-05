@@ -76,7 +76,7 @@ public class DebugCommandHandler extends SystemCommandHandler {
 
         ConfigurationSection commands = ConfigCommandsHandler.getConfigFile().getConfigurationSection("commands");
         if (commands == null || !commands.getKeys(false).contains(key))
-            throw CommandAPI.fail("Command \"" + key + "\" dose not exist!");
+            throw CommandAPI.failWithString("Command \"" + key + "\" dose not exist!");
         boolean debugMode = commands.getConfigurationSection(key).getBoolean("debug", false);
 
         sender.sendMessage("Debug for \"" + key + "\" is currently " + (debugMode ? "enabled" : "disabled"));
@@ -89,7 +89,7 @@ public class DebugCommandHandler extends SystemCommandHandler {
 
             ConfigurationSection commands = ConfigCommandsHandler.getConfigFile().getConfigurationSection("commands");
             if (commands == null || !commands.getKeys(false).contains(key))
-                throw CommandAPI.fail("Command \"" + key + "\" dose not exist!");
+                throw CommandAPI.failWithString("Command \"" + key + "\" dose not exist!");
 
             commands.getConfigurationSection(key).set("debug", value);
             ConfigCommandsHandler.saveConfigFile();

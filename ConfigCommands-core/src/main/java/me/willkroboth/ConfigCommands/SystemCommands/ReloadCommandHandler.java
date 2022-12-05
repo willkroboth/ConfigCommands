@@ -3,7 +3,7 @@ package me.willkroboth.ConfigCommands.SystemCommands;
 import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
-import me.willkroboth.ConfigCommands.RegisteredCommands.ReloadableExecutable;
+import me.willkroboth.ConfigCommands.RegisteredCommands.CommandAPIExecutorBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ReloadCommandHandler extends SystemCommandHandler {
-    // command configuration
+    // Command configuration
     protected ArgumentTree getArgumentTree() {
         ArgumentTree tree = super.getArgumentTree();
         commands.generateArgumentTrees().forEach(tree::then);
@@ -28,10 +28,11 @@ public class ReloadCommandHandler extends SystemCommandHandler {
         return helpMessages;
     }
 
+    // Command functions
     private static class ArgumentPathTree {
         Map<String, ArgumentPathNode> children = new HashMap<>();
 
-        public void put(List<String> argumentPath, ReloadableExecutable command) {
+        public void put(List<String> argumentPath, CommandAPIExecutorBuilder command) {
             children.computeIfAbsent(argumentPath.get(0), k -> new ArgumentPathNode()).put(argumentPath.subList(1, argumentPath.size()), command);
         }
 
@@ -40,7 +41,7 @@ public class ReloadCommandHandler extends SystemCommandHandler {
             for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
                 ArgumentTree tree = new LiteralArgument(node.getKey());
 
-                ReloadableExecutable command = node.getValue().command;
+                CommandAPIExecutorBuilder command = node.getValue().command;
                 if (command != null) tree.executes(reloadCommand(command));
 
                 node.getValue().generateArgumentTrees().forEach(tree::then);
@@ -52,9 +53,9 @@ public class ReloadCommandHandler extends SystemCommandHandler {
 
     private static class ArgumentPathNode {
         Map<String, ArgumentPathNode> children = new HashMap<>();
-        ReloadableExecutable command;
+        CommandAPIExecutorBuilder command;
 
-        public void put(List<String> argumentPath, ReloadableExecutable command) {
+        public void put(List<String> argumentPath, CommandAPIExecutorBuilder command) {
             if (argumentPath.size() == 0) {
                 this.command = command;
             } else {
@@ -67,7 +68,7 @@ public class ReloadCommandHandler extends SystemCommandHandler {
             for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
                 ArgumentTree tree = new LiteralArgument(node.getKey());
 
-                ReloadableExecutable command = node.getValue().command;
+                CommandAPIExecutorBuilder command = node.getValue().command;
                 if (command != null) tree.executes(reloadCommand(command));
 
                 node.getValue().generateArgumentTrees().forEach(tree::then);
@@ -77,15 +78,14 @@ public class ReloadCommandHandler extends SystemCommandHandler {
         }
     }
 
-    private static CommandExecutor reloadCommand(ReloadableExecutable command) {
+    private static CommandExecutor reloadCommand(CommandAPIExecutorBuilder command) {
         return (sender, args) -> command.reloadExecution(sender);
     }
 
-    // Command functions
     private static final ArgumentPathTree commands = new ArgumentPathTree();
 
-    // Accessed by CommandTreeBuilder and ArgumentTreeBuilder
-    public static void addCommand(List<String> argumentPath, ReloadableExecutable command) {
+    // Accessed by CommandAPIExecutorBuilder
+    public static void addCommand(List<String> argumentPath, CommandAPIExecutorBuilder command) {
         commands.put(argumentPath, command);
     }
 }
