@@ -6,6 +6,7 @@ import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
 import org.bukkit.command.CommandSender;
@@ -31,7 +32,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
     }
 
     public CommandAPIExecutorBuilder(ConfigurationSection executable, List<String> argumentPath,
-                                     Map<String, Class<? extends InternalArgument>> argumentClasses, boolean localDebug) throws RegistrationException {
+                                     Map<String, Class<? extends InternalArgument>> argumentClasses, SharedDebugValue localDebug) throws RegistrationException {
         boolean canExecute = false;
         ConfigCommandsHandler.increaseIndentation();
         for (ExecutorInformation executor : executors) {
@@ -53,7 +54,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
 
     private boolean generateExecutor(String name, List<String> executes, ExecutorType type,
                                      Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                     boolean localDebug) throws RegistrationException {
+                                     SharedDebugValue localDebug) throws RegistrationException {
         if (executes.size() == 0) return false;
 
         ConfigCommandsHandler.logDebug(localDebug, "Adding %s executor", name);
@@ -67,7 +68,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
     // Stored information for reloading executor
     private final List<String> argumentPath;
     private final Map<String, Class<? extends InternalArgument>> argumentClasses;
-    private final boolean localDebug;
+    private final SharedDebugValue localDebug;
 
     public void reloadExecution(CommandSender sender) throws WrapperCommandSyntaxException {
         ConfigCommandsHandler.logDebug(localDebug, "Reloading argument path %s", argumentPath);

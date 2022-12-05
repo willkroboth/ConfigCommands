@@ -3,18 +3,21 @@ package me.willkroboth.ConfigCommands.RegisteredCommands;
 import dev.jorel.commandapi.CommandTree;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.GlobalDebugValue;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalCommandSenderArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
+import me.willkroboth.ConfigCommands.SystemCommands.DebugCommandHandler;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 
 public class CommandTreeBuilder extends CommandTree {
-    public static void registerCommandsFromConfig(ConfigurationSection commands, boolean globalDebug) {
+    public static void registerCommandsFromConfig(ConfigurationSection commands, GlobalDebugValue globalDebug) {
         ConfigCommandsHandler.logNormal("");
         if (commands == null) {
-            ConfigCommandsHandler.logNormal("The configuration section for the commands was not found! Skipping");
+            ConfigCommandsHandler.logWarning("The configuration section for the commands was not found! Skipping");
             return;
         }
 
@@ -52,7 +55,7 @@ public class CommandTreeBuilder extends CommandTree {
         if (failedCommands.size() == 0) {
             ConfigCommandsHandler.logNormal("All commands were successfully registered.");
             ConfigCommandsHandler.logNormal("Note: this does not mean they will work as you expect.");
-            if (globalDebug) {
+            if (globalDebug.isDebug()) {
                 ConfigCommandsHandler.logNormal("If a command does not work, check the console output to try to find the problem.");
             } else {
                 ConfigCommandsHandler.logNormal("If a command does not work, turn on debug mode, then check the console output to try to find the problem.");
@@ -64,7 +67,7 @@ public class CommandTreeBuilder extends CommandTree {
                 ConfigCommandsHandler.logError(message);
             }
             ConfigCommandsHandler.decreaseIndentation();
-            if (globalDebug) {
+            if (globalDebug.isDebug()) {
                 ConfigCommandsHandler.logNormal("Scroll up to find more information.");
             } else {
                 ConfigCommandsHandler.logNormal("Turn on debug mode and scroll up to find more information.");
@@ -83,14 +86,15 @@ public class CommandTreeBuilder extends CommandTree {
         ));
     }
 
-    public CommandTreeBuilder(String name, ConfigurationSection command, boolean globalDebug) throws RegistrationException {
+    public CommandTreeBuilder(String name, ConfigurationSection command, GlobalDebugValue globalDebug) throws RegistrationException {
         //set name
         super(name);
 
         // set debug variable
         boolean localDebug = command.getBoolean("debug", false);
-        ConfigCommandsHandler.logDebug(localDebug && !globalDebug, "Debug turned on for %s", name);
-        localDebug = globalDebug || localDebug;
+        ConfigCommandsHandler.logDebug(localDebug && !globalDebug.isDebug(), "Debug turned on for %s", name);
+        SharedDebugValue sharedDebug = new SharedDebugValue(globalDebug, localDebug);
+        DebugCommandHandler.registerSharedDebug(name, sharedDebug);
 
         // set help
         String shortDescription = command.getString("shortDescription");
@@ -99,7 +103,7 @@ public class CommandTreeBuilder extends CommandTree {
         } else {
             ConfigCommandsHandler.logWarning("%s has no shortDescription. It will default to \"A Mojang provided command\".", name);
         }
-        ConfigCommandsHandler.logDebug(localDebug, "%s has shortDescription %s", name, shortDescription);
+        ConfigCommandsHandler.logDebug(sharedDebug, "%s has shortDescription %s", name, shortDescription);
 
         String fullDescription = command.getString("fullDescription");
         if (fullDescription != null) {
@@ -107,7 +111,7 @@ public class CommandTreeBuilder extends CommandTree {
         } else {
             ConfigCommandsHandler.logWarning("%s has no fullDescription. It will default to \"A Mojang provided command\".", name);
         }
-        ConfigCommandsHandler.logDebug(localDebug, "%s has fullDescription %s", name, fullDescription);
+        ConfigCommandsHandler.logDebug(sharedDebug, "%s has fullDescription %s", name, fullDescription);
 
         // set permission
         String permission = command.getString("permission");
@@ -116,17 +120,17 @@ public class CommandTreeBuilder extends CommandTree {
             ConfigCommandsHandler.logWarning("%s has no permission. It will default to \"%s\".", name, permission);
         }
         super.withPermission(permission);
-        ConfigCommandsHandler.logDebug(localDebug, "%s has permission \"%s\"", name, permission);
+        ConfigCommandsHandler.logDebug(sharedDebug, "%s has permission \"%s\"", name, permission);
 
         // set aliases
         List<String> aliases = command.getStringList("aliases");
-        ConfigCommandsHandler.logDebug(localDebug, "%s has %s alias(es): %s", name, aliases.size(), aliases);
+        ConfigCommandsHandler.logDebug(sharedDebug, "%s has %s alias(es): %s", name, aliases.size(), aliases);
         super.withAliases(aliases.toArray(new String[0]));
 
         ConfigCommandsHandler.logNormal("Building CommandTree...");
 
         Map<String, Class<? extends InternalArgument>> argumentClasses = getDefaultArgs();
-        if (localDebug) {
+        if (sharedDebug.isDebug()) {
             ConfigCommandsHandler.logNormal("Default arguments available:");
             ConfigCommandsHandler.increaseIndentation();
             for (Map.Entry<String, Class<? extends InternalArgument>> arg : argumentClasses.entrySet()) {
@@ -137,20 +141,20 @@ public class CommandTreeBuilder extends CommandTree {
         List<String> argumentPath = new ArrayList<>(List.of(name));
 
         // set executor
-        super.setExecutor(new CommandAPIExecutorBuilder(command, argumentPath, argumentClasses, localDebug));
+        super.setExecutor(new CommandAPIExecutorBuilder(command, argumentPath, argumentClasses, sharedDebug));
 
         // set then
         ConfigurationSection then = command.getConfigurationSection("then");
         if (then == null || then.getKeys(false).size() == 0) {
-            ConfigCommandsHandler.logDebug(localDebug, "No branches");
+            ConfigCommandsHandler.logDebug(sharedDebug, "No branches");
         } else {
 
-            ConfigCommandsHandler.logDebug(localDebug, "Adding branches");
+            ConfigCommandsHandler.logDebug(sharedDebug, "Adding branches");
             ConfigCommandsHandler.increaseIndentation();
             for (String branchName : then.getKeys(false)) {
-                ConfigCommandsHandler.logDebug(localDebug, "Adding branch %s", branchName);
+                ConfigCommandsHandler.logDebug(sharedDebug, "Adding branch %s", branchName);
                 ConfigCommandsHandler.increaseIndentation();
-                super.then(new ArgumentTreeBuilder(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), localDebug, argumentPath));
+                super.then(new ArgumentTreeBuilder(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), sharedDebug, argumentPath));
                 ConfigCommandsHandler.decreaseIndentation();
             }
             ConfigCommandsHandler.decreaseIndentation();

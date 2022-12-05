@@ -1,8 +1,6 @@
 package me.willkroboth.ConfigCommands;
 
-import me.willkroboth.ConfigCommands.HelperClasses.ConfigCommandAddOn;
-import me.willkroboth.ConfigCommands.HelperClasses.DebuggableState;
-import me.willkroboth.ConfigCommands.HelperClasses.IndentedLogger;
+import me.willkroboth.ConfigCommands.HelperClasses.*;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.NMS.NMS;
 import me.willkroboth.ConfigCommands.NMS.VersionHandler;
@@ -15,10 +13,18 @@ public class ConfigCommandsHandler {
     private static ConfigCommands plugin;
 
     // debug mode
-    private static boolean debugMode;
+    private static GlobalDebugValue debugMode;
 
     public static boolean isDebugMode() {
+        return debugMode.isDebug();
+    }
+
+    public static GlobalDebugValue getGlobalDebugValue() {
         return debugMode;
+    }
+
+    public static void setGlobalDebug(boolean debug) {
+        debugMode.setDebug(debug);
     }
 
     // Config file
@@ -65,7 +71,7 @@ public class ConfigCommandsHandler {
     }
 
     public static void logDebug(String message, Object... objects) {
-        logger.logDebug(debugMode, message, objects);
+        logger.logDebug(debugMode.isDebug(), message, objects);
     }
 
     public static void logDebug(boolean debugMode, String message, Object... objects) {
@@ -91,7 +97,7 @@ public class ConfigCommandsHandler {
         logger = new IndentedLogger(plugin.getLogger());
 
         plugin.saveDefaultConfig();
-        debugMode = getConfigFile().getBoolean("debug", false);
+        debugMode = new GlobalDebugValue(getConfigFile().getBoolean("debug", false));
         logDebug("Debug mode on! More information will be shown.");
 
         nms = VersionHandler.loadNMS();

@@ -6,6 +6,7 @@ import dev.jorel.commandapi.arguments.LiteralArgument;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ArgumentTreeBuilder extends ArgumentTree {
-    private static Argument<?> getArgument(String name, Map<String, Class<? extends InternalArgument>> argumentClasses, ConfigurationSection tree, boolean localDebug) throws IncorrectArgumentKey {
+    private static Argument<?> getArgument(String name, Map<String, Class<? extends InternalArgument>> argumentClasses, ConfigurationSection tree, SharedDebugValue localDebug) throws IncorrectArgumentKey {
         String type = tree.getString("type");
         if (type == null) {
             ConfigCommandsHandler.logDebug(localDebug, "Type was not found, so this will be a LiteralArgument");
@@ -23,18 +24,18 @@ public class ArgumentTreeBuilder extends ArgumentTree {
         ConfigCommandsHandler.logDebug(localDebug, "Type is %s", type);
 
         Object argumentInfo = tree.get("argumentInfo");
-        if (localDebug) {
+        if (localDebug.isDebug()) {
             if (argumentInfo == null)
                 ConfigCommandsHandler.logNormal("argumentInfo is null");
             else
                 ConfigCommandsHandler.logNormal("argumentInfo has class %s", argumentInfo.getClass().getSimpleName());
         }
-        Argument<?> out = InternalArgument.convertArgumentInformation(name, type, argumentClasses, argumentInfo, localDebug);
+        Argument<?> out = InternalArgument.convertArgumentInformation(name, type, argumentClasses, argumentInfo, localDebug.isDebug());
         ConfigCommandsHandler.logDebug(localDebug, "Argument created with class: %s", out.getClass().getSimpleName());
         return out;
     }
 
-    private static Argument<?> modifyArgument(Argument<?> argument, ConfigurationSection tree, boolean localDebug) {
+    private static Argument<?> modifyArgument(Argument<?> argument, ConfigurationSection tree, SharedDebugValue localDebug) {
         // set permission
         String permission = tree.getString("permission");
         if (permission != null) {
@@ -46,7 +47,7 @@ public class ArgumentTreeBuilder extends ArgumentTree {
     }
 
     public ArgumentTreeBuilder(String name, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                               ConfigurationSection tree, boolean localDebug, List<String> argumentPath) throws RegistrationException {
+                               ConfigurationSection tree, SharedDebugValue localDebug, List<String> argumentPath) throws RegistrationException {
         super(modifyArgument(getArgument(name, argumentClasses, tree, localDebug), tree, localDebug));
         argumentPath.add(name);
 

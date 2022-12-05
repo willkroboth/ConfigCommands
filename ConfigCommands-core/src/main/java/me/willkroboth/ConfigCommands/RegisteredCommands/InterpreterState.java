@@ -2,6 +2,7 @@ package me.willkroboth.ConfigCommands.RegisteredCommands;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.HelperClasses.DebuggableState;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.FunctionLines.FunctionLine;
 
@@ -15,7 +16,7 @@ public class InterpreterState implements DebuggableState {
         argumentVariables = new LinkedHashMap<>();
         tagMap = new LinkedHashMap<>();
         index = 0;
-        localDebug = false;
+        localDebug = new SharedDebugValue(ConfigCommandsHandler.getGlobalDebugValue(), false);
     }
 
     public InterpreterState copy() {
@@ -166,14 +167,14 @@ public class InterpreterState implements DebuggableState {
         return index + 1;
     }
 
-    private boolean localDebug;
+    private SharedDebugValue localDebug;
 
-    public InterpreterState setDebug(boolean debug) {
+    public InterpreterState setDebug(SharedDebugValue debug) {
         localDebug = debug;
         return this;
     }
 
     public boolean isDebug() {
-        return localDebug;
+        return localDebug.isDebug();
     }
 }

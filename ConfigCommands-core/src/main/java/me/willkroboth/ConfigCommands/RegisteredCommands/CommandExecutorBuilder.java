@@ -4,6 +4,7 @@ import dev.jorel.commandapi.executors.ExecutorType;
 import dev.jorel.commandapi.executors.IExecutorNormal;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.FunctionLines.FunctionLine;
 import org.bukkit.command.CommandSender;
@@ -20,7 +21,7 @@ public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
     private final ExecutorType type;
 
     public CommandExecutorBuilder(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                  ExecutorType type, boolean localDebug) throws RegistrationException {
+                                  ExecutorType type, SharedDebugValue localDebug) throws RegistrationException {
         defaultState = FunctionLine.parseExecutes(executes, new LinkedHashMap<>(argumentClasses), localDebug);
         interpreterStateStack = new Stack<>();
 

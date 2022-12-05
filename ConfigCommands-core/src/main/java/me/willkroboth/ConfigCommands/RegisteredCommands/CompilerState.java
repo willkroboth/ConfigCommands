@@ -1,6 +1,8 @@
 package me.willkroboth.ConfigCommands.RegisteredCommands;
 
+import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.HelperClasses.DebuggableState;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
 import java.util.*;
@@ -12,7 +14,7 @@ public class CompilerState implements DebuggableState {
         argumentClasses = new LinkedHashMap<>();
         tagMap = new HashMap<>();
         index = 0;
-        localDebug = false;
+        localDebug = new SharedDebugValue(ConfigCommandsHandler.getGlobalDebugValue(), false);
     }
 
     private final List<String> commands;
@@ -104,14 +106,14 @@ public class CompilerState implements DebuggableState {
         return index;
     }
 
-    private boolean localDebug;
+    private SharedDebugValue localDebug;
 
-    public CompilerState setDebug(boolean debug) {
+    public CompilerState setDebug(SharedDebugValue debug) {
         localDebug = debug;
         return this;
     }
 
     public boolean isDebug() {
-        return localDebug;
+        return localDebug.isDebug();
     }
 }

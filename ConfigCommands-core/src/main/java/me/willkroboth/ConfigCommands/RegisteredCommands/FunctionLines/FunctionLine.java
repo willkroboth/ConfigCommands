@@ -2,6 +2,7 @@ package me.willkroboth.ConfigCommands.RegisteredCommands.FunctionLines;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
+import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.RegisteredCommands.CompilerState;
 import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
@@ -10,7 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class FunctionLine {
-    public static InterpreterState parseExecutes(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses, boolean localDebug) throws RegistrationException {
+    public static InterpreterState parseExecutes(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                 SharedDebugValue localDebug) throws RegistrationException {
         CompilerState compilerState = new CompilerState().addCommands(executes).addArguments(argumentClasses).setDebug(localDebug);
         InterpreterState out = new InterpreterState().setDebug(localDebug);
         for (String command : executes) {
