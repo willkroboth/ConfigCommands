@@ -8,6 +8,7 @@ import me.willkroboth.ConfigCommands.NMS.V1_18.NMS1_18;
 import me.willkroboth.ConfigCommands.NMS.V1_18_2.NMS1_18_2;
 import me.willkroboth.ConfigCommands.NMS.V1_19.NMS_1_19;
 import me.willkroboth.ConfigCommands.NMS.V1_19_1.NMS1_19_1;
+import me.willkroboth.ConfigCommands.NMS.V1_19_3.NMS1_19_3;
 import org.bukkit.Bukkit;
 
 public interface VersionHandler {
@@ -17,13 +18,14 @@ public interface VersionHandler {
         String version;
         if (useLatest) {
             ConfigCommandsHandler.logDebug("Defaulting to latest NMS");
-            version = "1.19.2";
+            version = "1.19.3";
         } else {
             String bukkit = Bukkit.getServer().toString();
             version = bukkit.substring(bukkit.indexOf("minecraftVersion") + 17, bukkit.length() - 1);
         }
         ConfigCommandsHandler.logDebug("Loading NMS for version %s", version);
         return switch (version) {
+            case "1.19.3" -> new NMS1_19_3();
             case "1.19.1", "1.19.2" -> new NMS1_19_1();
             case "1.19" -> new NMS_1_19();
             case "1.18.2" -> new NMS1_18_2();

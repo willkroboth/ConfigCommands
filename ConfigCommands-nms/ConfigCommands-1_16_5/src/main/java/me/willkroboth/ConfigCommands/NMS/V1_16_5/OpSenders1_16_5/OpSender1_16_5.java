@@ -7,7 +7,7 @@ import net.minecraft.server.v1_16_R3.IChatBaseComponent;
 import net.minecraft.server.v1_16_R3.ICommandListener;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.command.CraftBlockCommandSender;
-//import org.bukkit.craftbukkit.v1_16_R3.command.CraftConsoleCommandSender;
+import org.bukkit.craftbukkit.v1_16_R3.command.CraftConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.command.ProxiedNativeCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftMinecartCommand;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -24,9 +24,8 @@ public interface OpSender1_16_5 extends OpSender, ICommandListener {
             return new BlockOpSender1_16_5(b);
         if (sender instanceof CraftMinecartCommand m)
             return new MinecartOpSender1_16_5(m);
-        // not working at the moment, see file
-//        if (sender instanceof CraftConsoleCommandSender c)
-//            return new ConsoleOpSender1_16_5(c);
+        if (sender instanceof CraftConsoleCommandSender c)
+            return new ConsoleOpSender1_16_5(c);
         if (sender instanceof ProxiedNativeCommandSender p)
             return new ProxyOpSender1_16_5(p);
         if (sender instanceof NativeProxyCommandSender p)

@@ -1,27 +1,30 @@
-package me.willkroboth.ConfigCommands.NMS.V1_18_2.OpSenders1_18_2;
+package me.willkroboth.ConfigCommands.NMS.V1_19_3.OpSenders1_19_3;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.Services;
 import net.minecraft.server.WorldStem;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
+import org.bukkit.map.MapPalette;
+import org.bukkit.potion.Potion;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R2.command.CraftConsoleCommandSender;
-import org.bukkit.potion.Potion;
+import org.bukkit.craftbukkit.v1_19_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R2.command.CraftConsoleCommandSender;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-public class ConsoleOpSender1_18_2 extends CraftConsoleCommandSender implements OpSender1_18_2 {
+public class ConsoleOpSender1_19_3 extends CraftConsoleCommandSender implements OpSender1_19_3 {
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
 
-    public ConsoleOpSender1_18_2(CraftConsoleCommandSender c) {
+    public ConsoleOpSender1_19_3(CraftConsoleCommandSender c) {
         this.c = c;
+
         CraftServer craftServer = (CraftServer) c.getServer();
         DedicatedPlayerList players = craftServer.getHandle();
         try {
@@ -38,11 +41,17 @@ public class ConsoleOpSender1_18_2 extends CraftConsoleCommandSender implements 
             Object oldBrewer = serverField.get(null);
             brewerField.set(null, null);
 
+            Field colorCacheField = ConfigCommandsHandler.getField(MapPalette.class, "mapColorCache");
+            Object oldColorCache = colorCacheField.get(null);
+            colorCacheField.set(null, null);
+
+            // Construct a new CraftServer
             server = new CraftServer(new DedicatedServerOpWrapper(craftServer.getServer(), this), players);
 
             // Reset singleton to the correct old values
             serverField.set(null, oldServer);
             brewerField.set(null, oldBrewer);
+            colorCacheField.set(null, oldColorCache);
         } catch (IllegalAccessException | RuntimeException e) {
             ConfigCommandsHandler.logError("Could not create ConsoleOpSender!");
             throw new RuntimeException(e);
@@ -50,35 +59,37 @@ public class ConsoleOpSender1_18_2 extends CraftConsoleCommandSender implements 
     }
 
     private static class DedicatedServerOpWrapper extends DedicatedServer {
-        private final ConsoleOpSender1_18_2 sender;
+        private final ConsoleOpSender1_19_3 sender;
 
-        public DedicatedServerOpWrapper(DedicatedServer server, ConsoleOpSender1_18_2 sender) {
+        public DedicatedServerOpWrapper(DedicatedServer server, ConsoleOpSender1_19_3 sender) {
             // constructor parameters found by tracing constructors
             super(
                     server.options,
-                    server.datapackconfiguration,
-                    server.registryreadops,
+                    server.worldLoader,
                     server.serverThread,
                     server.storageSource,
                     server.getPackRepository(),
                     new WorldStem(
                             server.resources.resourceManager(),
                             server.resources.managers(),
-                            server.registryHolder,
+                            server.registries(),
                             server.getWorldData()
                     ),
                     server.settings,
                     server.fixerUpper,
-                    server.getSessionService(),
-                    server.getProfileRepository(),
-                    server.getProfileCache(),
+                    new Services(
+                            server.getSessionService(),
+                            server.getServiceSignatureValidator(),
+                            server.getProfileRepository(),
+                            server.getProfileCache()
+                    ),
                     server.progressListenerFactory
             );
             this.sender = sender;
         }
 
         public CommandSourceStack createCommandSourceStack() {
-            return OpSender1_18_2.modifyStack(super.createCommandSourceStack(), sender);
+            return OpSender1_19_3.modifyStack(super.createCommandSourceStack(), sender);
         }
     }
 
@@ -92,19 +103,19 @@ public class ConsoleOpSender1_18_2 extends CraftConsoleCommandSender implements 
 
     // Make sure OpSender's sendMessage methods are used
     public void sendMessage(String s) {
-        OpSender1_18_2.super.sendMessage(s);
+        OpSender1_19_3.super.sendMessage(s);
     }
 
     public void sendMessage(String[] strings) {
-        OpSender1_18_2.super.sendMessage(strings);
+        OpSender1_19_3.super.sendMessage(strings);
     }
 
     public void sendMessage(UUID uuid, String s) {
-        OpSender1_18_2.super.sendMessage(uuid, s);
+        OpSender1_19_3.super.sendMessage(uuid, s);
     }
 
     public void sendMessage(UUID uuid, String[] strings) {
-        OpSender1_18_2.super.sendMessage(uuid, strings);
+        OpSender1_19_3.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods

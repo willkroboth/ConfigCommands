@@ -7,7 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_18_R1.command.CraftBlockCommandSender;
-//import org.bukkit.craftbukkit.v1_18_R1.command.CraftConsoleCommandSender;
+import org.bukkit.craftbukkit.v1_18_R1.command.CraftConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_18_R1.command.ProxiedNativeCommandSender;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftMinecartCommand;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
@@ -24,9 +24,8 @@ public interface OpSender1_18 extends OpSender, CommandSource {
             return new BlockOpSender1_18(b);
         if (sender instanceof CraftMinecartCommand m)
             return new MinecartOpSender1_18(m);
-        // not working at the moment, see file
-//        if (sender instanceof CraftConsoleCommandSender c)
-//            return new ConsoleOpSender1_18(c);
+        if (sender instanceof CraftConsoleCommandSender c)
+            return new ConsoleOpSender1_18(c);
         if (sender instanceof ProxiedNativeCommandSender p)
             return new ProxyOpSender1_18(p);
         if (sender instanceof NativeProxyCommandSender p)

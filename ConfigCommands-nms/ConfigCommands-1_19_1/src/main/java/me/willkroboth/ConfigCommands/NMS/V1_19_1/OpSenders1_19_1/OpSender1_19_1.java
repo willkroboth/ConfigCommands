@@ -19,9 +19,8 @@ public interface OpSender1_19_1 extends OpSender1_19_common {
             return new BlockOpSender1_19_1(b);
         if (sender instanceof CraftMinecartCommand m)
             return new MinecartOpSender1_19_1(m);
-//        // not working at the moment, see file
-//        if (sender instanceof CraftConsoleCommandSender c)
-//            return new ConsoleOpSender1_19_1(c);
+        if (sender instanceof CraftConsoleCommandSender c)
+            return new ConsoleOpSender1_19_1(c);
         if (sender instanceof ProxiedNativeCommandSender p)
             return new ProxyOpSender1_19_1(p);
         if (sender instanceof NativeProxyCommandSender p)
