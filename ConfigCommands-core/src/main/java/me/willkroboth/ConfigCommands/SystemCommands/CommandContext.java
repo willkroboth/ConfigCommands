@@ -2,26 +2,22 @@ package me.willkroboth.ConfigCommands.SystemCommands;
 
 import org.bukkit.command.CommandSender;
 
-public class CommandContext {
-    private final CommandContext previousContext;
-    private final Object previousChoice;
-    private final CommandStep nextStep;
-
-    public CommandContext(CommandContext previousContext, Object previousChoice, CommandStep nextStep){
-        this.previousContext = previousContext;
-        this.previousChoice = previousChoice;
-        this.nextStep = nextStep;
-    }
-
-    public CommandContext getPreviousContext(){
-        return previousContext;
-    }
-
-    public void doNextStep(CommandSender sender, String message){
+/**
+ * A record that stores information about a step in a guided command menu,
+ * such as {@code /configcommands build} and {@code /configcommands functions}
+ *
+ * @param previousContext The CommandContext that came before this one. May be null if this is the first step.
+ * @param previousChoice  Any object that was "chosen" in the previous step.
+ * @param nextStep        The {@link CommandStep} to run next
+ */
+public record CommandContext(CommandContext previousContext, Object previousChoice, CommandStep nextStep) {
+    /**
+     * Performs the recorded {@link CommandContext#nextStep} with the given {@link CommandSender} and message.
+     *
+     * @param sender  The {@link CommandSender} performing this step
+     * @param message The message to process
+     */
+    public void doNextStep(CommandSender sender, String message) {
         nextStep.perform(sender, message, this);
-    }
-
-    public Object getPreviousChoice() {
-        return previousChoice;
     }
 }

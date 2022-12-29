@@ -21,8 +21,12 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.*;
 
+/**
+ * A class that handles the {@code /configcommands build} command.
+ */
 public class BuildCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
+    @Override
     protected ArgumentTree getArgumentTree() {
         return super.getArgumentTree().executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
     }
@@ -34,10 +38,10 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             "\t/configcommands build"
     };
 
+    @Override
     protected String[] getHelpMessages() {
         return helpMessages;
     }
-
 
     // command functions
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
@@ -58,16 +62,39 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     // events
+
+    /**
+     * Intercepts chat messages sent by players. If the player has the
+     * {@code /configcommands build} menu open, their chat message will
+     * be canceled so no one else sees it, and this class will handle
+     * the message appropriately.
+     *
+     * @param event The {@link AsyncPlayerChatEvent} being listened for.
+     */
     @EventHandler
     public void onChatSent(AsyncPlayerChatEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
+    /**
+     * Intercepts commands sent by players. If the player has the
+     * {@code /configcommands build} menu open, their command will
+     * be canceled so no one else sees it, and this class will handle
+     * the message appropriately.
+     *
+     * @param event The {@link PlayerCommandPreprocessEvent} being listened for.
+     */
     @EventHandler
     public void playerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
+    /**
+     * Kicks players out of the {@code /configcommands build}
+     * menu when they leave the server.
+     *
+     * @param event The {@link PlayerQuitEvent} being listened for.
+     */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
@@ -78,6 +105,14 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         passToFunctionCommand.remove(player);
     }
 
+    /**
+     * Intercepts messages sent from the console. If the console has the
+     * {@code /configcommands build} menu open, the message will be
+     * canceled so no one else sees it and this class will handle the
+     * message appropriately.
+     *
+     * @param event The {@link ServerCommandEvent} being listened for.
+     */
     @EventHandler
     public void onConsoleSent(ServerCommandEvent event) {
         handleMessage(event.getSender(), event.getCommand(), event);
@@ -121,7 +156,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     private static CommandContext goBack(CommandSender sender, int steps, CommandContext currentContext) {
         CommandContext newContext = currentContext;
         for (int i = 0; i < steps; i++) {
-            newContext = newContext.getPreviousContext();
+            newContext = newContext.previousContext();
             if (newContext == null) break;
         }
         activeUsers.put(sender, newContext);
@@ -129,7 +164,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void handleSimpleChange(CommandSender sender, String message, CommandContext context, String section) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
 
         if (message.isBlank()) {
             String value = command.getString(section);
@@ -156,7 +191,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         ConfigurationSection parent = section.getParent();
         assert parent != null;
         ConfigurationSection newSection = parent.createSection(newName);
-        for(String key : section.getKeys(false)) {
+        for (String key : section.getKeys(false)) {
             newSection.set(key, section.get(key));
         }
         parent.set(section.getName(), null);
@@ -234,7 +269,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editCommand(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         if (message.isBlank()) {
             sender.sendMessage("Editing command /" + command.getName());
             sender.sendMessage("Select one of the following options using its number to continue:");
@@ -274,7 +309,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void deleteCommand(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         if (message.isBlank()) {
             sender.sendMessage("Are you sure you want to delete command: \"" + command.getName() + "\"?");
             sender.sendMessage(ChatColor.YELLOW + "THIS ACTION CANNOT BE UNDONE");
@@ -298,7 +333,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editExecutes(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
 
         List<String> commandList = command.getStringList("executes");
 
@@ -361,10 +396,10 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void addCommand(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousContext().getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousContext().previousChoice();
         List<String> commandList = command.getStringList("executes");
 
-        String newCommand = (String) context.getPreviousChoice();
+        String newCommand = (String) context.previousChoice();
 
         if (message.isBlank()) {
             if (commandList.size() == 0) {
@@ -402,7 +437,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editArguments(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         ConfigurationSection then = command.getConfigurationSection("then");
         if (then == null) {
             command.createSection("then");
@@ -440,7 +475,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editArgument(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
 
         if (message.isBlank()) {
             sender.sendMessage("Editing argument " + argument.getName());
@@ -482,7 +517,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void deleteArgument(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
         if (message.isBlank()) {
             sender.sendMessage("Are you sure you want to delete the argument: \"" + argument.getName() + "\"?");
             sender.sendMessage(ChatColor.YELLOW + "THIS ACTION CANNOT BE UNDONE");
@@ -505,7 +540,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void changeArgumentPermission(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
 
         if (message.isBlank()) {
             String value = argument.getString("permission");
@@ -540,7 +575,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
             return;
         }
 
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
         String type = argument.getString("type");
         Set<String> types = InternalArgument.getArgumentTypes();
         if (!types.contains(type)) {
@@ -569,7 +604,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void changeArgumentType(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
         String type = argument.getString("type");
         Set<String> types = InternalArgument.getArgumentTypes();
         if (message.isBlank()) {
@@ -615,7 +650,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void changeArgumentName(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection argument = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection argument = (ConfigurationSection) context.previousChoice();
         if (message.isBlank()) {
             sender.sendMessage("Current name: " + argument.getName());
             sender.sendMessage("What would you like the new name to be?");
@@ -645,7 +680,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
 
     private static void seeArgumentInfo(CommandSender sender, String message, CommandContext context) {
         // forward to seeInfo method, but argumentPaths is also set
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         for (int i = 0; i < argumentPaths.get(sender).size(); i++) {
             // argumentPaths only gets added to after going through then and another argument, so this should be fine
             assert command != null;
@@ -660,7 +695,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void editAliases(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         List<String> aliases = command.getStringList("aliases");
 
         if (message.isBlank()) {
@@ -702,7 +737,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void changePermission(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
 
         if (message.isBlank()) {
             String permission = command.getString("permission");
@@ -735,7 +770,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     }
 
     private static void changeName(CommandSender sender, String message, CommandContext context) {
-        ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+        ConfigurationSection command = (ConfigurationSection) context.previousChoice();
         if (message.isBlank()) {
             sender.sendMessage("Current name: " + command.getName());
             sender.sendMessage("What would you like the new name to be?");
@@ -764,7 +799,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
 
     private static void seeInfo(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
-            ConfigurationSection command = (ConfigurationSection) context.getPreviousChoice();
+            ConfigurationSection command = (ConfigurationSection) context.previousChoice();
             IndentedCommandSenderMessenger messenger = new IndentedCommandSenderMessenger(sender);
 
             messenger.sendMessage("Information for command " + command.getName());
@@ -828,7 +863,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         String type = argument.getString("type");
         messenger.sendMessage("Type: \"" + type + "\"");
 
-        if(type == null) {
+        if (type == null) {
             messenger.sendMessage("Type defaults to LiteralArgument");
         } else if (!InternalArgument.getArgumentTypes().contains(type)) {
             messenger.sendMessage(ChatColor.YELLOW + "Type is invalid!");

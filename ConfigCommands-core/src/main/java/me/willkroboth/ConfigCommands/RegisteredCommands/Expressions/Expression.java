@@ -1,26 +1,52 @@
 package me.willkroboth.ConfigCommands.RegisteredCommands.Expressions;
 
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
-import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.ParseException;
+import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class that represents a string expression that compiles to something that transforms
+ * {@link InternalArgument} variables to something else.
+ */
 public abstract class Expression {
     private final static Map<String, InternalArgument> staticClassMap = new HashMap<>();
 
-    public static void addToClassMap(InternalArgument object) {
+    /**
+     * Adds an entry to the map that links names to {@link InternalArgument} objects,
+     * used for finding static functions from a String.
+     *
+     * @param object The {@link InternalArgument} object to add to the static class map.
+     *               {@link InternalArgument#getName()} is used as the key, and the object is the value.
+     */
+    public static void addToStaticClassMap(InternalArgument object) {
         staticClassMap.put(object.getName(), object);
     }
 
-    public static Map<String, InternalArgument> getClassMap() {
+    /**
+     * @return The map from name to object used to find static functions from a String.
+     */
+    public static Map<String, InternalArgument> getStaticClassMap() {
         return staticClassMap;
     }
 
+    // TODO: Extract to reduce nesting and increase understandability
+
+    /**
+     * Converts a String into an {@link Expression} object.
+     *
+     * @param string          The String to parse.
+     * @param argumentClasses A map from names to {@link InternalArgument} class objects that represents the variables
+     *                        that can be accessed in the expression.
+     * @param localDebug      True if debug messages should be logged, and false otherwise.
+     * @return The {@link Expression} object parsed from the String.
+     * @throws ParseException If the String is improperly formatted and cannot be parsed into a {@link Expression}.
+     */
     public static Expression parseExpression(String string, Map<String, Class<? extends InternalArgument>> argumentClasses,
                                              boolean localDebug) throws ParseException {
         if (string.charAt(0) == '"' && string.charAt(string.length() - 1) == '"') {
@@ -190,7 +216,7 @@ public abstract class Expression {
                                     if (!staticClass.hasStaticFunction(function, parameters))
                                         throw new ParseException(string, "Invalid static function \"" + function + "\" on " + staticClass + " with parameters " + parameters + ". Static function does not exist.");
                                 } else {
-                                    if (!target.hasFunction(function, parameters))
+                                    if (!target.hasInstanceFunction(function, parameters))
                                         throw new ParseException(string, "Invalid function \"" + function + "\" on " + target + " with parameters " + parameters + ". Function does not exist.");
                                 }
 
@@ -201,7 +227,7 @@ public abstract class Expression {
                                     // if function is being chained, no longer using a static class name
                                     isStaticClass = false;
                                 } else {
-                                    targetExpression = new FunctionCall(targetExpression, function, parameterExpressions);
+                                    targetExpression = new InstanceFunctionCall(targetExpression, function, parameterExpressions);
                                 }
 
                                 function = "";
@@ -243,7 +269,8 @@ public abstract class Expression {
             ConfigCommandsHandler.logDebug(localDebug, "End of expression reached without returning anything.");
             switch (parseMode) {
                 // reading string constant
-                case -1 -> throw new ParseException(string, "Expression ended early. Expected statement staring with \" to be closed by \"");
+                case -1 ->
+                        throw new ParseException(string, "Expression ended early. Expected statement staring with \" to be closed by \"");
                 // reading variable
                 case 0 -> {
                     String word = wordBuild.toString();
@@ -259,7 +286,8 @@ public abstract class Expression {
                 // reading function name
                 case 1 -> throw new ParseException(string, "Expression ended early. Expected ( after function name.");
                 // reading parameters
-                case 2 -> throw new ParseException(string, "Expression ended early. Expected all parenthesis to close.");
+                case 2 ->
+                        throw new ParseException(string, "Expression ended early. Expected all parenthesis to close.");
             }
             throw new ParseException(string, "Code reached invalid parseMode: " + parseMode);
         } finally {
@@ -268,10 +296,28 @@ public abstract class Expression {
         }
     }
 
+    /**
+     * @return A String that represents the parsed expression.
+     */
     public abstract String toString();
 
+    /**
+     * @param argumentClasses A map from name to {@link InternalArgument} class objects that represents the variables
+     *                        available as the input to this {@link Expression}.
+     * @return A {@link InternalArgument} class object that this {@link Expression} will return
+     * given inputs with the input classes.
+     */
     public abstract Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses);
 
+    /**
+     * Gives the result of running this {@link Expression} based on the values of some given variables.
+     *
+     * @param argumentVariables A map from name to {@link InternalArgument} object that represent each
+     *                          of the available variables.
+     * @param localDebug        True if debug messages should be logged, and false otherwise.
+     * @return A {@link InternalArgument} object that was the result of evaluating the {@link Expression}.
+     * @throws CommandRunException If evaluating this {@link Expression} causes an exception.
+     */
     public abstract InternalArgument evaluate(Map<String, InternalArgument> argumentVariables,
                                               boolean localDebug) throws CommandRunException;
 }

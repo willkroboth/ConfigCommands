@@ -16,14 +16,23 @@ import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R2.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_18_R2.block.impl.CraftCommand;
 import org.bukkit.craftbukkit.v1_18_R2.command.CraftBlockCommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * An OpSender that works for any {@link CommandSender} on Minecraft 1.18.2.
+ */
 public class GeneralOpSender1_18_2 extends CraftBlockCommandSender implements OpSender1_18_2 {
     private final CommandSender sender;
     private final CommandSourceStack listener;
     private final CraftBlock fakeBlock;
 
+    /**
+     * Creates a new {@link GeneralOpSender1_18_2}.
+     *
+     * @param sender The {@link CommandSender} this {@link GeneralOpSender1_18_2} is wrapping.
+     */
     public GeneralOpSender1_18_2(CommandSender sender) {
         super(null, null);
 
@@ -57,56 +66,67 @@ public class GeneralOpSender1_18_2 extends CraftBlockCommandSender implements Op
             super(((CraftWorld) Bukkit.getServer().getWorlds().get(0)).getHandle(), BlockPos.ZERO);
         }
 
-        public BlockData getBlockData() {
+        public @NotNull BlockData getBlockData() {
             return new CraftCommand(null);
         }
     }
 
-    public Block getBlock() {
+    @Override
+    public @NotNull Block getBlock() {
         return fakeBlock;
     }
 
-    public String getName() {
+    @Override
+    public @NotNull String getName() {
         return sender.getName();
     }
 
-    public Spigot spigot() {
+    @Override
+    public @NotNull Spigot spigot() {
         return new Spigot();
     }
 
     // Overriding getWrapper() to provide the custom CommandSourceStack
+    @Override
     public CommandSourceStack getWrapper() {
         return listener;
     }
 
     // Make sure OpSender's sendMessage methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_18_2.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_18_2.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_18_2.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_18_2.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return sender;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

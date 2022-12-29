@@ -10,7 +10,22 @@ import me.willkroboth.ConfigCommands.RegisteredCommands.InterpreterState;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class that represents a single line in a function.
+ */
 public abstract class FunctionLine {
+    /**
+     * Compiles a List of Strings into an {@link InterpreterState} object that can be used
+     * to execute the corresponding {@link FunctionLine} objects that corresponded to each line.
+     *
+     * @param executes        A List of Strings that each represent in order each {@link FunctionLine} in the total function.
+     * @param argumentClasses A map from name to {@link InternalArgument} class object that represent each of the variables
+     *                        available within this function.
+     * @param localDebug      An {@link SharedDebugValue} that determines if debug messages in this method will appear, as well
+     *                        as if debug messages within the returned {@link InterpreterState} object will appear.
+     * @return An {@link InterpreterState} object that can be used to execute the function represented by the inputs.
+     * @throws RegistrationException If a line in the executes list cannot be turned into a {@link FunctionLine}.
+     */
     public static InterpreterState parseExecutes(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
                                                  SharedDebugValue localDebug) throws RegistrationException {
         CompilerState compilerState = new CompilerState().addCommands(executes).addArguments(argumentClasses).setDebug(localDebug);
@@ -22,7 +37,9 @@ public abstract class FunctionLine {
 
             out.addLine(parseByCharacter.getOrDefault(
                     command.charAt(0),
-                    (s) -> {throw new RegistrationException("Command not recognized, invalid format: \"" + command + "\"");}
+                    (s) -> {
+                        throw new RegistrationException("Command not recognized, invalid format: \"" + command + "\"");
+                    }
             ).parse(compilerState));
 
             ConfigCommandsHandler.decreaseIndentation();
@@ -33,7 +50,7 @@ public abstract class FunctionLine {
     }
 
     @FunctionalInterface
-    private interface ParseRule{
+    private interface ParseRule {
         FunctionLine parse(CompilerState state) throws RegistrationException;
     }
 
@@ -55,7 +72,17 @@ public abstract class FunctionLine {
             'r', Return::parse
     );
 
+    /**
+     * @return A representation of this {@link FunctionLine} as a String.
+     */
     public abstract String toString();
 
+    /**
+     * Runs this {@link FunctionLine}
+     *
+     * @param interpreterState An {@link InterpreterState} object that represents the current state of the function
+     *                         this {@link FunctionLine} is a part of.
+     * @return An int representing the next line that should be run according to the rules of this {@link FunctionLine}.
+     */
     public abstract int run(InterpreterState interpreterState);
 }

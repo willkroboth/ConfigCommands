@@ -4,15 +4,24 @@ import net.minecraft.commands.CommandSourceStack;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.command.CraftBlockCommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * A {@link org.bukkit.command.BlockCommandSender} OpSender for Minecraft 1.17 and 1.17.1.
+ */
 public class BlockOpSender1_17 extends CraftBlockCommandSender implements OpSender1_17 {
     // listener created through return ((CraftBlockCommandSender)sender).getWrapper();
     private final CommandSourceStack block;
     private final Block tile;
     private final CraftBlockCommandSender sender;
 
+    /**
+     * Creates a new {@link BlockOpSender1_17}.
+     *
+     * @param b The {@link CraftBlockCommandSender} this {@link BlockOpSender1_17} is wrapping.
+     */
     public BlockOpSender1_17(CraftBlockCommandSender b) {
         super(b.getWrapper(), null);
         block = OpSender1_17.modifyStack(b.getWrapper(), this);
@@ -20,51 +29,62 @@ public class BlockOpSender1_17 extends CraftBlockCommandSender implements OpSend
         sender = b;
     }
 
-    public Spigot spigot() {
+    @Override
+    public @NotNull Spigot spigot() {
         return new Spigot();
     }
 
     // Make sure CraftBlockCommandSender's methods don't give a NPE b/c parameters were given to be null
-    public Block getBlock() {
+    @Override
+    public @NotNull Block getBlock() {
         return tile;
     }
 
-    public String getName() {
+    @Override
+    public @NotNull String getName() {
         return block.getTextName();
     }
 
+    @Override
     public CommandSourceStack getWrapper() {
         return block;
     }
 
     // Make sure OpSender's sendMessage methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_17.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_17.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_17.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_17.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return sender;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

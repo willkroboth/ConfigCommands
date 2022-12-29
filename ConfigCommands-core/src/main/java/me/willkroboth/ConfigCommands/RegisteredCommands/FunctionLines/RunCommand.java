@@ -105,13 +105,13 @@ class RunCommand extends FunctionLine {
         List<InternalArgument> commandParameter = Collections.singletonList(new InternalStringArgument(command.toString()));
         try {
             ConfigCommandsHandler.increaseIndentation();
-            String result = (String) sender.runFunction("dispatchCommand", commandParameter).getValue();
+            String result = (String) sender.runInstanceFunction("dispatchCommand", commandParameter).getValue();
             ConfigCommandsHandler.decreaseIndentation();
             ConfigCommandsHandler.logDebug(interpreterState, "Command result: \"%s\"", result);
             return result;
         } catch (CommandException e) {
             List<InternalArgument> messageParameter = Collections.singletonList(new InternalStringArgument("Invalid command: " + command));
-            sender.runFunction("sendMessage", messageParameter);
+            sender.runInstanceFunction("sendMessage", messageParameter);
             throw e;
         }
     }

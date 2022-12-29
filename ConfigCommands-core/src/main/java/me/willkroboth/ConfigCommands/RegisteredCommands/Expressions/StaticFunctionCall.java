@@ -19,10 +19,12 @@ class StaticFunctionCall extends Expression {
         this.parameterExpressions = parameterExpressions;
     }
 
+    @Override
     public String toString() {
         return "(" + targetClass.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
     }
 
+    @Override
     public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
         List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
         for (Expression parameterExpression : parameterExpressions) {
@@ -32,6 +34,7 @@ class StaticFunctionCall extends Expression {
         return targetClass.getReturnTypeForStaticFunction(function, parameters);
     }
 
+    @Override
     public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         ConfigCommandsHandler.logDebug(localDebug, "Evaluating StaticFunctionCall");
 

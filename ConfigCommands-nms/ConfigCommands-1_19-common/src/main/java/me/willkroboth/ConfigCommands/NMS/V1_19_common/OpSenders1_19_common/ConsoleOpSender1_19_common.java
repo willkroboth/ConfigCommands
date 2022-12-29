@@ -13,15 +13,24 @@ import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.command.CraftConsoleCommandSender;
 import org.bukkit.map.MapPalette;
 import org.bukkit.potion.Potion;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
 
+/**
+ * A common {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.19, 1.19.1, and 1.19.2.
+ */
 public abstract class ConsoleOpSender1_19_common extends CraftConsoleCommandSender implements OpSender1_19_common {
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
 
+    /**
+     * Creates a new {@link ConsoleOpSender1_19_common}.
+     *
+     * @param c The {@link CraftConsoleCommandSender} this {@link ConsoleOpSender1_19_common} is wrapping.
+     */
     public ConsoleOpSender1_19_common(CraftConsoleCommandSender c) {
         this.c = c;
         CraftServer craftServer = (CraftServer) c.getServer();
@@ -92,38 +101,51 @@ public abstract class ConsoleOpSender1_19_common extends CraftConsoleCommandSend
         }
     }
 
-    public Server getServer() {
+    @Override
+    public @NotNull Spigot spigot() {
+        return new Spigot();
+    }
+
+    @Override
+    public @NotNull Server getServer() {
         return server;
     }
 
     // Make sure OpSender's sendMessage methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_19_common.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_19_common.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_19_common.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_19_common.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return c;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

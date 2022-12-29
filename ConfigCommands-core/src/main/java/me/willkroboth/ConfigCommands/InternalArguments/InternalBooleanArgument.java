@@ -3,18 +3,27 @@ package me.willkroboth.ConfigCommands.InternalArguments;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import me.willkroboth.ConfigCommands.Functions.*;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An {@link InternalArgument} that represents a Java {@link Boolean}.
+ */
 public class InternalBooleanArgument extends InternalArgument implements CommandArgument {
     private boolean value;
 
+    /**
+     * Creates a new {@link InternalBooleanArgument} with no initial value set.
+     */
     public InternalBooleanArgument() {
     }
 
+    /**
+     * Creates a new {@link InternalBooleanArgument} with the initial value set to the given boolean.
+     *
+     * @param value The initial boolean value for this {@link InternalBooleanArgument}.
+     */
     public InternalBooleanArgument(boolean value) {
         super(value);
     }
@@ -59,10 +68,11 @@ public class InternalBooleanArgument extends InternalArgument implements Command
         return (boolean) argument.getValue();
     }
 
-    public FunctionList getFunctions() {
-        return merge(super.getFunctions(),
+    @Override
+    public InstanceFunctionList getInstanceFunctions() {
+        return merge(super.getInstanceFunctions(),
                 functions(
-                        new Function("and")
+                        new InstanceFunction("and")
                                 .withAliases("&&")
                                 .withDescription("Performs the logical and operation with another Boolean")
                                 .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
@@ -76,7 +86,7 @@ public class InternalBooleanArgument extends InternalArgument implements Command
                                         "do Boolean.(\"true\").&&(Boolean.(\"false\")) -> False",
                                         "do Boolean.(\"false\").&&(Boolean.(\"false\")) -> False"
                                 ),
-                        new Function("not")
+                        new InstanceFunction("not")
                                 .withAliases("!")
                                 .withDescription("Performs the logical not operation on this Boolean")
                                 .returns(InternalBooleanArgument.class, "True if this Boolean is true, and false otherwise")
@@ -87,7 +97,7 @@ public class InternalBooleanArgument extends InternalArgument implements Command
                                         "Boolean.(\"true\").not() -> False",
                                         "Boolean.(\"false\").!() -> True"
                                 ),
-                        new Function("or")
+                        new InstanceFunction("or")
                                 .withAliases("||")
                                 .withDescription("Performs the logical or operation with another Boolean")
                                 .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
@@ -105,6 +115,7 @@ public class InternalBooleanArgument extends InternalArgument implements Command
         );
     }
 
+    @Override
     public StaticFunctionList getStaticFunctions() {
         return merge(super.getStaticFunctions(),
                 functions(

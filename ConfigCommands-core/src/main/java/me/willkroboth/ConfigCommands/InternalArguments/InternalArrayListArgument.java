@@ -6,16 +6,32 @@ import me.willkroboth.ConfigCommands.Functions.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * An {@link InternalArgument} that represents a Java {@link ArrayList} of other {@link InternalArgument} values.
+ */
 public class InternalArrayListArgument extends InternalArgument {
     private ArrayList<InternalArgument> value;
 
+    /**
+     * Creates a new {@link InternalArrayListArgument} with no initial value set.
+     */
     public InternalArrayListArgument() {
     }
 
+    /**
+     * Creates a new {@link InternalArrayListArgument} with the initial value set to the given {@link Collection}.
+     *
+     * @param value A {@link Collection} of {@link InternalArgument}s this {@link InternalArrayListArgument} should contain.
+     */
     public InternalArrayListArgument(Collection<InternalArgument> value) {
         super(new ArrayList<>(value));
     }
 
+    /**
+     * Creates a new {@link InternalArrayListArgument} with the initial value set to the given {@link ArrayList}.
+     *
+     * @param value A {@link ArrayList} of {@link InternalArgument}s this {@link InternalArrayListArgument} should contain.
+     */
     public InternalArrayListArgument(ArrayList<InternalArgument> value) {
         super(value);
     }
@@ -54,10 +70,10 @@ public class InternalArrayListArgument extends InternalArgument {
     }
 
     @Override
-    public FunctionList getFunctions() {
-        return merge(super.getFunctions(),
+    public InstanceFunctionList getInstanceFunctions() {
+        return merge(super.getInstanceFunctions(),
                 functions(
-                        new Function("add")
+                        new InstanceFunction("add")
                                 .withDescription("Adds an item to this list")
                                 .withParameters(new Parameter(InternalArgument.class, "item", "The item to add"))
                                 .returns(InternalVoidArgument.class)
@@ -70,7 +86,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list>.add(\"a\") -> [10, \"a\"]",
                                         "do <list>.add(Boolean.(\"true\")) -> [10, \"a\", true]"
                                 ),
-                        new Function("addAll")
+                        new InstanceFunction("addAll")
                                 .withDescription("Adds multiple items to this list from another list")
                                 .withParameters(new Parameter(InternalArrayListArgument.class, "list", "A list of the items to add"))
                                 .returns(InternalVoidArgument.class)
@@ -84,7 +100,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list2>.addAll(<list1>)",
                                         "  <list2> now has [\"c\",\"d\", \"a\", \"b\", \"c\", \"d\"]"
                                 ),
-                        new Function("contains")
+                        new InstanceFunction("contains")
                                 .withDescription("Checks if the list has the given item")
                                 .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
                                 .returns(InternalBooleanArgument.class, "True if the item is in the list, and false otherwise")
@@ -97,7 +113,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list>.contains(\"d\") -> False",
                                         "do <list>.contains(Integer.(\"10\")) -> False"
                                 ),
-                        new Function("get")
+                        new InstanceFunction("get")
                                 .withDescription("Gets an item from the list")
                                 .withParameters(
                                         new Parameter(InternalIntegerArgument.class, "index", "The index of the element"),
@@ -108,7 +124,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                     if (parameters.size() != 2) return InternalArgument.class;
                                     // Returns a type defined by the second argument
                                     return parameters.get(1);
-                                })
+                                }, "The object at the given index, with the class specified by the reference object")
                                 .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <list>.size()",
                                         "ClassCastException when the item found at the given index is not an instance of the reference class"
@@ -136,7 +152,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list>.get(Integer.(\"3\"), \"\") -> IndexOutOfBounds",
                                         "do <list>.get(Integer.(\"0\"), Integer.()) -> ClassCastException"
                                 ),
-                        new Function("indexOf")
+                        new InstanceFunction("indexOf")
                                 .withDescription("Gives the index of an item in the list")
                                 .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
                                 .returns(InternalIntegerArgument.class, "The index of the given item in the list, or -1 if the list dose not have the item")
@@ -149,7 +165,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list>.indexOf(\"c\") -> 2",
                                         "do <list>.indexOf(\"d\") -> -1"
                                 ),
-                        new Function("lastIndexOf")
+                        new InstanceFunction("lastIndexOf")
                                 .withDescription("Gives the greatest index where the given item can be found")
                                 .withParameters(new Parameter(InternalArgument.class, "item", "The item to look for"))
                                 .returns(InternalIntegerArgument.class, "The greatest index of the given item in the list, or -1 if the list dose not have the item")
@@ -162,7 +178,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "do <list>.lastIndexOf(\"b\") -> 2",
                                         "do <list>.lastIndexOf(\"d\") -> -1"
                                 ),
-                        new Function("remove")
+                        new InstanceFunction("remove")
                                 .withDescription("Removes an item from the list")
                                 .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index to remove"))
                                 .returns(InternalVoidArgument.class)
@@ -184,7 +200,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "  <list> now has [\"b\", \"d\"]",
                                         "do <list>.remove(Integer.(\"2\")) -> IndexOutOfBounds"
                                 ),
-                        new Function("set")
+                        new InstanceFunction("set")
                                 .withDescription("Replaces the item at the given index with a new item")
                                 .withParameters(
                                         new Parameter(InternalIntegerArgument.class, "index", "The index to put the new item at"),
@@ -209,7 +225,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "  <list> now has [\"a\", \"Hello\", 10, \"d\"]",
                                         "do <list>.set(Integer.(\"4\"), \"\") -> IndexOutOfBounds"
                                 ),
-                        new Function("size")
+                        new InstanceFunction("size")
                                 .withDescription("Gives the size of the list")
                                 .returns(InternalIntegerArgument.class, "The number of elements currently in the list")
                                 .executes((target, parameters) -> {
@@ -222,7 +238,7 @@ public class InternalArrayListArgument extends InternalArgument {
                                         "  <list> now has [\"a\", \"b\", \"c\"]",
                                         "do <list>.size() -> 3"
                                 ),
-                        new Function("subList")
+                        new InstanceFunction("subList")
                                 .withDescription("Creates a new list with the items from a section of this list")
                                 .withParameters(
                                         new Parameter(InternalIntegerArgument.class, "start", "The index of the first element to include"),
@@ -251,6 +267,7 @@ public class InternalArrayListArgument extends InternalArgument {
         );
     }
 
+    @Override
     public StaticFunctionList getStaticFunctions() {
         return merge(super.getStaticFunctions(),
                 functions(

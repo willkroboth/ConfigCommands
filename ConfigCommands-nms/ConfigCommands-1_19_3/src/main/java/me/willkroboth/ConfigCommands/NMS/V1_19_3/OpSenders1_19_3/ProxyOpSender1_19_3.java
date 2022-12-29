@@ -13,16 +13,31 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R2.command.ProxiedNativeCommandSender;
 import org.bukkit.permissions.Permission;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * A {@link org.bukkit.command.ProxiedCommandSender} OpSender for Minecraft 1.19.3.
+ */
 public class ProxyOpSender1_19_3 extends ProxiedNativeCommandSender implements OpSender1_19_3 {
     private final ProxiedNativeCommandSender sender;
+
+    /**
+     * Creates a new {@link ProxyOpSender1_19_3}.
+     *
+     * @param p The {@link ProxiedNativeCommandSender} this {@link ProxyOpSender1_19_3} is wrapping.
+     */
     public ProxyOpSender1_19_3(ProxiedNativeCommandSender p) {
         super(p.getHandle(), p.getCaller(), p.getCallee());
         sender = p;
     }
 
+    /**
+     * Creates a new {@link ProxyOpSender1_19_3}.
+     *
+     * @param p The {@link NativeProxyCommandSender} this {@link ProxyOpSender1_19_3} is wrapping.
+     */
     public ProxyOpSender1_19_3(NativeProxyCommandSender p) {
         super(buildStack(p), p.getCaller(), p.getCallee());
         sender = new ProxiedNativeCommandSender(getHandle(), getCaller(), getCallee());
@@ -40,62 +55,76 @@ public class ProxyOpSender1_19_3 extends ProxiedNativeCommandSender implements O
                 MutableComponent.create(new LiteralContents(name)), world.getServer(), callee instanceof Entity e ? e : null);
     }
 
+    @Override
     public CommandSourceStack getHandle() {
         return OpSender1_19_3.modifyStack(super.getHandle(), this);
     }
 
-    public Spigot spigot() {
+    @Override
+    public @NotNull Spigot spigot() {
         return new Spigot();
     }
 
     // Make sure OpSender's methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_19_3.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_19_3.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_19_3.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_19_3.super.sendMessage(uuid, strings);
     }
 
+    @Override
     public boolean isOp() {
         return OpSender1_19_3.super.isOp();
     }
 
-    public boolean isPermissionSet(String name) {
+    @Override
+    public boolean isPermissionSet(@NotNull String name) {
         return OpSender1_19_3.super.isPermissionSet(name);
     }
 
-    public boolean isPermissionSet(Permission perm) {
+    @Override
+    public boolean isPermissionSet(@NotNull Permission perm) {
         return OpSender1_19_3.super.isPermissionSet(perm);
     }
 
-    public boolean hasPermission(String name) {
+    @Override
+    public boolean hasPermission(@NotNull String name) {
         return OpSender1_19_3.super.hasPermission(name);
     }
 
-    public boolean hasPermission(Permission perm) {
+    @Override
+    public boolean hasPermission(@NotNull Permission perm) {
         return OpSender1_19_3.super.hasPermission(perm);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return sender;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

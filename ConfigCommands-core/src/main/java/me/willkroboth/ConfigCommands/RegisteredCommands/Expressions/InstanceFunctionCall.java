@@ -8,21 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class FunctionCall extends Expression {
+class InstanceFunctionCall extends Expression {
     private final Expression targetExpression;
     private final String function;
     private final List<? extends Expression> parameterExpressions;
 
-    public FunctionCall(Expression targetExpression, String function, List<? extends Expression> parameterExpressions) {
+    public InstanceFunctionCall(Expression targetExpression, String function, List<? extends Expression> parameterExpressions) {
         this.targetExpression = targetExpression;
         this.function = function;
         this.parameterExpressions = parameterExpressions;
     }
 
+    @Override
     public String toString() {
         return "(" + targetExpression.toString() + ")." + function + "(" + parameterExpressions.toString() + ")";
     }
 
+    @Override
     public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
         InternalArgument target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentClasses));
 
@@ -31,9 +33,10 @@ class FunctionCall extends Expression {
             parameters.add(parameterExpression.getEvaluationType(argumentClasses));
         }
 
-        return target.getReturnTypeForFunction(function, parameters);
+        return target.getReturnTypeForInstanceFunction(function, parameters);
     }
 
+    @Override
     public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         ConfigCommandsHandler.logDebug(localDebug, "Evaluating FunctionCall");
 
@@ -54,7 +57,7 @@ class FunctionCall extends Expression {
 
         ConfigCommandsHandler.logDebug(localDebug, "Running function");
         ConfigCommandsHandler.increaseIndentation();
-        InternalArgument result = target.runFunction(function, parameters);
+        InternalArgument result = target.runInstanceFunction(function, parameters);
         ConfigCommandsHandler.decreaseIndentation();
         ConfigCommandsHandler.logDebug(localDebug, "Result is %s with value %s", result, result.getValue());
         return result;

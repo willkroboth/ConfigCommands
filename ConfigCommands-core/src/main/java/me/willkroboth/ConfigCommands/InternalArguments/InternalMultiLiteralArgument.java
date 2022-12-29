@@ -5,8 +5,8 @@ import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import dev.jorel.commandapi.exceptions.BadLiteralException;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunction;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunctionList;
 import me.willkroboth.ConfigCommands.Functions.Parameter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -16,15 +16,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An {@link InternalArgument} that represents a CommandAPI {@link MultiLiteralArgument}.
+ */
 public class InternalMultiLiteralArgument extends InternalArgument implements CommandArgument {
     private String value;
 
+    /**
+     * Creates a new {@link InternalMultiLiteralArgument} with no initial value set.
+     */
     public InternalMultiLiteralArgument() {
     }
 
     @Override
     public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
-        if (argumentInfo == null) throw new IncorrectArgumentKey(name, "argumentInfo", "MultiLiteralArgument requires the literals it should use to be listed under argumentInfo");
+        if (argumentInfo == null)
+            throw new IncorrectArgumentKey(name, "argumentInfo", "MultiLiteralArgument requires the literals it should use to be listed under argumentInfo");
         List<String> literals = assertArgumentInfoClass(argumentInfo, List.class, name);
         ConfigCommandsHandler.logDebug(localDebug, "Arg has literals %s", literals);
         try {
@@ -126,18 +133,18 @@ public class InternalMultiLiteralArgument extends InternalArgument implements Co
     }
 
     @Override
-    public FunctionList getFunctions() {
+    public InstanceFunctionList getInstanceFunctions() {
         return merge(
-                super.getFunctions(),
+                super.getInstanceFunctions(),
                 functions(
-                        new Function("getValue")
+                        new InstanceFunction("getValue")
                                 .withDescription("Gets the String this MultiLiteral was set to")
                                 .withParameters()
                                 .returns(InternalStringArgument.class)
                                 .executes(((target, parameters) -> {
                                     return new InternalStringArgument(getLiteral(target));
                                 })),
-                        new Function("equals")
+                        new InstanceFunction("equals")
                                 .withDescription("Checks if this MultiLiteral was set to the given string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "string", "The string to check against"))
                                 .returns(InternalBooleanArgument.class, "True if this MultiLiteral was set to the given string, and false otherwise")

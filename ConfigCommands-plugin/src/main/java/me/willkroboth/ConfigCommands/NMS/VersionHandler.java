@@ -11,7 +11,14 @@ import me.willkroboth.ConfigCommands.NMS.V1_19_1.NMS1_19_1;
 import me.willkroboth.ConfigCommands.NMS.V1_19_3.NMS1_19_3;
 import org.bukkit.Bukkit;
 
+/**
+ * A class for loading the correct version of {@link NMS}.
+ */
 public interface VersionHandler {
+    /**
+     * @return The implementation of {@link NMS} for the current version.
+     * @throws UnsupportedVersionException if the detected version is not supported.
+     */
     static NMS loadNMS() {
         boolean useLatest = ConfigCommandsHandler.getConfigFile().getBoolean("useLatestNMS", false);
 

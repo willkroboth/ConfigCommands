@@ -13,14 +13,17 @@ class Variable extends Expression {
         this.name = name;
     }
 
+    @Override
     public String toString() {
         return name;
     }
 
+    @Override
     public Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses) {
         return argumentClasses.get(name);
     }
 
+    @Override
     public InternalArgument evaluate(Map<String, InternalArgument> argumentVariables, boolean localDebug) throws CommandRunException {
         if (localDebug) {
             ConfigCommandsHandler.logNormal("Evaluating Variable");

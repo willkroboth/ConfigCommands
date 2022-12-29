@@ -10,8 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class that handles the {@code /configcommands reload} command.
+ */
 public class ReloadCommandHandler extends SystemCommandHandler {
     // Command configuration
+    @Override
     protected ArgumentTree getArgumentTree() {
         ArgumentTree tree = super.getArgumentTree();
         commands.generateArgumentTrees().forEach(tree::then);
@@ -24,6 +28,7 @@ public class ReloadCommandHandler extends SystemCommandHandler {
             "\t/configcommands reload <command> <arguments>..."
     };
 
+    @Override
     protected String[] getHelpMessages() {
         return helpMessages;
     }
@@ -85,6 +90,13 @@ public class ReloadCommandHandler extends SystemCommandHandler {
     private static final ArgumentPathTree commands = new ArgumentPathTree();
 
     // Accessed by CommandAPIExecutorBuilder
+
+    /**
+     * Adds a command path that can be reloaded by this command.
+     *
+     * @param argumentPath A list of Strings that represent the node names of each argument on the command path.
+     * @param command      The {@link CommandAPIExecutorBuilder} at the end of the argument path that can be reloaded.
+     */
     public static void addCommand(List<String> argumentPath, CommandAPIExecutorBuilder command) {
         commands.put(argumentPath, command);
     }

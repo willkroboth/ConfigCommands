@@ -13,6 +13,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
+/**
+ * A class that builds a CommandAPI {@link IExecutorNormal} based on a list of functions to run.
+ * See {@link CommandExecutorBuilder#CommandExecutorBuilder(List, Map, ExecutorType, SharedDebugValue)}
+ */
 public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
     private final InterpreterState defaultState;
     private final Stack<InterpreterState> interpreterStateStack;
@@ -20,6 +24,20 @@ public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
 
     private final ExecutorType type;
 
+    /**
+     * Creates a CommandAPI {@link IExecutorNormal} based on a list of functions to run.
+     *
+     * @param executes        A List of Strings that define what happens when this executor is run. The format of these
+     *                        lines is defined by {@link FunctionLine#parseExecutes(List, Map, SharedDebugValue)}.
+     * @param argumentClasses A Map linking the name to the {@link InternalArgument}
+     *                        class for each of the accessible arguments, including default arguments
+     * @param type            A CommandAPI {@link ExecutorType} to use for this executor. See
+     *                        <a href="https://commandapi.jorel.dev/8.6.0/normalexecutors.html#multiple-command-executors-with-the-same-implementation">
+     *                        multiple command executors with the same implementation</a> in the CommandAPI documentation
+     *                        for more information about this class.
+     * @param localDebug      The {@link SharedDebugValue} being used for this command.
+     * @throws RegistrationException If there is an error while parsing the functions
+     */
     public CommandExecutorBuilder(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
                                   ExecutorType type, SharedDebugValue localDebug) throws RegistrationException {
         defaultState = FunctionLine.parseExecutes(executes, new LinkedHashMap<>(argumentClasses), localDebug);
@@ -64,7 +82,7 @@ public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
                 FunctionLine line = currentState.getLine();
                 ConfigCommandsHandler.logDebug(currentState, "Executing %s", line);
                 ConfigCommandsHandler.increaseIndentation();
-                currentState.updateIndex(line.run(currentState));
+                currentState.setIndex(line.run(currentState));
                 ConfigCommandsHandler.decreaseIndentation();
             }
         } catch (Throwable e) {

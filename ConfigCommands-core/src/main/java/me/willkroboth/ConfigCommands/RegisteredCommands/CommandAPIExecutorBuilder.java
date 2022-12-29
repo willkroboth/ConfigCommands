@@ -4,19 +4,29 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIExecutor;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.ExecutorType;
+import dev.jorel.commandapi.wrappers.NativeProxyCommandSender;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.RegistrationException;
 import me.willkroboth.ConfigCommands.HelperClasses.SharedDebugValue;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.SystemCommands.ReloadCommandHandler;
+import org.bukkit.block.CommandBlock;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class that builds a CommandAPI {@link CommandAPIExecutor} based on the values in a config file.
+ * See {@link CommandAPIExecutorBuilder#CommandAPIExecutorBuilder(ConfigurationSection, List, Map, SharedDebugValue)}
+ */
 public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender> {
     private static final List<ExecutorInformation> executors = List.of(
             new ExecutorInformation("executes", "executes", ExecutorType.ALL),
@@ -31,6 +41,28 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
     private record ExecutorInformation(String name, String sectionName, ExecutorType type) {
     }
 
+    /**
+     * Creates a CommandAPI {@link CommandAPIExecutor} based on the values in a config file.
+     *
+     * @param executable      A {@link ConfigurationSection} that contains the data for this Executor.
+     *                        The data here is expected to look like the following:
+     *                        <pre>{@code executes:} - Code to run when any {@link CommandSender} runs this command</pre>
+     *                        <pre>&nbsp;    Defined by {@link CommandAPIExecutorBuilder}</pre>
+     *                        <pre>{@code executesPlayer:} - Code to run when a {@link Player} runs this command</pre>
+     *                        <pre>&nbsp;    Defined by {@link CommandAPIExecutorBuilder}, like before and for all executes sections</pre>
+     *                        <pre>{@code executesEntity:} - Code to run when an {@link Entity} runs this command</pre>
+     *                        <pre>{@code executesCommandBlock:} - Code to run when a {@link CommandBlock} runs this command</pre>
+     *                        <pre>{@code executesConsole:} - Code to run when the {@link ConsoleCommandSender} runs this command</pre>
+     *                        <pre>{@code executesProxy:} - Code to run when a {@link ProxiedCommandSender} runs this command</pre>
+     *                        <pre>{@code executesNative:} - Code to run when any {@link CommandSender} runs this command, but wrapped as a {@link NativeProxyCommandSender}</pre>
+     *                        See <a href="https://commandapi.jorel.dev/8.6.0/normalexecutors.html#restricting-who-can-run-your-command">
+     *                        restricting who can run your command</a> on the CommandAPI documentation for more information about these different executes types.
+     * @param argumentPath    A List of the names of previous arguments, starting with the literal command name
+     * @param argumentClasses A Map linking the name to the {@link InternalArgument}
+     *                        class for each of the previous arguments, including default arguments
+     * @param localDebug      The {@link SharedDebugValue} object being used for this command path
+     * @throws RegistrationException If there is an error reading the data for the command
+     */
     public CommandAPIExecutorBuilder(ConfigurationSection executable, List<String> argumentPath,
                                      Map<String, Class<? extends InternalArgument>> argumentClasses, SharedDebugValue localDebug) throws RegistrationException {
         boolean canExecute = false;
@@ -70,6 +102,15 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
     private final Map<String, Class<? extends InternalArgument>> argumentClasses;
     private final SharedDebugValue localDebug;
 
+    /**
+     * Reloads this command from the config file. This uses the {@code argumentPath} defined when constructing this
+     * object to navigate through the config file. The currently registered executes will be cleared and rebuilt
+     * the same way as when constructing this object (See
+     * {@link CommandAPIExecutorBuilder#CommandAPIExecutorBuilder(ConfigurationSection, List, Map, SharedDebugValue)})
+     *
+     * @param sender The CommandSender who triggered the reload, used to send messages about the result of the reload.
+     * @throws WrapperCommandSyntaxException If there is an error reloading this executor.
+     */
     public void reloadExecution(CommandSender sender) throws WrapperCommandSyntaxException {
         ConfigCommandsHandler.logDebug(localDebug, "Reloading argument path %s", argumentPath);
         // Find ConfigurationSection
@@ -111,7 +152,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender>
                 boolean thisExecutes = generateExecutor(executor.name, argument.getStringList(executor.sectionName), executor.type, argumentClasses, localDebug);
                 canExecute |= thisExecutes;
 
-                if(thisExecutes) sender.sendMessage("Found and generated " + executor.name + " executor");
+                if (thisExecutes) sender.sendMessage("Found and generated " + executor.name + " executor");
             } catch (RegistrationException e) {
                 ConfigCommandsHandler.logDebug(localDebug, e.getMessage());
                 sender.sendMessage("Found " + executor.name + " executor, but it was invalid");

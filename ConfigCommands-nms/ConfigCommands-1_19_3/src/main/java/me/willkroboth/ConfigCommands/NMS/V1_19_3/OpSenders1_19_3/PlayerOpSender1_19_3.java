@@ -10,13 +10,22 @@ import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.permissions.Permission;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * A {@link Player} OpSender for Minecraft 1.19.3.
+ */
 public class PlayerOpSender1_19_3 extends CraftPlayer implements OpSender1_19_3 {
     // listener created through return ((CraftPlayer)sender).getHandle().createCommandSourceStack();
     private final Player p;
 
+    /**
+     * Creates a new {@link PlayerOpSender1_19_3}.
+     *
+     * @param p The {@link CraftPlayer} this {@link PlayerOpSender1_19_3} is wrapping.
+     */
     public PlayerOpSender1_19_3(CraftPlayer p) {
         super((CraftServer) p.getServer(), new ServerPlayerOpWrapper(p.getHandle()));
         ((ServerPlayerOpWrapper) getHandle()).setSource(this);
@@ -44,63 +53,77 @@ public class PlayerOpSender1_19_3 extends CraftPlayer implements OpSender1_19_3 
         }
     }
 
-    public Player.Spigot spigot() {
+    @Override
+    public Player.@NotNull Spigot spigot() {
         return new Player.Spigot();
     }
 
     // make sure certain methods work correctly
+    @Override
     public boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause){
         return p.teleport(location, cause);
     }
 
     // Make sure OpSender's methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_19_3.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_19_3.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_19_3.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_19_3.super.sendMessage(uuid, strings);
     }
 
+    @Override
     public boolean isOp() {
         return OpSender1_19_3.super.isOp();
     }
 
-    public boolean isPermissionSet(String name) {
+    @Override
+    public boolean isPermissionSet(@NotNull String name) {
         return OpSender1_19_3.super.isPermissionSet(name);
     }
 
-    public boolean isPermissionSet(Permission perm) {
+    @Override
+    public boolean isPermissionSet(@NotNull Permission perm) {
         return OpSender1_19_3.super.isPermissionSet(perm);
     }
 
-    public boolean hasPermission(String name) {
+    @Override
+    public boolean hasPermission(@NotNull String name) {
         return OpSender1_19_3.super.hasPermission(name);
     }
 
-    public boolean hasPermission(Permission perm) {
+    @Override
+    public boolean hasPermission(@NotNull Permission perm) {
         return OpSender1_19_3.super.hasPermission(perm);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return p;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

@@ -8,13 +8,22 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftMinecartCommand;
 import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * A {@link org.bukkit.entity.minecart.CommandMinecart} OpSender for Minecraft 1.18.2.
+ */
 public class MinecartOpSender1_18_2 extends CraftMinecartCommand implements OpSender1_18_2 {
     // listener created through return ((CraftMinecartCommand)sender).getHandle().getCommandBlock().createCommandSourceStack();
     private final CraftMinecartCommand sender;
 
+    /**
+     * Creates a new {@link MinecartOpSender1_18_2}.
+     *
+     * @param m The {@link CraftMinecartCommand} this {@link MinecartOpSender1_18_2} is wrapping.
+     */
     public MinecartOpSender1_18_2(CraftMinecartCommand m) {
         super((CraftServer) m.getServer(), new MinecartCommandBlockOpWrapper(m.getHandle()));
         ((MinecartCommandBlockOpWrapper) getHandle()).setSource(this);
@@ -53,38 +62,46 @@ public class MinecartOpSender1_18_2 extends CraftMinecartCommand implements OpSe
         }
     }
 
-    public Entity.Spigot spigot() {
+    @Override
+    public Entity.@NotNull Spigot spigot() {
         return new Entity.Spigot();
     }
 
     // Make sure OpSender's sendMessage methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_18_2.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_18_2.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_18_2.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_18_2.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return sender;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

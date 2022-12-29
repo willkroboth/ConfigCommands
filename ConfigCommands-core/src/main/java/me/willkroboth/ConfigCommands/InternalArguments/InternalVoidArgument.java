@@ -1,22 +1,36 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunction;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunctionList;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
 import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 
+/**
+ * A special {@link InternalArgument} that gets returned from functions that don't return anything.
+ */
 public class InternalVoidArgument extends InternalArgument {
     // singleton class is best for this because it never stores a value
     private static final InternalVoidArgument instance = new InternalVoidArgument();
 
     // InternalArgument class needs to be able to initialize object when registering
     // Otherwise, the singleton instance should be used
-    protected InternalVoidArgument(){ super(null); }
 
-    public static InternalVoidArgument getInstance(){ return instance; }
+    /**
+     * Creates a new {@link InternalVoidArgument}.
+     */
+    protected InternalVoidArgument() {
+    }
 
-    public FunctionList getFunctions() {
-        return functions(new Function[0]);
+    /**
+     * @return The singleton instance of {@link InternalVoidArgument}.
+     */
+    public static InternalVoidArgument getInstance() {
+        return instance;
+    }
+
+    @Override
+    public InstanceFunctionList getInstanceFunctions() {
+        return functions(new InstanceFunction[0]);
     }
 
     @Override
@@ -26,14 +40,20 @@ public class InternalVoidArgument extends InternalArgument {
 
     // not used
     @Override
-    public void setValue(Object arg) { }
+    public void setValue(Object arg) {
+    }
 
     @Override
-    public Object getValue() { return null; }
+    public Object getValue() {
+        return null;
+    }
 
     @Override
-    public void setValue(InternalArgument arg) { }
+    public void setValue(InternalArgument arg) {
+    }
 
     @Override
-    public String forCommand() { return ""; }
+    public String forCommand() {
+        return "";
+    }
 }

@@ -1,25 +1,44 @@
 package me.willkroboth.ConfigCommands.InternalArguments;
 
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
-import me.willkroboth.ConfigCommands.Functions.Function;
-import me.willkroboth.ConfigCommands.Functions.FunctionList;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunction;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunctionList;
 import me.willkroboth.ConfigCommands.Functions.Parameter;
 import me.willkroboth.ConfigCommands.NMS.OpSender;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+/**
+ * An {@link InternalArgument} that represents a Bukkit {@link CommandSender}.
+ */
 public class InternalCommandSenderArgument extends InternalArgument {
     private CommandSender value;
     private OpSender opSender;
 
+    /**
+     * Creates a new {@link InternalCommandSenderArgument} with no initial value set.
+     */
     public InternalCommandSenderArgument() {
     }
 
+    /**
+     * Creates a new {@link InternalCommandSenderArgument} with the initial value set to the given {@link CommandSender}.
+     *
+     * @param value The initial {@link CommandSender} value for this {@link InternalCommandSenderArgument}.
+     */
     public InternalCommandSenderArgument(CommandSender value) {
         super(value);
     }
 
+    /**
+     * Sets the internal value of this {@link InternalCommandSenderArgument} to the given {@link CommandSender}.
+     * This also creates an {@link OpSender} wrapping the given {@link CommandSender} using
+     * {@link OpSender#makeOpSender(CommandSender)}, which can be accessed using
+     * {@link InternalCommandSenderArgument#getOpSender()}.
+     *
+     * @param arg The new value for this {@link InternalCommandSenderArgument}.
+     */
     @Override
     public void setValue(Object arg) {
         value = (CommandSender) arg;
@@ -31,10 +50,22 @@ public class InternalCommandSenderArgument extends InternalArgument {
         return value;
     }
 
+    /**
+     * @return The current {@link OpSender} held by this {@link InternalCommandSenderArgument}.
+     */
     public OpSender getOpSender() {
         return opSender;
     }
 
+    /**
+     * Sets the internal value of this {@link InternalCommandSenderArgument} to the given {@link CommandSender}
+     * held by the given {@link InternalArgument}.
+     * This also creates an {@link OpSender} wrapping the given {@link CommandSender} using
+     * {@link OpSender#makeOpSender(CommandSender)}, which can be accessed using
+     * {@link InternalCommandSenderArgument#getOpSender()}.
+     *
+     * @param arg The {@link InternalArgument} holding the new value for this {@link InternalCommandSenderArgument}.
+     */
     @Override
     public void setValue(InternalArgument arg) {
         value = (CommandSender) arg.getValue();
@@ -50,10 +81,11 @@ public class InternalCommandSenderArgument extends InternalArgument {
         return (CommandSender) target.getValue();
     }
 
-    public FunctionList getFunctions() {
-        return merge(super.getFunctions(),
+    @Override
+    public InstanceFunctionList getInstanceFunctions() {
+        return merge(super.getInstanceFunctions(),
                 functions(
-                        new Function("dispatchCommand")
+                        new InstanceFunction("dispatchCommand")
                                 .withDescription("Runs a command using this CommandSender")
                                 .withParameters(new Parameter(InternalStringArgument.class, "command", "The command to run"))
                                 .returns(InternalStringArgument.class, "The result of the command")
@@ -76,12 +108,12 @@ public class InternalCommandSenderArgument extends InternalArgument {
                                         "do <sender>.dispatchCommand(\"tp willkroboth 0 100 0\") -> \"Teleported willkroboth to 0.5 100 0.5\"",
                                         "do <sender>.dispatchCommand(\"echo Hello\") -> \"Hello\""
                                 ),
-                        new Function("getName")
+                        new InstanceFunction("getName")
                                 .returns(InternalStringArgument.class, "The name used to refer to this CommandSender")
                                 .executes((target, parameters) -> {
                                     return new InternalStringArgument(getCommandSender(target).getName());
                                 }),
-                        new Function("getType")
+                        new InstanceFunction("getType")
                                 .returns(InternalStringArgument.class, "The type of this CommandSender, either " +
                                         "\"player\", \"entity\", \"commandBlock\", \"console\", or \"proxy\"")
                                 .throwsException(
@@ -110,44 +142,44 @@ public class InternalCommandSenderArgument extends InternalArgument {
 
                                     return new InternalStringArgument(result);
                                 }),
-                        new Function("hasPermission")
+                        new InstanceFunction("hasPermission")
                                 .withDescription("Checks if this CommandSender has a certain permission")
                                 .withParameters(new Parameter(InternalStringArgument.class, "permission", "The permission to check for"))
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender has the given permission, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target).hasPermission((String) parameters.get(0).getValue()));
                                 }),
-                        new Function("isCommandBlock")
+                        new InstanceFunction("isCommandBlock")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender is a command block, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target) instanceof BlockCommandSender);
                                 }),
-                        new Function("isConsole")
+                        new InstanceFunction("isConsole")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender is the server console, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target) instanceof ConsoleCommandSender);
                                 }),
-                        new Function("isEntity")
+                        new InstanceFunction("isEntity")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender is an entity, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target) instanceof Entity);
                                 }),
-                        new Function("isOp")
+                        new InstanceFunction("isOp")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender has operator status, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target).isOp());
                                 }),
-                        new Function("isPlayer")
+                        new InstanceFunction("isPlayer")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender is a player, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target) instanceof Player);
                                 }),
-                        new Function("isProxy")
+                        new InstanceFunction("isProxy")
                                 .returns(InternalBooleanArgument.class, "True if this CommandSender is a proxy, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getCommandSender(target) instanceof ProxiedCommandSender);
                                 }),
-                        new Function("sendMessage")
+                        new InstanceFunction("sendMessage")
                                 .withDescription("Sends a message to this CommandSender")
                                 .withParameters(new Parameter(InternalStringArgument.class, "message", "the message to send"))
                                 .returns(InternalVoidArgument.class)
@@ -157,7 +189,7 @@ public class InternalCommandSenderArgument extends InternalArgument {
                                 .withExamples(
                                         "do <sender>.sendMessage(\"Hello!\")"
                                 ),
-                        new Function("setOp")
+                        new InstanceFunction("setOp")
                                 .withDescription("Sets this CommandSender's operator status to the given Boolean")
                                 .withParameters(new Parameter(InternalBooleanArgument.class, "new status"))
                                 .returns(InternalVoidArgument.class)

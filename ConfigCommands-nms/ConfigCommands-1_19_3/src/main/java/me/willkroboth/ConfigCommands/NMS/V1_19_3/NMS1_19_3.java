@@ -5,6 +5,9 @@ import me.willkroboth.ConfigCommands.NMS.OpSender;
 import me.willkroboth.ConfigCommands.NMS.V1_19_3.OpSenders1_19_3.OpSender1_19_3;
 import org.bukkit.command.CommandSender;
 
+/**
+ * {@link NMS} implementation for Minecraft version 1.19.3
+ */
 public class NMS1_19_3 implements NMS {
     @Override
     public OpSender makeOpSender(CommandSender sender) {

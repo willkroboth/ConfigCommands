@@ -10,14 +10,23 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_16_R3.block.impl.CraftCommand;
 import org.bukkit.craftbukkit.v1_16_R3.command.CraftBlockCommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+/**
+ * An OpSender that works for any {@link CommandSender} on Minecraft 1.16.5.
+ */
 public class GeneralOpSender1_16_5 extends CraftBlockCommandSender implements OpSender1_16_5 {
     private final CommandSender sender;
     private final CommandListenerWrapper listener;
     private final CraftBlock fakeBlock;
 
+    /**
+     * Creates a new {@link GeneralOpSender1_16_5}.
+     *
+     * @param sender The {@link CommandSender} this {@link GeneralOpSender1_16_5} is wrapping.
+     */
     public GeneralOpSender1_16_5(CommandSender sender) {
         super(null, null);
 
@@ -46,61 +55,72 @@ public class GeneralOpSender1_16_5 extends CraftBlockCommandSender implements Op
     }
 
     // Make sure no errors happen because this looks like a command block
-    private static class FakeCraftBlock extends CraftBlock{
-        public FakeCraftBlock(){
+    private static class FakeCraftBlock extends CraftBlock {
+        public FakeCraftBlock() {
             super(((CraftWorld) Bukkit.getServer().getWorlds().get(0)).getHandle(), BlockPosition.ZERO);
         }
 
-        public BlockData getBlockData() {
+        public @NotNull BlockData getBlockData() {
             return new CraftCommand(null);
         }
     }
 
-    public Block getBlock() {
+    @Override
+    public @NotNull Block getBlock() {
         return fakeBlock;
     }
 
-    public String getName() {
+    @Override
+    public @NotNull String getName() {
         return sender.getName();
     }
 
-    public Spigot spigot() {
+    @Override
+    public @NotNull Spigot spigot() {
         return new Spigot();
     }
 
     // Overriding getWrapper() to provide the custom CommandListenerWrapper
+    @Override
     public CommandListenerWrapper getWrapper() {
         return listener;
     }
 
     // Make sure OpSender's sendMessage methods are used
-    public void sendMessage(String s) {
+    @Override
+    public void sendMessage(@NotNull String s) {
         OpSender1_16_5.super.sendMessage(s);
     }
 
+    @Override
     public void sendMessage(String[] strings) {
         OpSender1_16_5.super.sendMessage(strings);
     }
 
-    public void sendMessage(UUID uuid, String s) {
+    @Override
+    public void sendMessage(UUID uuid, @NotNull String s) {
         OpSender1_16_5.super.sendMessage(uuid, s);
     }
 
+    @Override
     public void sendMessage(UUID uuid, String[] strings) {
         OpSender1_16_5.super.sendMessage(uuid, strings);
     }
 
     // OpSender methods
+    @Override
     public CommandSender getSender() {
         return sender;
     }
 
     private String lastMessage = "";
 
+    @Override
     public String getResult() {
         return lastMessage;
     }
 
+    @Override
     public void setLastMessage(String message) {
         lastMessage = message;
     }

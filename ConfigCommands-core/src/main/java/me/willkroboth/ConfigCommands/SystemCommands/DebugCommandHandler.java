@@ -13,8 +13,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A class that handles the {@code /configcommands help} command.
+ */
 public class DebugCommandHandler extends SystemCommandHandler {
-    // command configuration
+    // Command configuration
+    @Override
     protected ArgumentTree getArgumentTree() {
         return super.getArgumentTree()
                 .executes(DebugCommandHandler::sendGlobalDebugMode)
@@ -43,14 +47,30 @@ public class DebugCommandHandler extends SystemCommandHandler {
             "\tSet echo command's local debug: /configcommands debug local echo disable"
     };
 
+    @Override
     protected String[] getHelpMessages() {
         return helpMessages;
     }
 
-    // command functions
+    // Command functions
 
     private static final Map<String, SharedDebugValue> nameToSharedDebug = new HashMap<>();
-    // accessed by CommandTreeBuilder
+
+    // Accessed by CommandTreeBuilder
+
+    /**
+     * Registers a {@link SharedDebugValue} which can be changed in the lower level of the config file.
+     * <pre>
+     * {@code
+     * commands:
+     *     [name]:
+     *         debug: true/false
+     * }
+     * </pre>
+     *
+     * @param name        The name of the command
+     * @param sharedDebug The {@link SharedDebugValue} object to update
+     */
     public static void registerSharedDebug(String name, SharedDebugValue sharedDebug) {
         nameToSharedDebug.put(name, sharedDebug);
     }

@@ -7,17 +7,28 @@ import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
 import me.willkroboth.ConfigCommands.Functions.Parameter;
 import me.willkroboth.ConfigCommands.Functions.StaticFunction;
+import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
-import me.willkroboth.ConfigCommands.Functions.StaticFunctionList;
 
+/**
+ * An {@link InternalArgument} that represents a Java {@link Integer}.
+ */
 public class InternalIntegerArgument extends InternalArgument implements CommandArgument {
     private int value;
 
+    /**
+     * Creates a new {@link InternalIntegerArgument} with no initial value set.
+     */
     public InternalIntegerArgument() {
     }
 
+    /**
+     * Creates a new {@link InternalIntegerArgument} with the initial value set to the given int.
+     *
+     * @param value The initial int value for this {@link InternalIntegerArgument}.
+     */
     public InternalIntegerArgument(int value) {
         super(value);
     }

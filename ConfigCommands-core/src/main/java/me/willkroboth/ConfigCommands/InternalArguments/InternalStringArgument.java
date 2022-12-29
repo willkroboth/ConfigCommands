@@ -7,22 +7,33 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import me.willkroboth.ConfigCommands.ConfigCommandsHandler;
 import me.willkroboth.ConfigCommands.Exceptions.CommandRunException;
 import me.willkroboth.ConfigCommands.Exceptions.IncorrectArgumentKey;
-import me.willkroboth.ConfigCommands.Functions.Function;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunction;
+import me.willkroboth.ConfigCommands.Functions.InstanceFunctionList;
+import me.willkroboth.ConfigCommands.Functions.Parameter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
-import me.willkroboth.ConfigCommands.Functions.FunctionList;
-import me.willkroboth.ConfigCommands.Functions.Parameter;
 
 import java.util.List;
 
+/**
+ * An {@link InternalArgument} that represents a Java {@link String}.
+ */
 public class InternalStringArgument extends InternalArgument implements CommandArgument {
     private String value;
 
+    /**
+     * Creates a new {@link InternalStringArgument} with no initial value set.
+     */
     public InternalStringArgument() {
     }
 
+    /**
+     * Creates a new {@link InternalStringArgument} with the initial value set to the given String.
+     *
+     * @param value The initial String value for this {@link InternalStringArgument}.
+     */
     public InternalStringArgument(String value) {
         super(value);
     }
@@ -38,7 +49,8 @@ public class InternalStringArgument extends InternalArgument implements CommandA
             case "string" -> new StringArgument(name);
             case "text" -> new TextArgument(name);
             case "greedy" -> new GreedyStringArgument(name);
-            default -> throw new IncorrectArgumentKey(name, "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
+            default ->
+                    throw new IncorrectArgumentKey(name, "subtype", "Did not find StringArgument subtype: \"" + type + "\"");
         };
     }
 
@@ -127,11 +139,12 @@ public class InternalStringArgument extends InternalArgument implements CommandA
         return (int) target.getValue();
     }
 
-    public FunctionList getFunctions() {
+    @Override
+    public InstanceFunctionList getInstanceFunctions() {
         return merge(
-                super.getFunctions(),
+                super.getInstanceFunctions(),
                 functions(
-                        new Function("charAt")
+                        new InstanceFunction("charAt")
                                 .withDescription("Gets the character at the given index")
                                 .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index of the character"))
                                 .returns(InternalStringArgument.class)
@@ -150,7 +163,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"Hello\".charAt(Integer.(\"4\")) -> \"o\"",
                                         "do \"Hello\".charAt(Integer.(\"5\")) -> IndexOutOfBounds"
                                 ),
-                        new Function("contains")
+                        new InstanceFunction("contains")
                                 .withDescription("Checks if this string contains the given string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
                                 .returns(InternalBooleanArgument.class, "True if the other string can be found inside this string, and false otherwise")
@@ -163,7 +176,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".contains(\"in\") -> True",
                                         "do \"therein\".contains(\"over\") -> False"
                                 ),
-                        new Function("endsWith")
+                        new InstanceFunction("endsWith")
                                 .withDescription("Checks if this string ends with the given string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
                                 .returns(InternalBooleanArgument.class, "True if the other string can be found at the end of this string, and false otherwise")
@@ -175,7 +188,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".endsWith(\"rein\") -> True",
                                         "do \"therein\".endsWith(\"the\") -> False"
                                 ),
-                        new Function("equals")
+                        new InstanceFunction("equals")
                                 .withDescription("Checks if this string is equal to another string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to check against"))
                                 .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, and false otherwise")
@@ -187,7 +200,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"Hello\".equals(\"Hi\") -> False",
                                         "do \"Hello\".equals(\"hElLo\") -> False"
                                 ),
-                        new Function("equalsIgnoreCase")
+                        new InstanceFunction("equalsIgnoreCase")
                                 .withDescription("Checks if this string is equal to another string, ignoring differences in case")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to check against"))
                                 .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, ignoring case, and false otherwise")
@@ -199,7 +212,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"Hello\".equals(\"hElLo\") -> True",
                                         "do \"Hello\".equals(\"Hi\") -> False"
                                 ),
-                        new Function("indexOf")
+                        new InstanceFunction("indexOf")
                                 .withDescription("Gets the index of a another string within this string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
                                 .withParameters(
@@ -225,13 +238,13 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".indexOf(\"over\") -> -1",
                                         "do \"therein\".indexOf(\"e\", Integer.(\"5\")) -> -1"
                                 ),
-                        new Function("isEmpty")
+                        new InstanceFunction("isEmpty")
                                 .withDescription("Checks if this string has anything in it")
                                 .returns(InternalBooleanArgument.class, "True if <string>.length() equals 0, and false otherwise")
                                 .executes((target, parameters) -> {
                                     return new InternalBooleanArgument(getString(target).isEmpty());
                                 }),
-                        new Function("join")
+                        new InstanceFunction("join")
                                 .withDescription("Adds another object onto the end of this string")
                                 .withParameters(new Parameter(InternalArgument.class, "other",
                                         "The object to add. Automatically converted to a string using the forCommand method."))
@@ -243,7 +256,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"Hello\".join(\"World\") -> \"HelloWorld\"",
                                         "do \"Count: \".join(Integer.()) -> \"Count: 0\""
                                 ),
-                        new Function("lastIndexOf")
+                        new InstanceFunction("lastIndexOf")
                                 .withDescription("Gets the index of another string within this string, starting from the end")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
                                 .withParameters(
@@ -269,7 +282,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".lastIndexOf(\"over\") -> -1",
                                         "do \"therein\".lastIndexOf(\"e\", Integer.(\"1\")) -> -1"
                                 ),
-                        new Function("length")
+                        new InstanceFunction("length")
                                 .returns(InternalIntegerArgument.class, "The number of characters in this string")
                                 .executes((target, parameters) -> {
                                     return new InternalIntegerArgument(getString(target).length());
@@ -279,7 +292,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".length() -> 7",
                                         "do \"\".length() -> 0"
                                 ),
-                        new Function("replace")
+                        new InstanceFunction("replace")
                                 .withDescription("Replaces all instances of a string within this string with a new string")
                                 .withParameters(
                                         new Parameter(InternalStringArgument.class, "pattern", "The string to look for"),
@@ -295,7 +308,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"aaa\".replace(\"aa\", \"b\") -> \"ba\"",
                                         "do \"aaa\".replace(\"\", \"b\") -> \"ababab\""
                                 ),
-                        new Function("startsWith")
+                        new InstanceFunction("startsWith")
                                 .withDescription("Checks if this string starts with the given string")
                                 .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
                                 .returns(InternalBooleanArgument.class, "True if the other string can be found at the start of this string, and false otherwise")
@@ -307,7 +320,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".startsWith(\"there\") -> True",
                                         "do \"therein\".startsWith(\"rein\") -> False"
                                 ),
-                        new Function("substring")
+                        new InstanceFunction("substring")
                                 .withDescription("Creates a new string from part of this string")
                                 .withParameters(new Parameter(InternalIntegerArgument.class, "start", "The index to start from"))
                                 .withParameters(
@@ -338,7 +351,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".substring(Integer.(\"-1\"), Integer.(\"8\") -> IndexOutOfBounds because start (-1) < 0 and end (8) > <string>.length (7)",
                                         "do \"therein\".substring(Integer.(\"5\"), Integer.(\"1\")) -> IndexOutOfBounds because start (5) > end (1)"
                                 ),
-                        new Function("toInt")
+                        new InstanceFunction("toInt")
                                 .withDescription("Turns this string into an Integer")
                                 .returns(InternalIntegerArgument.class, "The number this string represents in base 10")
                                 .throwsException("NumberFormatException when this string cannot be interpreted as an Integer")

@@ -24,8 +24,12 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.*;
 
+/**
+ * A class that handles the {@code /configcommands functions} command
+ */
 public class FunctionsCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
+    @Override
     protected ArgumentTree getArgumentTree() {
         return super.getArgumentTree()
                 .executes(FunctionsCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
@@ -33,7 +37,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
                         .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getAddOns))
                         .then(new StringArgument("internalArgument")
                                 .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getInternalArguments))
-                                .then(new MultiLiteralArgument("static", "nonStatic")
+                                .then(new MultiLiteralArgument("static", "instance")
                                         .then(new GreedyStringArgument("function")
                                                 .replaceSuggestions(ArgumentSuggestions.strings(FunctionsCommandHandler::getFunctions))
                                                 .executes((CommandExecutor) FunctionsCommandHandler::displayInformation, ExecutorType.CONSOLE, ExecutorType.PLAYER)
@@ -47,9 +51,10 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
             "Displays information about the available ConfigCommands functions",
             "Usage:",
             "\tBring up guided menu: /configcommands functions",
-            "\tUse tab-completion: /configcommands functions <addOn> <internalArgument> <(non)static> <function>"
+            "\tUse tab-completion: /configcommands functions <addOn> <internalArgument> <instance/static> <function>"
     };
 
+    @Override
     protected String[] getHelpMessages() {
         return helpMessages;
     }
@@ -58,6 +63,14 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
     // accessed by BuildCommandHandler
+
+    /**
+     * Opens the {@code /configcommands functions} menu for the given {@link CommandSender}.
+     *
+     * @param sender  The {@link CommandSender} to open the menu for.
+     * @param ignored This parameter is not used, and only exists so this function matches the {@link CommandExecutor}
+     *                FunctionalInterface.
+     */
     protected static void addUser(CommandSender sender, Object[] ignored) {
         sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
@@ -67,22 +80,53 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     // events
+
+    /**
+     * Intercepts chat messages sent by players. If the player has the
+     * {@code /configcommands functions} menu open, their chat message will
+     * be canceled so no one else sees it, and this class will handle
+     * the message appropriately.
+     *
+     * @param event The {@link AsyncPlayerChatEvent} being listened for.
+     */
     @EventHandler
     public void onChatSent(AsyncPlayerChatEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
+    /**
+     * Intercepts commands sent by players. If the player has the
+     * {@code /configcommands functions} menu open, their command will
+     * be canceled so no one else sees it, and this class will handle
+     * the message appropriately.
+     *
+     * @param event The {@link PlayerCommandPreprocessEvent} being listened for.
+     */
     @EventHandler
     public void playerCommandPreprocess(PlayerCommandPreprocessEvent event) {
         handleMessage(event.getPlayer(), event.getMessage(), event);
     }
 
+    /**
+     * Kicks players out of the {@code /configcommands functions}
+     * menu when they leave the server.
+     *
+     * @param event The {@link PlayerQuitEvent} being listened for.
+     */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         activeUsers.remove(player);
     }
 
+    /**
+     * Intercepts messages sent from the console. If the console has the
+     * {@code /configcommands functions} menu open, the message will be
+     * canceled so no one else sees it and this class will handle the
+     * message appropriately.
+     *
+     * @param event The {@link ServerCommandEvent} being listened for.
+     */
     @EventHandler
     public void onConsoleSent(ServerCommandEvent event) {
         handleMessage(event.getSender(), event.getCommand(), event);
@@ -96,10 +140,10 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
                 sender.sendMessage("Closing the ConfigCommand functions menu.");
                 activeUsers.remove(sender);
             } else if (message.equalsIgnoreCase("back")) {
-                if (activeUsers.get(sender).getPreviousContext() == null) {
+                if (activeUsers.get(sender).previousContext() == null) {
                     sender.sendMessage("No step to go back to.");
                 } else {
-                    activeUsers.put(sender, activeUsers.get(sender).getPreviousContext());
+                    activeUsers.put(sender, activeUsers.get(sender).previousContext());
                     activeUsers.get(sender).doNextStep(sender, "");
                 }
             } else {
@@ -142,7 +186,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context) {
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments((String) context.getPreviousChoice());
+        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments((String) context.previousChoice());
         if (message.isBlank()) {
             sender.sendMessage("Choose the InternalArgument you need help with.");
             sender.sendMessage(InternalArgument.getNames(internalArguments).toString());
@@ -169,17 +213,16 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static void chooseFunction(CommandSender sender, String message, CommandContext context) {
-        Class<? extends InternalArgument> clazz = ((InternalArgument) context.getPreviousChoice()).getClass();
+        Class<? extends InternalArgument> clazz = ((InternalArgument) context.previousChoice()).getClass();
         if (message.isBlank()) {
             sender.sendMessage("Choose the function you need help with.");
 
-            sender.sendMessage("Functions: " + Arrays.toString(InternalArgument.getFunctionsFor(clazz).getNames()));
+            sender.sendMessage("InstanceFunctions: " + Arrays.toString(InternalArgument.getInstanceFunctionsFor(clazz).getNames()));
             sender.sendMessage("StaticFunctions: " + Arrays.toString(InternalArgument.getStaticFunctionsFor(clazz).getNames()));
         } else {
-
-            FunctionList functions = InternalArgument.getFunctionsFor(clazz);
+            InstanceFunctionList functions = InternalArgument.getInstanceFunctionsFor(clazz);
             if (functions.hasName(message)) {
-                Function function = functions.getFromName(message);
+                InstanceFunction function = functions.getByName(message);
 
                 context = setContext(sender, context, function, FunctionsCommandHandler::displayInformation);
 
@@ -189,7 +232,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
             StaticFunctionList staticFunctions = InternalArgument.getStaticFunctionsFor(clazz);
             if (staticFunctions.hasName(message)) {
-                StaticFunction staticFunction = staticFunctions.getFromName(message);
+                StaticFunction staticFunction = staticFunctions.getByName(message);
 
                 context = setContext(sender, context, staticFunction, FunctionsCommandHandler::displayInformation);
 
@@ -217,7 +260,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         if (staticChoice.equals("static")) {
             return InternalArgument.getStaticFunctionsFor(argument.getClass()).getNames();
         } else if (staticChoice.equals("nonStatic")) {
-            return InternalArgument.getFunctionsFor(argument.getClass()).getNames();
+            return InternalArgument.getInstanceFunctionsFor(argument.getClass()).getNames();
         } else {
             return new String[0];
         }
@@ -225,12 +268,12 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
     private static void displayInformation(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
-            InternalArgument argument = (InternalArgument) context.getPreviousContext().getPreviousChoice();
+            InternalArgument argument = (InternalArgument) context.previousContext().previousChoice();
             sender.sendMessage("Class: " + argument.getName());
 
-            AbstractFunction<?> function = (AbstractFunction<?>) context.getPreviousChoice();
-            if(function instanceof Function) {
-                sender.sendMessage("Nonstatic function");
+            FunctionBuilder<?> function = (FunctionBuilder<?>) context.previousChoice();
+            if (function instanceof InstanceFunction) {
+                sender.sendMessage("Instance function");
             } else if (function instanceof StaticFunction) {
                 sender.sendMessage("Static function");
             }
@@ -245,7 +288,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         String addOn = (String) parameters[0];
 
         if (ConfigCommandAddOn.getAddOn(addOn) == null) {
-            sender.sendMessage(ChatColor.RED + "Invalid command: addOn \"" + addOn + "\" does not exist");
+            sender.sendMessage(ChatColor.RED + "Invalid command: AddOn \"" + addOn + "\" does not exist");
             return;
         }
 
@@ -254,7 +297,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         List<String> names = InternalArgument.getNames(internalArguments);
         String internalArgument = (String) parameters[1];
         if (!names.contains(internalArgument)) {
-            sender.sendMessage(ChatColor.RED + "Invalid command: internalArgument \"" + internalArgument + "\" does not exist for the given addOn");
+            sender.sendMessage(ChatColor.RED + "Invalid command: InternalArgument \"" + internalArgument + "\" does not exist for the given AddOn");
             return;
         }
         InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
@@ -262,15 +305,29 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         String staticChoice = (String) parameters[2];
 
         if (staticChoice.equals("static")) {
+            String functionName = (String) parameters[3];
+            StaticFunction function = InternalArgument.getStaticFunctionsFor(argument.getClass()).getByName(functionName);
+            if (function == null) {
+                sender.sendMessage(ChatColor.RED + "Invalid command: StaticFunction \"" + functionName + "\" dose not exist for the given InternalArgument");
+                return;
+            }
+
             sender.sendMessage("Class: " + argument.getName());
             sender.sendMessage("Static function");
-            InternalArgument.getStaticFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
-        } else if (staticChoice.equals("nonStatic")) {
+            function.outputInformation(sender);
+        } else if (staticChoice.equals("instance")) {
+            String functionName = (String) parameters[3];
+            InstanceFunction function = InternalArgument.getInstanceFunctionsFor(argument.getClass()).getByName(functionName);
+            if (function == null) {
+                sender.sendMessage(ChatColor.RED + "Invalid command: InstanceFunction \"" + functionName + "\" dose not exist for the given InternalArgument");
+                return;
+            }
+
             sender.sendMessage("Class: " + argument.getName());
             sender.sendMessage("Nonstatic function");
-            InternalArgument.getFunctionsFor(argument.getClass()).getFromName((String) parameters[3]).outputInformation(sender);
+            function.outputInformation(sender);
         } else {
-            sender.sendMessage(ChatColor.RED + "Invalid command: expected static or nonStatic but found \"" + staticChoice + "\"");
+            sender.sendMessage(ChatColor.RED + "Invalid command: expected instance or static but found \"" + staticChoice + "\"");
         }
     }
 }

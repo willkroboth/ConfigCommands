@@ -9,11 +9,29 @@ import me.willkroboth.ConfigCommands.InternalArguments.InternalArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalCommandSenderArgument;
 import me.willkroboth.ConfigCommands.InternalArguments.InternalIntegerArgument;
 import me.willkroboth.ConfigCommands.SystemCommands.DebugCommandHandler;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 
+/**
+ * A class that builds a CommandAPI {@link CommandTree} based on the values in a config file.
+ * See {@link CommandTreeBuilder#CommandTreeBuilder(String, ConfigurationSection, GlobalDebugValue)}.
+ */
 public class CommandTreeBuilder extends CommandTree {
+    /**
+     * Registers all commands under a {@link ConfigurationSection}.
+     *
+     * @param commands    The {@link ConfigurationSection} to register commands from.
+     *                    The data here is expected to look like the following:
+     *                    <pre>{@code CommandTree1:}</pre>
+     *                    <pre>    Defined by {@link CommandTreeBuilder#CommandTreeBuilder(String, ConfigurationSection, GlobalDebugValue)}</pre>
+     *                    <pre>{@code CommandTree2:}</pre>
+     *                    <pre>    ...</pre>
+     *                    <pre>{@code CommandTree3:}</pre>
+     *                    <pre> ...</pre>
+     * @param globalDebug The {@link GlobalDebugValue} used for all the commands.
+     */
     public static void registerCommandsFromConfig(ConfigurationSection commands, GlobalDebugValue globalDebug) {
         ConfigCommandsHandler.logNormal("");
         if (commands == null) {
@@ -75,17 +93,23 @@ public class CommandTreeBuilder extends CommandTree {
         }
     }
 
-    public static String buildDefaultPermission(String name) {
-        return "configcommands." + name.toLowerCase(Locale.ROOT);
-    }
-
-    public static Map<String, Class<? extends InternalArgument>> getDefaultArgs() {
-        return new LinkedHashMap<>(Map.of(
-                "<sender>", InternalCommandSenderArgument.class,
-                "<lineIndex>", InternalIntegerArgument.class
-        ));
-    }
-
+    /**
+     * Creates a CommandAPI {@link CommandTree} based on the values in a config file.
+     *
+     * @param name        The name for the root node of the {@link CommandTree}.
+     * @param command     A {@link ConfigurationSection} that contains the data for this tree.
+     *                    The data here is expected to look like the following:
+     *                    <pre>{@code debug: true/false} - Used to create the {@link SharedDebugValue} for this command</pre>
+     *                    <pre>{@code permission: [permission]}</pre>
+     *                    <pre>{@code executes:} Defined by {@link CommandAPIExecutorBuilder}</pre>
+     *                    <pre>{@code ...}</pre>
+     *                    <pre>{@code then:}</pre>
+     *                    <pre>&nbsp;    {@code ArgumentTree1}</pre>
+     *                    <pre>&nbsp;    {@code ArgumentTree2}</pre>
+     *                    <pre>&nbsp;    {@code ...}</pre>
+     * @param globalDebug The {@link GlobalDebugValue} being used for all the commands.
+     * @throws RegistrationException If there is an error reading the data for the command.
+     */
     public CommandTreeBuilder(String name, ConfigurationSection command, GlobalDebugValue globalDebug) throws RegistrationException {
         //set name
         super(name);
@@ -159,5 +183,40 @@ public class CommandTreeBuilder extends CommandTree {
             }
             ConfigCommandsHandler.decreaseIndentation();
         }
+    }
+
+    /**
+     * Builds the default permission for a command.
+     *
+     * @param name The name of the command.
+     * @return The permission given to this command by default: {@code "configcommands." + name.toLowerCase(Locale.ROOT)}.
+     */
+    public static String buildDefaultPermission(String name) {
+        return "configcommands." + name.toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Gets the default arguments for commands. These arguments have special meaning to the
+     * command interpreter and will be automatically set and updated. These arguments are:
+     * <ul>
+     *     <li><pre>
+     * {@code <sender>}
+     * An {@link InternalCommandSenderArgument}
+     * Automatically set to the {@link CommandSender} who ran the command
+     *     </pre></li>
+     *     <li><pre>
+     * {@code <lineIndex>}
+     * An {@link InternalIntegerArgument}
+     * Automatically set to the index of the line of code currently being run.
+     *     </pre></li>
+     * </ul>
+     *
+     * @return A map linking the names to the {@link InternalArgument} class used by each default argument.
+     */
+    public static Map<String, Class<? extends InternalArgument>> getDefaultArgs() {
+        return new LinkedHashMap<>(Map.of(
+                "<sender>", InternalCommandSenderArgument.class,
+                "<lineIndex>", InternalIntegerArgument.class
+        ));
     }
 }

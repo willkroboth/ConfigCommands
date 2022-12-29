@@ -49,7 +49,7 @@ class Return extends FunctionLine {
 
         ConfigCommandsHandler.logDebug(interpreterState, "Return value is \"" + returnValue + "\"");
         List<InternalArgument> messageParameter = Collections.singletonList(new InternalStringArgument(returnValue));
-        interpreterState.getVariable("<sender>").runFunction("sendMessage", messageParameter);
+        interpreterState.getVariable("<sender>").runInstanceFunction("sendMessage", messageParameter);
 
         return -1;
     }
