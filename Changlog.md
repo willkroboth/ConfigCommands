@@ -9,9 +9,9 @@
 ### Technical Changes:
 - Refactored project as a multi-module maven project to better handle depending on different Spigot versions in the different NMS modules
 - Now compiling from and to Java 16 to support older Minecraft versions
-- Added enum [ConfigCommandAddOn.RegisterMode](/ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/HelperClasses/ConfigCommandAddOn.java#L57) to let AddOns choose more exactly how they want to register thier InternalArguments and FunctionAdders
-- Added package [SystemCommands](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands) and class [SystemCommandHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/SystemCommands/SystemCommandHandler.java) to manage `/configcommands`
-- Added class [ConfigCommandsHandler](ConfigCommands-core/src/main/java/me/willkroboth/ConfigCommands/ConfigCommandsHandler.java) to manage interactions with the ConfigCommands plugin
+- Added enum [ConfigCommandAddOn.RegisterMode](/ConfigCommands-core/src/main/java/me/willkroboth/configcommands/helperclasses/ConfigCommandAddOn.java#L57) to let AddOns choose more exactly how they want to register thier InternalArguments and FunctionAdders
+- Added package [SystemCommands](ConfigCommands-core/src/main/java/me/willkroboth/configcommands/systemcommands) and class [SystemCommandHandler](ConfigCommands-core/src/main/java/me/willkroboth/configcommands/systemcommands/SystemCommandHandler.java) to manage `/configcommands`
+- Added class [ConfigCommandsHandler](ConfigCommands-core/src/main/java/me/willkroboth/configcommands/ConfigCommandsHandler.java) to manage interactions with the ConfigCommands plugin
 
 See all commits in [#21](https://github.com/willkroboth/ConfigCommands/pull/21)
 
