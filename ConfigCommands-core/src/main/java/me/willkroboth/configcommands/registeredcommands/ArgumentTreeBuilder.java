@@ -1,6 +1,5 @@
 package me.willkroboth.configcommands.registeredcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
@@ -16,12 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A class that builds a CommandAPI {@link ArgumentTree} based on the values in a config file.
- * See {@link ArgumentTreeBuilder#ArgumentTreeBuilder(String, Map, ConfigurationSection, SharedDebugValue, List)}
+ * A class that builds a CommandAPI {@link Argument} based on the values in a config file.
+ * See {@link ArgumentTreeBuilder#buildArgumentTree(String, Map, ConfigurationSection, SharedDebugValue, List)}
  */
-public class ArgumentTreeBuilder extends ArgumentTree {
+public class ArgumentTreeBuilder {
     /**
-     * Creates a CommandAPI {@link ArgumentTree} based on the values in a config file.
+     * Creates a CommandAPI {@link Argument} based on the values in a config file.
      *
      * @param name            The nodeName used to construct the backing {@link Argument}
      * @param argumentClasses A Map linking the name to the {@link InternalArgument}
@@ -40,19 +39,24 @@ public class ArgumentTreeBuilder extends ArgumentTree {
      *                        <pre>&nbsp;    {@code ...}</pre>
      * @param localDebug      The {@link SharedDebugValue} object being used for this command path
      * @param argumentPath    A List of the names of previous arguments, starting with the literal command name
+     * @return The CommandAPI {@link Argument} defined by the given data
      * @throws RegistrationException If there is an error reading the data for the command
      */
-    public ArgumentTreeBuilder(String name, Map<String, Class<? extends InternalArgument>> argumentClasses,
+    public static Argument<?> buildArgumentTree(String name, Map<String, Class<? extends InternalArgument>> argumentClasses,
                                ConfigurationSection tree, SharedDebugValue localDebug, List<String> argumentPath) throws RegistrationException {
-        super(modifyArgument(
-                getArgument(name, argumentClasses, tree, localDebug),
-                tree, localDebug
-        ));
+        Argument<?> argument = getArgument(name, argumentClasses, tree, localDebug);
+
+        String permission = tree.getString("permission");
+        if (permission != null) {
+            argument.withPermission(permission);
+            ConfigCommandsHandler.logDebug(localDebug, "Added permission \"%s\" to branch", permission);
+        }
+
         argumentPath.add(name);
 
         ConfigCommandsHandler.logNormal("Building ArgumentTree...");
         // set executes
-        super.setExecutor(new CommandAPIExecutorBuilder(tree, argumentPath, argumentClasses, localDebug));
+        argument.setExecutor(new CommandAPIExecutorBuilder(tree, argumentPath, argumentClasses, localDebug));
 
         // set then
         ConfigurationSection then = tree.getConfigurationSection("then");
@@ -64,7 +68,7 @@ public class ArgumentTreeBuilder extends ArgumentTree {
             for (String branchName : then.getKeys(false)) {
                 ConfigCommandsHandler.logDebug(localDebug, "Adding branch %s", branchName);
                 ConfigCommandsHandler.increaseIndentation();
-                super.then(new ArgumentTreeBuilder(
+                argument.then(ArgumentTreeBuilder.buildArgumentTree(
                         branchName, new LinkedHashMap<>(argumentClasses),
                         then.getConfigurationSection(branchName), localDebug, argumentPath
                 ));
@@ -73,6 +77,8 @@ public class ArgumentTreeBuilder extends ArgumentTree {
             ConfigCommandsHandler.decreaseIndentation();
         }
         argumentPath.remove(argumentPath.size() - 1);
+
+        return argument;
     }
 
     private static Argument<?> getArgument(String name, Map<String, Class<? extends InternalArgument>> argumentClasses, ConfigurationSection tree, SharedDebugValue localDebug) throws IncorrectArgumentKey {
@@ -92,21 +98,10 @@ public class ArgumentTreeBuilder extends ArgumentTree {
             else
                 ConfigCommandsHandler.logNormal("argumentInfo has class %s", argumentInfo.getClass().getSimpleName());
         }
+
         // Get InternalArgument to generate an Argument based on the CommandArguments it knows about
         Argument<?> out = InternalArgument.convertArgumentInformation(name, type, argumentClasses, argumentInfo, localDebug.isDebug());
         ConfigCommandsHandler.logDebug(localDebug, "Argument created with class: %s", out.getClass().getSimpleName());
         return out;
-    }
-
-    private static Argument<?> modifyArgument(Argument<?> argument, ConfigurationSection tree, SharedDebugValue localDebug) {
-        // Set permission
-        // ArgumentTrees cannot themselves have permissions, so this needs to be applied to the argument
-        String permission = tree.getString("permission");
-        if (permission != null) {
-            argument.withPermission(permission);
-            ConfigCommandsHandler.logDebug(localDebug, "Added permission \"%s\" to branch", permission);
-        }
-
-        return argument;
     }
 }

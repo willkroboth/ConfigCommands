@@ -1,11 +1,8 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.SuggestionInfo;
-import dev.jorel.commandapi.arguments.ArgumentSuggestions;
-import dev.jorel.commandapi.arguments.GreedyStringArgument;
-import dev.jorel.commandapi.arguments.MultiLiteralArgument;
-import dev.jorel.commandapi.arguments.StringArgument;
+import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.configcommands.functions.*;
@@ -30,7 +27,7 @@ import java.util.*;
 public class FunctionsCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
     @Override
-    protected ArgumentTree getArgumentTree() {
+    protected Argument<?> getArgumentTree() {
         return super.getArgumentTree()
                 .executes(FunctionsCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER)
                 .then(new StringArgument("addOn")
@@ -63,7 +60,6 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     private static final Map<CommandSender, CommandContext> activeUsers = new HashMap<>();
 
     // accessed by BuildCommandHandler
-
     /**
      * Opens the {@code /configcommands functions} menu for the given {@link CommandSender}.
      *
@@ -71,7 +67,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
      * @param ignored This parameter is not used, and only exists so this function matches the {@link CommandExecutor}
      *                FunctionalInterface.
      */
-    protected static void addUser(CommandSender sender, Object[] ignored) {
+    protected static void addUser(CommandSender sender, CommandArguments ignored) {
         sender.sendMessage("Welcome to the ConfigCommand function menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         sender.sendMessage("Type back to return to previous step.");
@@ -181,7 +177,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         }
     }
 
-    private static String[] getAddOns(SuggestionInfo ignored) {
+    private static String[] getAddOns(SuggestionInfo<CommandSender> ignored) {
         return ConfigCommandAddOn.getAddOns().keySet().toArray(new String[0]);
     }
 
@@ -204,7 +200,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         }
     }
 
-    private static String[] getInternalArguments(SuggestionInfo info) {
+    private static String[] getInternalArguments(SuggestionInfo<CommandSender> info) {
         String addOn = (String) info.previousArgs()[0];
         if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
 
@@ -244,7 +240,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         }
     }
 
-    private static String[] getFunctions(SuggestionInfo info) {
+    private static String[] getFunctions(SuggestionInfo<CommandSender> info) {
         String addOn = (String) info.previousArgs()[0];
 
         if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
@@ -284,8 +280,8 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         }
     }
 
-    private static void displayInformation(CommandSender sender, Object[] parameters) {
-        String addOn = (String) parameters[0];
+    private static void displayInformation(CommandSender sender, CommandArguments args) {
+        String addOn = args.getUnchecked("addOn");
 
         if (ConfigCommandAddOn.getAddOn(addOn) == null) {
             sender.sendMessage(ChatColor.RED + "Invalid command: AddOn \"" + addOn + "\" does not exist");
@@ -295,17 +291,17 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
         List<String> names = InternalArgument.getNames(internalArguments);
-        String internalArgument = (String) parameters[1];
+        String internalArgument = args.getUnchecked("internalArgument");
         if (!names.contains(internalArgument)) {
             sender.sendMessage(ChatColor.RED + "Invalid command: InternalArgument \"" + internalArgument + "\" does not exist for the given AddOn");
             return;
         }
         InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
 
-        String staticChoice = (String) parameters[2];
+        String staticChoice = args.getUnchecked(2);
 
         if (staticChoice.equals("static")) {
-            String functionName = (String) parameters[3];
+            String functionName = args.getUnchecked("function");
             StaticFunction function = InternalArgument.getStaticFunctionsFor(argument.getClass()).getByName(functionName);
             if (function == null) {
                 sender.sendMessage(ChatColor.RED + "Invalid command: StaticFunction \"" + functionName + "\" dose not exist for the given InternalArgument");
@@ -316,7 +312,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
             sender.sendMessage("Static function");
             function.outputInformation(sender);
         } else if (staticChoice.equals("instance")) {
-            String functionName = (String) parameters[3];
+            String functionName = args.getUnchecked("function");
             InstanceFunction function = InternalArgument.getInstanceFunctionsFor(argument.getClass()).getByName(functionName);
             if (function == null) {
                 sender.sendMessage(ChatColor.RED + "Invalid command: InstanceFunction \"" + functionName + "\" dose not exist for the given InternalArgument");

@@ -1,7 +1,8 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.AbstractArgumentTree;
 import dev.jorel.commandapi.CommandTree;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
@@ -106,15 +107,15 @@ public abstract class SystemCommandHandler {
     }
 
     /**
-     * Creates a CommandAPI {@link ArgumentTree} for this command. The default
-     * tree returned by this method can be built upon using
-     * {@link ArgumentTree#then(ArgumentTree)} and {@link ArgumentTree#executes(CommandExecutor, ExecutorType...)}.
+     * Creates a CommandAPI {@link Argument} that is the base of the branch for this command. The default
+     * tree returned by this method can be built upon using {@link Argument#then(AbstractArgumentTree)}
+     * and {@link Argument#executes(CommandExecutor, ExecutorType...)}.
      *
-     * @return The CommandAPI {@link ArgumentTree} for this subcommand.
+     * @return The CommandAPI {@link Argument} that is the base of the branch for this subcommand.
      * The tree returned by the default implementation is defined as
      * {@code new LiteralArgument(getName()).withPermission(getPermission())}.
      */
-    protected ArgumentTree getArgumentTree() {
+    protected Argument<?> getArgumentTree() {
         return new LiteralArgument(getName()).withPermission(getPermission());
     }
 

@@ -19,7 +19,7 @@ import java.util.Map;
 public interface CommandArgument {
     /**
      * The String to use when declaring an {@link ArgumentTreeBuilder} will use this class as its argument type
-     * (See {@link ArgumentTreeBuilder#ArgumentTreeBuilder(String, Map, ConfigurationSection, SharedDebugValue, List)} tree type).
+     * (See {@link ArgumentTreeBuilder#buildArgumentTree(String, Map, ConfigurationSection, SharedDebugValue, List)} tree type).
      *
      * @return By default, this returns the value of {@link CommandArgument#getName()}
      */

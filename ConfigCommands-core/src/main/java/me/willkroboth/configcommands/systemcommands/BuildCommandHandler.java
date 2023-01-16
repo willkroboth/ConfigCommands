@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.helperclasses.IndentedCommandSenderMessenger;
@@ -27,7 +28,7 @@ import java.util.*;
 public class BuildCommandHandler extends SystemCommandHandler implements Listener {
     // command configuration
     @Override
-    protected ArgumentTree getArgumentTree() {
+    protected Argument<?> getArgumentTree() {
         return super.getArgumentTree().executes(BuildCommandHandler::addUser, ExecutorType.CONSOLE, ExecutorType.PLAYER);
     }
 
@@ -50,7 +51,7 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
     private static final List<CommandSender> forwardedFromArgumentInfo = new ArrayList<>();
     private static final List<CommandSender> passToFunctionCommand = new ArrayList<>();
 
-    private static void addUser(CommandSender sender, Object[] ignored) {
+    private static void addUser(CommandSender sender, CommandArguments ignored) {
         sender.sendMessage("Welcome to the ConfigCommand build menu!");
         sender.sendMessage("Enter ## at any time to cancel.");
         // Going back is handled by each step in case they need to update the above variables

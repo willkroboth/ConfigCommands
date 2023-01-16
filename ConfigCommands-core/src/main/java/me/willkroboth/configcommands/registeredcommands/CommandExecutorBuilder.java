@@ -1,7 +1,8 @@
 package me.willkroboth.configcommands.registeredcommands;
 
+import dev.jorel.commandapi.executors.CommandArguments;
+import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
-import dev.jorel.commandapi.executors.IExecutorNormal;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.RegistrationException;
 import me.willkroboth.configcommands.helperclasses.SharedDebugValue;
@@ -14,10 +15,10 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
- * A class that builds a CommandAPI {@link IExecutorNormal} based on a list of functions to run.
+ * A class that builds a CommandAPI {@link CommandExecutor} based on a list of functions to run.
  * See {@link CommandExecutorBuilder#CommandExecutorBuilder(List, Map, ExecutorType, SharedDebugValue)}
  */
-public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
+public class CommandExecutorBuilder implements CommandExecutor {
     private final InterpreterState defaultState;
     private final Stack<InterpreterState> interpreterStateStack;
     private InterpreterState currentState;
@@ -25,7 +26,7 @@ public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
     private final ExecutorType type;
 
     /**
-     * Creates a CommandAPI {@link IExecutorNormal} based on a list of functions to run.
+     * Creates a CommandAPI {@link CommandExecutor} based on a list of functions to run.
      *
      * @param executes        A List of Strings that define what happens when this executor is run. The format of these
      *                        lines is defined by {@link FunctionLine#parseExecutes(List, Map, SharedDebugValue)}.
@@ -52,15 +53,15 @@ public class CommandExecutorBuilder implements IExecutorNormal<CommandSender> {
     }
 
     @Override
-    public void run(CommandSender sender, Object[] args) {
+    public void run(CommandSender sender, CommandArguments args) {
         interpreterStateStack.push(currentState);
         currentState = defaultState.copy();
 
         int startIndentation = ConfigCommandsHandler.getIndentation();
         try {
-            ConfigCommandsHandler.logDebug(currentState, "Running ConfigCommand with args: %s", Arrays.deepToString(args));
+            ConfigCommandsHandler.logDebug(currentState, "Running ConfigCommand with args: %s", Arrays.deepToString(args.args()));
 
-            currentState.setUpVariablesMap(args);
+            currentState.setUpVariablesMap(args.args());
 
             // setup default args
             currentState.setVariable("<sender>", sender);

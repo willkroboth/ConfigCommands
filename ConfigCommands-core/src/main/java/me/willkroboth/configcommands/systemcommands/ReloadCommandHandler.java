@@ -1,6 +1,6 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import me.willkroboth.configcommands.registeredcommands.CommandAPIExecutorBuilder;
@@ -16,8 +16,8 @@ import java.util.Map;
 public class ReloadCommandHandler extends SystemCommandHandler {
     // Command configuration
     @Override
-    protected ArgumentTree getArgumentTree() {
-        ArgumentTree tree = super.getArgumentTree();
+    protected Argument<?> getArgumentTree() {
+        Argument<?> tree = super.getArgumentTree();
         commands.generateArgumentTrees().forEach(tree::then);
         return tree;
     }
@@ -41,10 +41,10 @@ public class ReloadCommandHandler extends SystemCommandHandler {
             children.computeIfAbsent(argumentPath.get(0), k -> new ArgumentPathNode()).put(argumentPath.subList(1, argumentPath.size()), command);
         }
 
-        public List<ArgumentTree> generateArgumentTrees() {
-            List<ArgumentTree> out = new ArrayList<>(children.size());
+        public List<Argument<?>> generateArgumentTrees() {
+            List<Argument<?>> out = new ArrayList<>(children.size());
             for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
-                ArgumentTree tree = new LiteralArgument(node.getKey());
+                Argument<?> tree = new LiteralArgument(node.getKey());
 
                 CommandAPIExecutorBuilder command = node.getValue().command;
                 if (command != null) tree.executes(reloadCommand(command));
@@ -68,10 +68,10 @@ public class ReloadCommandHandler extends SystemCommandHandler {
             }
         }
 
-        public List<ArgumentTree> generateArgumentTrees() {
-            List<ArgumentTree> out = new ArrayList<>(children.size());
+        public List<Argument<?>> generateArgumentTrees() {
+            List<Argument<?>> out = new ArrayList<>(children.size());
             for (Map.Entry<String, ArgumentPathNode> node : children.entrySet()) {
-                ArgumentTree tree = new LiteralArgument(node.getKey());
+                Argument<?> tree = new LiteralArgument(node.getKey());
 
                 CommandAPIExecutorBuilder command = node.getValue().command;
                 if (command != null) tree.executes(reloadCommand(command));

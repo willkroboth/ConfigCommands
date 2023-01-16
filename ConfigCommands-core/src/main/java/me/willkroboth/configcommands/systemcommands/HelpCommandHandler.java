@@ -1,6 +1,6 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
@@ -11,10 +11,10 @@ import me.willkroboth.configcommands.ConfigCommandsHandler;
 public class HelpCommandHandler extends SystemCommandHandler {
     // command configuration
     @Override
-    protected ArgumentTree getArgumentTree() {
+    protected Argument<?> getArgumentTree() {
         ConfigCommandsHandler.logDebug("Setting up help topics");
         ConfigCommandsHandler.increaseIndentation();
-        ArgumentTree base = super.getArgumentTree();
+        Argument<?> base = super.getArgumentTree();
 
         ConfigCommandsHandler.logDebug("Adding help for branch \"help\"");
         base.executes(sendMessages(getHelpMessages()));

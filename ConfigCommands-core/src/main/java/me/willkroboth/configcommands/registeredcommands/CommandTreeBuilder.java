@@ -178,7 +178,7 @@ public class CommandTreeBuilder extends CommandTree {
             for (String branchName : then.getKeys(false)) {
                 ConfigCommandsHandler.logDebug(sharedDebug, "Adding branch %s", branchName);
                 ConfigCommandsHandler.increaseIndentation();
-                super.then(new ArgumentTreeBuilder(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), sharedDebug, argumentPath));
+                super.then(ArgumentTreeBuilder.buildArgumentTree(branchName, new LinkedHashMap<>(argumentClasses), then.getConfigurationSection(branchName), sharedDebug, argumentPath));
                 ConfigCommandsHandler.decreaseIndentation();
             }
             ConfigCommandsHandler.decreaseIndentation();

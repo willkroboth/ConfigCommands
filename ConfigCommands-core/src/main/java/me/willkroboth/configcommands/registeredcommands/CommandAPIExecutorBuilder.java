@@ -2,6 +2,7 @@ package me.willkroboth.configcommands.registeredcommands;
 
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIExecutor;
+import dev.jorel.commandapi.commandsenders.AbstractCommandSender;
 import dev.jorel.commandapi.exceptions.WrapperCommandSyntaxException;
 import dev.jorel.commandapi.executors.ExecutorType;
 import dev.jorel.commandapi.wrappers.NativeProxyCommandSender;
@@ -27,7 +28,7 @@ import java.util.Map;
  * A class that builds a CommandAPI {@link CommandAPIExecutor} based on the values in a config file.
  * See {@link CommandAPIExecutorBuilder#CommandAPIExecutorBuilder(ConfigurationSection, List, Map, SharedDebugValue)}
  */
-public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender> {
+public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> {
     private static final List<ExecutorInformation> executors = List.of(
             new ExecutorInformation("executes", "executes", ExecutorType.ALL),
             new ExecutorInformation("player", "executesPlayer", ExecutorType.PLAYER),

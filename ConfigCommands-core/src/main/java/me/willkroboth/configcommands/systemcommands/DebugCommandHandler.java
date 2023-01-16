@@ -1,9 +1,10 @@
 package me.willkroboth.configcommands.systemcommands;
 
-import dev.jorel.commandapi.ArgumentTree;
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.LiteralArgument;
 import dev.jorel.commandapi.arguments.MultiLiteralArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.helperclasses.SharedDebugValue;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class DebugCommandHandler extends SystemCommandHandler {
     // Command configuration
     @Override
-    protected ArgumentTree getArgumentTree() {
+    protected Argument<?> getArgumentTree() {
         return super.getArgumentTree()
                 .executes(DebugCommandHandler::sendGlobalDebugMode)
                 .then(new LiteralArgument("enable")
@@ -75,7 +76,7 @@ public class DebugCommandHandler extends SystemCommandHandler {
         nameToSharedDebug.put(name, sharedDebug);
     }
 
-    private static void sendGlobalDebugMode(CommandSender sender, Object[] ignored) {
+    private static void sendGlobalDebugMode(CommandSender sender, CommandArguments ignored) {
         boolean debugMode = ConfigCommandsHandler.isDebugMode();
         sender.sendMessage("Global debug is currently " + (debugMode ? "enabled" : "disabled"));
     }
@@ -90,8 +91,8 @@ public class DebugCommandHandler extends SystemCommandHandler {
         };
     }
 
-    private static void sendLocalDebugMode(CommandSender sender, Object[] args) {
-        String key = (String) args[0];
+    private static void sendLocalDebugMode(CommandSender sender, CommandArguments args) {
+        String key = args.getUnchecked(0);
         boolean debugMode = nameToSharedDebug.get(key).isDebug();
         sender.sendMessage("Debug for \"" + key + "\" is currently " + (debugMode ? "enabled" : "disabled"));
     }
@@ -99,7 +100,7 @@ public class DebugCommandHandler extends SystemCommandHandler {
     private static CommandExecutor setLocalDebug(boolean value) {
         return (sender, args) -> {
             ConfigCommandsHandler.reloadConfigFile();
-            String key = (String) args[0];
+            String key = args.getUnchecked(0);
 
             ConfigurationSection commands = ConfigCommandsHandler.getConfigFile().getConfigurationSection("commands");
             if (commands == null || !commands.getKeys(false).contains(key))
