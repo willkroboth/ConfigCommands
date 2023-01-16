@@ -9,7 +9,7 @@ public class ConfigCommands extends ConfigCommandAddOn {
     // ConfigCommands' information as an AddOn
     @Override
     protected String getPackageName() {
-        return "me.willkroboth.ConfigCommands.InternalArguments";
+        return "me.willkroboth.configcommands.internalarguments";
     }
 
     @Override
