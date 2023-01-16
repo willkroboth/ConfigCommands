@@ -78,13 +78,13 @@
                                 <filter>
                                     <artifact>${project.groupId}:ConfigCommands-1_19</artifact>
                                     <excludes>
-                                        <exclude>me/willkroboth/ConfigCommands/NMS/V1_19_common/**</exclude>
+                                        <exclude>me/willkroboth/configcommands/nms/v1_19_common/**</exclude>
                                     </excludes>
                                 </filter>
                                 <filter>
                                     <artifact>${project.groupId}:ConfigCommands-1_19_1</artifact>
                                     <excludes>
-                                        <exclude>me/willkroboth/ConfigCommands/NMS/V1_19_common/**</exclude>
+                                        <exclude>me/willkroboth/configcommands/nms/v1_19_common/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

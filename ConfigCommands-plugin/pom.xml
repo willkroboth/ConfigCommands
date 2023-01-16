@@ -58,9 +58,9 @@
                             <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
                             <filters>
                                 <filter>
-                                    <artifact>me.willkroboth:ConfigCommands-core</artifact>
+                                    <artifact>${project.groupId}:ConfigCommands-core</artifact>
                                     <excludes>
-                                        <exclude>me/willkroboth/ConfigCommands/NMS/VersionHandler**</exclude>
+                                        <exclude>me/willkroboth/configcommands/nms/VersionHandler**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
