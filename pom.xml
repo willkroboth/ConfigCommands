@@ -15,7 +15,7 @@
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
 
-        <project.version.commandAPI>8.7.0</project.version.commandAPI>
+        <project.version.CommandAPI>9.0.0-SNAPSHOT</project.version.CommandAPI>
     </properties>
 
     <packaging>pom</packaging>
@@ -41,6 +41,13 @@
             <id>minecraft-libraries</id>
             <name>Minecraft Libraries</name>
             <url>https://libraries.minecraft.net</url>
+        </repository>
+
+        <!-- Repository for CommandAPI snapshots -->
+        <!-- TODO: Remove when CommandAPI-9.0.0 is released -->
+        <repository>
+            <id>oss.sonatype.org-snapshot</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
     </repositories>
 

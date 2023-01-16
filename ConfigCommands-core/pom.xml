@@ -13,11 +13,11 @@
     <artifactId>ConfigCommands-core</artifactId>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/dev.jorel/commandapi-core -->
+        <!-- CommandAPI -->
         <dependency>
             <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-core</artifactId>
-            <version>${project.version.commandAPI}</version>
+            <artifactId>commandapi-bukkit-core</artifactId>
+            <version>${project.version.CommandAPI}</version>
             <scope>provided</scope>
         </dependency>
 
