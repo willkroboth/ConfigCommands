@@ -10,7 +10,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -215,11 +217,11 @@ public class ConfigCommandsHandler {
     private static final Map<MethodKey, Method> methodCache = new HashMap<>();
     private static final Function<MethodKey, Method> methodKeyMapper = (key) -> {
         try {
-            Method method = key.clazz.getMethod(key.name, key.parameterTypes);
+            Method method = key.clazz.getDeclaredMethod(key.name, key.parameterTypes);
             method.setAccessible(true);
             return method;
-        } catch (NoSuchMethodException e) {
-            logError("Could not get method %s#%s(%s)", key.clazz, key.name, key.parameterTypes);
+        } catch (NoSuchMethodException | InaccessibleObjectException e) {
+            logError("Could not get method %s#%s(%s)", key.clazz, key.name, Arrays.deepToString(key.parameterTypes));
             throw new RuntimeException(e);
         }
     };
