@@ -10,8 +10,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The main class for handling the ConfigCommands plugin
@@ -181,7 +183,17 @@ public class ConfigCommandsHandler {
     }
 
     // Reflection
-    private static final Map<ClassKey, Field> fieldCache = new HashMap<>();
+    private static final Map<FieldKey, Field> fieldCache = new HashMap<>();
+    private static final Function<FieldKey, Field> fieldKeyMapper = (key) -> {
+        try {
+            Field field = key.clazz.getDeclaredField(key.name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            logError("Could not get field %s#%s", key.clazz, key.name);
+            throw new RuntimeException(e);
+        }
+    };
 
     /**
      * Retrieves a {@link Field} with the given name from the given class using {@link Class#getDeclaredField(String)}.
@@ -194,20 +206,43 @@ public class ConfigCommandsHandler {
      * @return The field inside the given class with the given name.
      */
     public static Field getField(Class<?> clazz, String name) {
-        return fieldCache.computeIfAbsent(new ClassKey(clazz, name), (key) -> {
-            try {
-                Field field = key.clazz.getDeclaredField(key.name);
-                field.setAccessible(true);
-                return field;
-            } catch (NoSuchFieldException e) {
-                logError("Could not get field \"%s\" from class %s", key.name, key.clazz);
-                throw new RuntimeException(e);
-            }
-        });
+        return fieldCache.computeIfAbsent(new FieldKey(clazz, name), fieldKeyMapper);
     }
 
-    private record ClassKey(Class<?> clazz, String name) {
+    private record FieldKey(Class<?> clazz, String name) {
     }
+
+    private static final Map<MethodKey, Method> methodCache = new HashMap<>();
+    private static final Function<MethodKey, Method> methodKeyMapper = (key) -> {
+        try {
+            Method method = key.clazz.getMethod(key.name, key.parameterTypes);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e) {
+            logError("Could not get method %s#%s(%s)", key.clazz, key.name, key.parameterTypes);
+            throw new RuntimeException(e);
+        }
+    };
+
+    /**
+     * Retrieves a {@link Method} with the given name and parameter types from the given class using
+     * {@link Class#getDeclaredMethod(String, Class[])}. If the class-name-parameters combination was
+     * previously requested, then the given {@link Method} is retrieved from a cache.
+     * Before the {@link Method} is added to the cache and returned, it is also made accessible using
+     * {@link Method#setAccessible(boolean)}.
+     *
+     * @param clazz          The class that holds the target {@link Method}.
+     * @param name           The name of the target {@link Method}.
+     * @param parameterTypes The classes of the objects that should be input to the method.
+     * @return The method inside the given class with the given name and parameters.
+     */
+    public static Method getMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+        return methodCache.computeIfAbsent(new MethodKey(clazz, name, parameterTypes), methodKeyMapper);
+    }
+
+    private record MethodKey(Class<?> clazz, String name, Class<?>... parameterTypes) {
+    }
+
 
     // Enable tasks
 
@@ -238,5 +273,3 @@ public class ConfigCommandsHandler {
         logNormal("Done!");
     }
 }
-
-
