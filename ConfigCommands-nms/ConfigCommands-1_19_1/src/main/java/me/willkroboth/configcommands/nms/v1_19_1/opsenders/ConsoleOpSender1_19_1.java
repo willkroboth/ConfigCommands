@@ -1,12 +1,22 @@
 package me.willkroboth.configcommands.nms.v1_19_1.opsenders;
 
 import me.willkroboth.configcommands.nms.v1_19_common.opsenders.ConsoleOpSender1_19_common;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_19_R1.command.CraftConsoleCommandSender;
 
 /**
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.19.1 and 1.19.2.
  */
 public class ConsoleOpSender1_19_1 extends ConsoleOpSender1_19_common implements OpSender1_19_1 {
+    private static ConsoleOpSender1_19_1 instance;
+
+    public static void initializeInstance(ConsoleCommandSender source) {
+        instance = new ConsoleOpSender1_19_1((CraftConsoleCommandSender) source);
+    }
+
+    public static ConsoleOpSender1_19_1 getInstance() {
+        return instance;
+    }
 
     /**
      * Creates a new {@link ConsoleOpSender1_19_1}.

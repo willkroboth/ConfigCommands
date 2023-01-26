@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.nms;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 
 /**
  * An interface for using version-specific features. An appropriate implementation of this class
@@ -15,4 +16,10 @@ public interface NMS {
      * @return An {@link OpSender} wrapping the given {@link CommandSender}.
      */
     OpSender makeOpSender(CommandSender sender);
+
+    /**
+     * Initializes the shared ConsoleOpSender
+     * @param source The base {@link ConsoleCommandSender} to wrap
+     */
+    void initializeConsoleOpSender(ConsoleCommandSender source);
 }

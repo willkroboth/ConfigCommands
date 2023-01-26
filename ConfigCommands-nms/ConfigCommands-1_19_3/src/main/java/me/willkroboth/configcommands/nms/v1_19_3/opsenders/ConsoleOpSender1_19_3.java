@@ -6,6 +6,7 @@ import net.minecraft.server.Services;
 import net.minecraft.server.WorldStem;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.map.MapPalette;
 import org.bukkit.potion.Potion;
 import org.bukkit.Bukkit;
@@ -22,6 +23,16 @@ import java.util.UUID;
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.19.3.
  */
 public class ConsoleOpSender1_19_3 extends CraftConsoleCommandSender implements OpSender1_19_3 {
+    private static ConsoleOpSender1_19_3 instance;
+
+    public static void initializeInstance(ConsoleCommandSender source) {
+        instance = new ConsoleOpSender1_19_3((CraftConsoleCommandSender) source);
+    }
+
+    public static ConsoleOpSender1_19_3 getInstance() {
+        return instance;
+    }
+
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;

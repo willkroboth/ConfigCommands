@@ -7,6 +7,7 @@ import net.minecraft.server.v1_16_R3.DedicatedServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.command.CraftConsoleCommandSender;
 import org.bukkit.potion.Potion;
@@ -19,6 +20,19 @@ import java.util.UUID;
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.16.5.
  */
 public class ConsoleOpSender1_16_5 extends CraftConsoleCommandSender implements OpSender1_16_5 {
+    private static ConsoleOpSender1_16_5 instance;
+
+    public static void initializeInstance(ConsoleCommandSender source) {
+        instance = new ConsoleOpSender1_16_5((CraftConsoleCommandSender) source);
+    }
+
+    // TODO: Once ConsoleOpSenders can be created without the message getting logged in the console, remove this
+    //  and all other methods facilitating creating one ConsoleOpSender (all versions)
+    public static ConsoleOpSender1_16_5 getInstance() {
+        return instance;
+    }
+
+
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;

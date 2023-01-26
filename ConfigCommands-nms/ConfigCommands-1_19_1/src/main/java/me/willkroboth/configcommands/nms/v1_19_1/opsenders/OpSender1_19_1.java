@@ -30,7 +30,8 @@ public interface OpSender1_19_1 extends OpSender1_19_common {
         if (sender instanceof CraftMinecartCommand m)
             return new MinecartOpSender1_19_1(m);
         if (sender instanceof CraftConsoleCommandSender c)
-            return new ConsoleOpSender1_19_1(c);
+//            return new ConsoleOpSender1_19_1(c);
+            return ConsoleOpSender1_19_1.getInstance();
         if (sender instanceof ProxiedNativeCommandSender p)
             return new ProxyOpSender1_19_1(p);
         if (sender instanceof NativeProxyCommandSender p)

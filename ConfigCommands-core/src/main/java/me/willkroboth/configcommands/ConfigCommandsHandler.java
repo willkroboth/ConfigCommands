@@ -6,6 +6,7 @@ import me.willkroboth.configcommands.nms.NMS;
 import me.willkroboth.configcommands.nms.VersionHandler;
 import me.willkroboth.configcommands.registeredcommands.CommandTreeBuilder;
 import me.willkroboth.configcommands.systemcommands.SystemCommandHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -263,6 +264,7 @@ public class ConfigCommandsHandler {
         logDebug("Debug mode on! More information will be shown.");
 
         nms = VersionHandler.loadNMS();
+        nms.initializeConsoleOpSender(Bukkit.getConsoleSender());
 
         ConfigCommandAddOn.registerAllInternalArguments();
 

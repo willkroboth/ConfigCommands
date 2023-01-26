@@ -7,6 +7,7 @@ import net.minecraft.server.dedicated.DedicatedServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.command.CraftConsoleCommandSender;
 import org.bukkit.potion.Potion;
@@ -19,6 +20,16 @@ import java.util.UUID;
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.17 and 1.17.1.
  */
 public class ConsoleOpSender1_17 extends CraftConsoleCommandSender implements OpSender1_17 {
+    private static ConsoleOpSender1_17 instance;
+
+    public static void initializeInstance(ConsoleCommandSender source) {
+        instance = new ConsoleOpSender1_17((CraftConsoleCommandSender) source);
+    }
+
+    public static ConsoleOpSender1_17 getInstance() {
+        return instance;
+    }
+
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
