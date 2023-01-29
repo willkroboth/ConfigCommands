@@ -6,7 +6,6 @@ import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.CommandExecutor;
 import dev.jorel.commandapi.executors.ExecutorType;
 import me.willkroboth.configcommands.functions.*;
-import me.willkroboth.configcommands.helperclasses.ConfigCommandAddOn;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -156,8 +155,8 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static void chooseAddOn(CommandSender sender, String message, CommandContext context) {
+        Set<String> addOns = InternalArgument.getPluginsNamesWithInternalArguments();
         if (message.isBlank()) {
-            Set<String> addOns = ConfigCommandAddOn.getAddOns().keySet();
             if (addOns.size() == 1) {
                 context = setContext(sender, context, "ConfigCommands", FunctionsCommandHandler::chooseInternalArgument);
 
@@ -167,7 +166,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
                 sender.sendMessage(addOns.toString());
             }
         } else {
-            if (ConfigCommandAddOn.getAddOn(message) != null) {
+            if (addOns.contains(message)) {
                 context = setContext(sender, context, message, FunctionsCommandHandler::chooseInternalArgument);
 
                 context.doNextStep(sender, "");
@@ -178,7 +177,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static String[] getAddOns(SuggestionInfo<CommandSender> ignored) {
-        return ConfigCommandAddOn.getAddOns().keySet().toArray(new String[0]);
+        return InternalArgument.getPluginsNamesWithInternalArguments().toArray(new String[0]);
     }
 
     private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context) {
@@ -202,7 +201,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
     private static String[] getInternalArguments(SuggestionInfo<CommandSender> info) {
         String addOn = (String) info.previousArgs()[0];
-        if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
+        if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
         return InternalArgument.getNames(internalArguments).toArray(new String[0]);
@@ -243,7 +242,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     private static String[] getFunctions(SuggestionInfo<CommandSender> info) {
         String addOn = (String) info.previousArgs()[0];
 
-        if (ConfigCommandAddOn.getAddOn(addOn) == null) return new String[0];
+        if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
@@ -283,7 +282,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     private static void displayInformation(CommandSender sender, CommandArguments args) {
         String addOn = args.getUnchecked("addOn");
 
-        if (ConfigCommandAddOn.getAddOn(addOn) == null) {
+        if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) {
             sender.sendMessage(ChatColor.RED + "Invalid command: AddOn \"" + addOn + "\" does not exist");
             return;
         }

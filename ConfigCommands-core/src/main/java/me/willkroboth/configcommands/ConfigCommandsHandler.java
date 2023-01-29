@@ -2,6 +2,7 @@ package me.willkroboth.configcommands;
 
 import me.willkroboth.configcommands.helperclasses.*;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
+import me.willkroboth.configcommands.internalarguments.RegisterMode;
 import me.willkroboth.configcommands.nms.NMS;
 import me.willkroboth.configcommands.nms.VersionHandler;
 import me.willkroboth.configcommands.registeredcommands.CommandTreeBuilder;
@@ -266,8 +267,8 @@ public class ConfigCommandsHandler {
         nms = VersionHandler.loadNMS();
         nms.initializeConsoleOpSender(Bukkit.getConsoleSender());
 
-        ConfigCommandAddOn.registerAllInternalArguments();
-
+        // TODO: Move to load method so ours always register first
+        InternalArgument.registerFromJavaPlugin(plugin, "me.willkroboth.configcommands.internalarguments", RegisterMode.INTERNAL_ARGUMENTS);
         InternalArgument.createFunctionMaps();
 
         CommandTreeBuilder.registerCommandsFromConfig(getConfigFile().getConfigurationSection("commands"), debugMode);

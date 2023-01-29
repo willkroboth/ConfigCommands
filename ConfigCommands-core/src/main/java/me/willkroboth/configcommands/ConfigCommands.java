@@ -1,22 +1,11 @@
 package me.willkroboth.configcommands;
 
-import me.willkroboth.configcommands.helperclasses.ConfigCommandAddOn;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * The JavaPlugin entry point for loading ConfigCommands on Bukkit
  */
-public class ConfigCommands extends ConfigCommandAddOn {
-    // ConfigCommands' information as an AddOn
-    @Override
-    protected String getPackageName() {
-        return "me.willkroboth.configcommands.internalarguments";
-    }
-
-    @Override
-    protected RegisterMode getRegisterMode() {
-        return RegisterMode.INTERNAL_ARGUMENTS;
-    }
-
+public class ConfigCommands extends JavaPlugin {
     // Enable
     @Override
     public void onEnable() {

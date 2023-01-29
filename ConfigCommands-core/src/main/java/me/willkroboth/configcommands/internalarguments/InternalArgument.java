@@ -16,8 +16,6 @@ import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.reflections.scanners.Scanners.SubTypes;
 
@@ -29,7 +27,9 @@ import static org.reflections.scanners.Scanners.SubTypes;
  * they implement {@link CommandArgument}.
  */
 public abstract class InternalArgument implements FunctionCreator {
-    // constructors
+    ////////////////////////////////
+    // SECTION : CREATING CLASSES //
+    ////////////////////////////////
 
     /**
      * Creates a new {@link InternalArgument}. This constructor is used when creating an object through
@@ -78,8 +78,15 @@ public abstract class InternalArgument implements FunctionCreator {
         }
     }
 
-    // providing and processing information related to InternalArguments
+    /////////////////////////////////////
+    // SECTION : PROVIDING INFORMATION //
+    /////////////////////////////////////
+
     private static final Map<String, List<InternalArgument>> pluginToInternalArguments = new HashMap<>();
+
+    public static Set<String> getPluginsNamesWithInternalArguments() {
+        return pluginToInternalArguments.keySet();
+    }
 
     /**
      * Gets a list of {@link InternalArgument} objects that were created by given plugin or had functions added
@@ -130,93 +137,79 @@ public abstract class InternalArgument implements FunctionCreator {
         return getInternalArgument(type).getName();
     }
 
-    // registering subclasses
+    //////////////////////////////////////
+    // SECTION : REGISTERING SUBCLASSES //
+    //////////////////////////////////////
+
+    // Reflections returns unparameterized sets that totally can be converted, Java just doesn't like it
+    private static <T> Set<T> convertSet(Set<?> set) {
+        return (Set<T>) set;
+    }
+
+    private static final List<Runnable> registerProcesses = new ArrayList<>();
+
     private static final List<Class<? extends InternalArgument>> foundClasses = new ArrayList<>();
+    private static final Map<String, CommandArgument> typeMap = new HashMap<>();
+
     private static final Map<Class<? extends InternalArgument>, InstanceFunctionList> instanceFunctions = new HashMap<>();
     private static final Map<Class<? extends InternalArgument>, StaticFunctionList> staticFunctions = new HashMap<>();
 
-    private static <T> Set<T> convertSet(Set<Class<?>> classes) {
-        return new HashSet<>((Collection<? extends T>) classes);
+    // Public methods that schedule register processes
+    public static void registerFromJavaPlugin(JavaPlugin plugin, String packageName) {
+        registerFromJavaPlugin(plugin, packageName, RegisterMode.All);
     }
 
-    /**
-     * Registers all {@link InternalArgument} and {@link FunctionAdder} subclasses in a given package.
-     *
-     * @param packageName The name of the package. This can be found on the first line of a java file, after the
-     *                    {@code package} keyword and before the semicolon. All classes in the given package and any
-     *                    enclosed package will be inspected, so be as specific as possible to avoid excessive searching.
-     * @param pluginName  The name of the plugin responsible for registering the classes.
-     * @param classLoader The {@link ClassLoader} responsible for loading the classes of interest. If you are loading
-     *                    classes from the same jar as your {@link JavaPlugin}, you can get this using
-     *                    {@code JavaPlugin#getClassLoader()}.
-     * @param debugMode   True if debug messages should be logged, and false otherwise.
-     * @param logger      The {@link Logger} to log messages in.
-     */
-    public static void registerFullPackage(String packageName, String pluginName, ClassLoader classLoader, boolean debugMode, Logger logger) {
-        logger.info("Registering InternalArguments and FunctionAdders for package: " + packageName + " with classLoader: " + classLoader);
-        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(packageName, classLoader));
-
-        Set<Class<?>> internalArguments = reflections.get(SubTypes.of(InternalArgument.class).asClass(classLoader));
-        if (debugMode)
-            logger.info("InternalArguments found:\n\t" + internalArguments.toString().replace(", ", ",\n\t"));
-        registerSetOfInternalArguments(convertSet(internalArguments), pluginName, debugMode, logger);
-
-        Set<Class<?>> functionAdders = reflections.get(SubTypes.of(FunctionAdder.class).asClass(classLoader));
-        if (debugMode) logger.info("FunctionAdders found:\n\t" + functionAdders.toString().replace(", ", ",\n\t"));
-        registerSetOfFunctionAdders(convertSet(functionAdders), pluginName, debugMode, logger);
+    public static void registerFromJavaPlugin(JavaPlugin plugin, String packageName, RegisterMode registerMode) {
+        registerFromPackage(packageName, plugin.getClass().getClassLoader(), registerMode, plugin.getName());
     }
 
-    /**
-     * Registers all {@link InternalArgument} subclasses in a given package.
-     *
-     * @param packageName The name of the package. This can be found on the first line of a java file, after the
-     *                    {@code package} keyword and before the semicolon. All classes in the given package and any
-     *                    enclosed package will be inspected, so be as specific as possible to avoid excessive searching.
-     * @param pluginName  The name of the plugin responsible for registering the classes.
-     * @param classLoader The {@link ClassLoader} responsible for loading the classes of interest. If you are loading
-     *                    classes from the same jar as your {@link JavaPlugin}, you can get this using
-     *                    {@code JavaPlugin#getClassLoader()}.
-     * @param debugMode   True if debug messages should be logged, and false otherwise.
-     * @param logger      The {@link Logger} to log messages in.
-     */
-    public static void registerPackageOfInternalArguments(String packageName, String pluginName, ClassLoader classLoader, boolean debugMode, Logger logger) {
-        logger.info("Registering InternalArguments for package: " + packageName + " with classLoader: " + classLoader);
+    public static void registerFromPackage(String packageName, ClassLoader classLoader, RegisterMode registerMode, String pluginName) {
+        registerProcesses.add(() -> {
+            ConfigCommandsHandler.logNormal("Registering %s for package: %s with ClassLoader: %s",
+                    switch (registerMode) {
+                        case All -> "InternalArguments and FunctionAdders";
+                        case INTERNAL_ARGUMENTS -> "InternalArguments";
+                        case FUNCTION_ADDERS -> "FunctionAdders";
+                    },
+                    packageName, classLoader
+            );
+            Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(packageName, classLoader));
 
-        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(packageName, classLoader));
-        Set<Class<?>> classes = reflections.get(SubTypes.of(InternalArgument.class).asClass(classLoader));
-        if (debugMode) logger.info("Classes found:\n\t" + classes.toString().replace(", ", ",\n\t"));
+            if(registerMode == RegisterMode.All || registerMode == RegisterMode.INTERNAL_ARGUMENTS) {
+                Set<Class<?>> internalArguments = reflections.get(SubTypes.of(InternalArgument.class).asClass(classLoader));
 
-        registerSetOfInternalArguments(convertSet(classes), pluginName, debugMode, logger);
+                ConfigCommandsHandler.logDebug("InternalArguments found:\n\t%s", internalArguments.toString().replace(", ", ",\n\t"));
+
+                registerInternalArgumentSet(convertSet(internalArguments), pluginName);
+            }
+            if(registerMode == RegisterMode.All || registerMode == RegisterMode.FUNCTION_ADDERS) {
+                Set<Class<?>> functionAdders = reflections.get(SubTypes.of(FunctionAdder.class).asClass(classLoader));
+
+                ConfigCommandsHandler.logDebug("FunctionAdders found:\n\t%s", functionAdders.toString().replace(", ", ",\n\t"));
+
+                registerFunctionAdderSet(convertSet(functionAdders), pluginName);
+            }
+        });
     }
 
-    /**
-     * Registers all {@link InternalArgument} classes in a given set.
-     *
-     * @param classes    The set of {@link InternalArgument} class objects to register.
-     * @param pluginName The name of the plugin responsible for registering the classes.
-     * @param debugMode  True if debug messages should be logged, and false otherwise.
-     * @param logger     The {@link Logger} to log messages in.
-     */
-    public static void registerSetOfInternalArguments(Set<Class<? extends InternalArgument>> classes, String pluginName, boolean debugMode, Logger logger) {
-        if (!pluginToInternalArguments.containsKey(pluginName.toLowerCase(Locale.ROOT)))
-            pluginToInternalArguments.put(pluginName.toLowerCase(Locale.ROOT), new ArrayList<>());
+    public static void registerFromInternalArgumentClassSet(Set<Class<? extends InternalArgument>> classes, String pluginName) {
+        registerProcesses.add(() -> registerInternalArgumentSet(classes, pluginName));
+    }
+
+    public static void registerFromFunctionAdderClassSet(Set<Class<? extends FunctionAdder>> classes, String pluginName) {
+        registerProcesses.add(() -> registerFunctionAdderSet(classes, pluginName));
+    }
+
+    // Private methods to actually register classes
+    private static void registerInternalArgumentSet(Set<Class<? extends InternalArgument>> classes, String pluginName) {
+        pluginName = pluginName.toLowerCase();
         for (Class<? extends InternalArgument> clazz : classes) {
-            registerInternalArgument(clazz, pluginName, debugMode, logger);
+            registerInternalArgument(clazz, pluginName);
         }
-        if (debugMode) logger.info("All classes registered");
+        ConfigCommandsHandler.logDebug("All classes registered");
     }
 
-    private static final Map<String, CommandArgument> typeMap = new HashMap<>();
-
-    /**
-     * Registers a single {@link InternalArgument} class.
-     *
-     * @param clazz      The {@link InternalArgument} class object to register.
-     * @param pluginName The name of the plugin responsible for registering the classes.
-     * @param debugMode  True if debug messages should be logged, and false otherwise.
-     * @param logger     The {@link Logger} to log messages in.
-     */
-    private static void registerInternalArgument(Class<? extends InternalArgument> clazz, String pluginName, boolean debugMode, Logger logger) {
+    private static void registerInternalArgument(Class<? extends InternalArgument> clazz, String pluginName) {
         if (clazz.isAssignableFrom(InternalVoidArgument.class)) return;
 
         InternalArgument object;
@@ -224,101 +217,69 @@ public abstract class InternalArgument implements FunctionCreator {
             object = getInternalArgument(clazz);
         } catch (IllegalArgumentException e) {
             // Make sure class can be turned into an object for future use
-            logger.log(Level.SEVERE, "Error when registering InternalArgument subclass: " + clazz.getSimpleName());
-            logger.log(Level.SEVERE, e.getMessage());
-            if (debugMode) e.printStackTrace();
+            ConfigCommandsHandler.logError("Error when registering InternalArgument subclass: %s", clazz.getSimpleName());
+            ConfigCommandsHandler.logError(e.getMessage());
+            if (ConfigCommandsHandler.isDebugMode()) e.printStackTrace();
             return;
         }
-        pluginToInternalArguments.get(pluginName.toLowerCase(Locale.ROOT)).add(object);
+
+        pluginToInternalArguments.computeIfAbsent(pluginName, (key) -> new ArrayList<>()).add(object);
 
         Expression.addToStaticClassMap(object);
         foundClasses.add(clazz);
 
         if (object instanceof CommandArgument ca) {
-            if (debugMode) logger.info(clazz + " can be added to commands");
+            ConfigCommandsHandler.logDebug("%s can be added to commands", clazz.getSimpleName());
             typeMap.put(ca.getTypeTag(), ca);
         }
     }
 
-    /**
-     * Registers all {@link FunctionAdder} subclasses in a given package.
-     *
-     * @param packageName The name of the package. This can be found on the first line of a java file, after the
-     *                    {@code package} keyword and before the semicolon. All classes in the given package and any
-     *                    enclosed package will be inspected, so be as specific as possible to avoid excessive searching.
-     * @param pluginName  The name of the plugin responsible for registering the classes.
-     * @param classLoader The {@link ClassLoader} responsible for loading the classes of interest. If you are loading
-     *                    classes from the same jar as your {@link JavaPlugin}, you can get this using
-     *                    {@code JavaPlugin#getClassLoader()}.
-     * @param debugMode   True if debug messages should be logged, and false otherwise.
-     * @param logger      The {@link Logger} to log messages in.
-     */
-    public static void registerPackageOfFunctionAdders(String packageName, String pluginName, ClassLoader classLoader, boolean debugMode, Logger logger) {
-        logger.info("Registering FunctionAdders for package: " + packageName + " with classLoader: " + classLoader);
-
-        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(packageName, classLoader));
-        Set<Class<?>> classes = reflections.get(SubTypes.of(FunctionAdder.class).asClass(classLoader));
-        if (debugMode) logger.info("Classes found:\n\t" + classes.toString().replace(", ", ",\n\t"));
-
-        registerSetOfFunctionAdders(convertSet(classes), pluginName, debugMode, logger);
-    }
-
-    /**
-     * Registers all {@link FunctionAdder} classes in a given set.
-     *
-     * @param classes    The set of {@link FunctionAdder} class objects to register.
-     * @param pluginName The name of the plugin responsible for registering the classes.
-     * @param debugMode  True if debug messages should be logged, and false otherwise.
-     * @param logger     The {@link Logger} to log messages in.
-     */
-    public static void registerSetOfFunctionAdders(Set<Class<? extends FunctionAdder>> classes, String pluginName, boolean debugMode, Logger logger) {
-        if (!pluginToInternalArguments.containsKey(pluginName.toLowerCase(Locale.ROOT)))
-            pluginToInternalArguments.put(pluginName.toLowerCase(Locale.ROOT), new ArrayList<>());
+    private static void registerFunctionAdderSet(Set<Class<? extends FunctionAdder>> classes, String pluginName) {
+        pluginName = pluginName.toLowerCase();
         for (Class<? extends FunctionAdder> clazz : classes) {
-            registerFunctionAdder(clazz, pluginName, debugMode, logger);
+            registerFunctionAdder(clazz, pluginName);
         }
-        if (debugMode) logger.info("All classes registered");
+        ConfigCommandsHandler.logDebug("All classes registered");
     }
 
-    /**
-     * Registers a single {@link FunctionAdder} class.
-     *
-     * @param clazz      The {@link FunctionAdder} class object to register.
-     * @param pluginName The name of the plugin responsible for registering the classes.
-     * @param debugMode  True if debug messages should be logged, and false otherwise.
-     * @param logger     The {@link Logger} to log messages in.
-     */
-    private static void registerFunctionAdder(Class<? extends FunctionAdder> clazz, String pluginName, boolean debugMode, Logger logger) {
+    private static void registerFunctionAdder(Class<? extends FunctionAdder> clazz, String pluginName) {
         FunctionAdder object;
         try {
             object = getFunctionAdder(clazz);
         } catch (IllegalArgumentException e) {
-            logger.log(Level.SEVERE, "Error when registering FunctionAdder: " + clazz.getSimpleName());
-            logger.log(Level.SEVERE, e.getMessage());
-            if (debugMode) e.printStackTrace();
+            ConfigCommandsHandler.logError("Error when registering FunctionAdder: %s", clazz.getSimpleName());
+            ConfigCommandsHandler.logError(e.getMessage());
+            if (ConfigCommandsHandler.isDebugMode()) e.printStackTrace();
             return;
         }
+
+        Class<? extends InternalArgument> classToAddTo = object.getClassToAddTo();
         InternalArgument subObject;
         try {
-            subObject = getInternalArgument(object.getClassToAddTo());
+            subObject = getInternalArgument(classToAddTo);
         } catch (IllegalArgumentException e) {
-            logger.warning("Could not turn FunctionAdder's (" + clazz + ") InternalArgument (" + object.getClassToAddTo() + ") into an object");
-            if (debugMode) e.printStackTrace();
+           ConfigCommandsHandler.logError("Could not turn FunctionAdder's (%s) InternalArgument (%s) into an object", clazz, object.getClassToAddTo());
+            if (ConfigCommandsHandler.isDebugMode()) e.printStackTrace();
             return;
         }
 
-        pluginToInternalArguments.get(pluginName.toLowerCase(Locale.ROOT)).add(subObject);
+        pluginToInternalArguments.computeIfAbsent(pluginName, (key) -> new ArrayList<>()).add(subObject);
 
-        addInstanceFunctions(object.getClassToAddTo(), object.getAddedFunctions());
-        addStaticFunctions(object.getClassToAddTo(), object.getAddedStaticFunctions());
+        addInstanceFunctions(classToAddTo, object.getAddedFunctions());
+        addStaticFunctions(classToAddTo, object.getAddedStaticFunctions());
     }
 
+    // Register classes and use them to set up functions
     /**
-     * Creates the function maps used when checking if {@link InternalArgument} classes have certain functions. This
-     * calls {@link InternalArgument#getInstanceFunctions()} and {@link InternalArgument#getStaticFunctions()} on every
-     * registered {@link InternalArgument}.
+     * Loads {@link InternalArgument} and {@link FunctionAdder} classes, then creates the function maps. First, this
+     * runs all the processes setup by calls to the methods {@link InternalArgument#registerFromPackage(String, ClassLoader, RegisterMode, String)},
+     * {@link InternalArgument#registerFromInternalArgumentClassSet(Set, String)}, and {@link InternalArgument#registerFromFunctionAdderClassSet(Set, String)}.
+     * Then, {@link InternalArgument#getInstanceFunctions()} and {@link InternalArgument#getStaticFunctions()} are called
+     * on every registered {@link InternalArgument} to set up the function maps.
      */
     public static void createFunctionMaps() {
+        registerProcesses.forEach(Runnable::run);
+
         ConfigCommandsHandler.logNormal("");
         ConfigCommandsHandler.logNormal("Initializing function maps");
         ConfigCommandsHandler.increaseIndentation();
@@ -350,105 +311,11 @@ public abstract class InternalArgument implements FunctionCreator {
         ConfigCommandsHandler.decreaseIndentation();
     }
 
-    /**
-     * Formats an argument name to work with the {@link Expression} format. This format is {@code <name>}.
-     * If the given name doesn't start with &lt;, that is added, and if the name doesn't start with &gt;, that is added.
-     *
-     * @param name The name to format.
-     * @return The formatted name.
-     */
-    public static String formatArgumentName(String name) {
-        if (!name.startsWith("<")) {
-            name = "<" + name;
-        }
-        if (!name.endsWith(">")) {
-            name = name + ">";
-        }
-        return name;
-    }
+    /////////////////////////
+    // SECTION : FUNCTIONS //
+    /////////////////////////
 
-    /**
-     * Returns the set of Strings that are valid inputs to the second parameter of
-     * {@link InternalArgument#convertArgumentInformation(String, String, Map, Object, boolean)},
-     * or the names of the registered {@link CommandArgument}
-     *
-     * @return The set of Strings that can be used as an argument type in commands.
-     */
-    public static Set<String> getArgumentTypes() {
-        return typeMap.keySet();
-    }
-
-    /**
-     * Converts ConfigCommands config information into a CommandAPI {@link Argument} object, based on
-     * the registered {@link CommandArgument} classes.
-     *
-     * @param name            The node name for the {@link Argument}.
-     * @param type            The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
-     * @param argumentClasses A map from name to {@link InternalArgument} class objects that represent each argument already available in this command.
-     *                        This method adds the new argument to this map, formatting the name first using {@link InternalArgument#formatArgumentName(String)}.
-     * @param argumentInfo    The argument info object, taken from the config file using {@link FileConfiguration#get(String)}.
-     * @param localDebug      True if debug messages should be sent, and false otherwise.
-     * @return A CommandAPI {@link Argument} that represents the given information.
-     * @throws IncorrectArgumentKey If a key describing the argument is incorrect.
-     */
-    public static Argument<?> convertArgumentInformation(String name, String type,
-                                                         Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                                         Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
-        if (!typeMap.containsKey(type))
-            throw new IncorrectArgumentKey(name, "type", "\"" + type + "\" is not a recognized type that can be added to a command.");
-
-        CommandArgument object = typeMap.get(type);
-        String argumentName = formatArgumentName(name);
-        argumentClasses.put(argumentName, object.myClass());
-        ConfigCommandsHandler.logDebug(localDebug, "Argument %s available as %s", argumentName, object.getClass().getSimpleName());
-        try {
-            return object.createArgument(name, argumentInfo, localDebug);
-        } catch (RuntimeException e) {
-            throw new IncorrectArgumentKey(name, "argumentInfo", e.getMessage());
-        }
-    }
-
-    /**
-     * Passes editing argument information to the correct {@link CommandArgument#editArgumentInfo(CommandSender, String, ConfigurationSection, Object)}
-     * method based on the type given.
-     *
-     * @param sender       The {@link CommandSender} editing the information.
-     * @param message      The message to process.
-     * @param argument     The {@link ConfigurationSection} that holds all the information for the argument.
-     *                     This is useful if argumentInfo object is null and a new section for the argumentInfo
-     *                     needs to be created.
-     * @param type         The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
-     * @param argumentInfo The current argumentInfo object, gotten by running {@code argument.get("argumentInfo")}.
-     * @return true if the user is done editing the argumentInfo, and false if more steps need to happen.
-     */
-    public static boolean passEditArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, String type, @Nullable Object argumentInfo) {
-        return typeMap.get(type).editArgumentInfo(sender, message, argument, argumentInfo);
-    }
-
-    /**
-     * Turns an argumentInfo object into an array of Strings based on the registered {@link CommandArgument} types.
-     *
-     * @param type         The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
-     * @param argumentInfo The current argumentInfo object, gotten by running {@code argument.get("argumentInfo")}.
-     * @return An array of Strings that represent the argumentInfo object.
-     */
-    public static String[] formatArgumentInfo(String type, @Nullable Object argumentInfo) {
-        return typeMap.get(type).formatArgumentInfo(argumentInfo);
-    }
-
-    // defining important variables for logic and function
-
-    /**
-     * @return The name of this InternalArgument. The default implementation of this method assumes the class name is
-     * {@code Internal[name]Argument}.
-     */
-    public String getName() {
-        String name = this.getClass().getSimpleName();
-        name = name.substring(8, name.length() - 8);
-        return name;
-    }
-
-    // manage function arrays
+    // Creating function maps
     private static final Map<Class<? extends InternalArgument>, InstanceFunctionList> addedInstanceFunctions = new HashMap<>();
 
     /**
@@ -557,7 +424,7 @@ public abstract class InternalArgument implements FunctionCreator {
         return addedStaticFunctions.getOrDefault(clazz, new StaticFunctionList());
     }
 
-    // interacts with functions
+    // Instance methods for checking for and running functions
 
     /**
      * Checks if this {@link InternalArgument} has an {@link InstanceFunction} with the given signature.
@@ -637,7 +504,111 @@ public abstract class InternalArgument implements FunctionCreator {
         return staticFunctions.get(myClass()).getFunction(function, parameterTypes).run(parameters);
     }
 
-    // abstract functions for dealing with value
+    ////////////////////////////////////////////
+    // SECTION : ADDING ARGUMENTS TO COMMANDS //
+    ///////////////////////////////////////////
+
+    /**
+     * Formats an argument name to work with the {@link Expression} format. This format is {@code <name>}.
+     * If the given name doesn't start with &lt;, that is added, and if the name doesn't start with &gt;, that is added.
+     *
+     * @param name The name to format.
+     * @return The formatted name.
+     */
+    public static String formatArgumentName(String name) {
+        if (!name.startsWith("<")) {
+            name = "<" + name;
+        }
+        if (!name.endsWith(">")) {
+            name = name + ">";
+        }
+        return name;
+    }
+
+    /**
+     * Returns the set of Strings that are valid inputs to the second parameter of
+     * {@link InternalArgument#convertArgumentInformation(String, String, Map, Object, boolean)},
+     * or the names of the registered {@link CommandArgument}
+     *
+     * @return The set of Strings that can be used as an argument type in commands.
+     */
+    public static Set<String> getArgumentTypes() {
+        return typeMap.keySet();
+    }
+
+    /**
+     * Converts ConfigCommands config information into a CommandAPI {@link Argument} object, based on
+     * the registered {@link CommandArgument} classes.
+     *
+     * @param name            The node name for the {@link Argument}.
+     * @param type            The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
+     * @param argumentClasses A map from name to {@link InternalArgument} class objects that represent each argument already available in this command.
+     *                        This method adds the new argument to this map, formatting the name first using {@link InternalArgument#formatArgumentName(String)}.
+     * @param argumentInfo    The argument info object, taken from the config file using {@link FileConfiguration#get(String)}.
+     * @param localDebug      True if debug messages should be sent, and false otherwise.
+     * @return A CommandAPI {@link Argument} that represents the given information.
+     * @throws IncorrectArgumentKey If a key describing the argument is incorrect.
+     */
+    public static Argument<?> convertArgumentInformation(String name, String type,
+                                                         Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                         Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+        if (!typeMap.containsKey(type))
+            throw new IncorrectArgumentKey(name, "type", "\"" + type + "\" is not a recognized type that can be added to a command.");
+
+        CommandArgument object = typeMap.get(type);
+        String argumentName = formatArgumentName(name);
+        argumentClasses.put(argumentName, object.myClass());
+        ConfigCommandsHandler.logDebug(localDebug, "Argument %s available as %s", argumentName, object.getClass().getSimpleName());
+        try {
+            return object.createArgument(name, argumentInfo, localDebug);
+        } catch (RuntimeException e) {
+            throw new IncorrectArgumentKey(name, "argumentInfo", e.getMessage());
+        }
+    }
+
+    /**
+     * Passes editing argument information to the correct {@link CommandArgument#editArgumentInfo(CommandSender, String, ConfigurationSection, Object)}
+     * method based on the type given.
+     *
+     * @param sender       The {@link CommandSender} editing the information.
+     * @param message      The message to process.
+     * @param argument     The {@link ConfigurationSection} that holds all the information for the argument.
+     *                     This is useful if argumentInfo object is null and a new section for the argumentInfo
+     *                     needs to be created.
+     * @param type         The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
+     * @param argumentInfo The current argumentInfo object, gotten by running {@code argument.get("argumentInfo")}.
+     * @return true if the user is done editing the argumentInfo, and false if more steps need to happen.
+     */
+    public static boolean passEditArgumentInfo(CommandSender sender, String message, ConfigurationSection argument, String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).editArgumentInfo(sender, message, argument, argumentInfo);
+    }
+
+    /**
+     * Turns an argumentInfo object into an array of Strings based on the registered {@link CommandArgument} types.
+     *
+     * @param type         The type of the {@link CommandArgument}. The valid Strings for this parameter is given by {@link InternalArgument#getArgumentTypes()}.
+     * @param argumentInfo The current argumentInfo object, gotten by running {@code argument.get("argumentInfo")}.
+     * @return An array of Strings that represent the argumentInfo object.
+     */
+    public static String[] formatArgumentInfo(String type, @Nullable Object argumentInfo) {
+        return typeMap.get(type).formatArgumentInfo(argumentInfo);
+    }
+
+    ////////////////////////////////////
+    // SECTION : INSTANCE INFORMATION //
+    ////////////////////////////////////
+
+    /**
+     * @return The name of this InternalArgument. The default implementation of this method assumes the class name is
+     * {@code Internal[name]Argument}.
+     */
+    public String getName() {
+        String name = this.getClass().getSimpleName();
+        name = name.substring(8, name.length() - 8);
+        return name;
+    }
+
+    // Value related methods
 
     /**
      * Sets the internal value of this {@link InternalArgument} to the given object.
@@ -663,7 +634,7 @@ public abstract class InternalArgument implements FunctionCreator {
      */
     public abstract String forCommand();
 
-    // class managing methods
+    // Class related methods
     @Override
     public Class<? extends InternalArgument> myClass() {
         return getClass();
