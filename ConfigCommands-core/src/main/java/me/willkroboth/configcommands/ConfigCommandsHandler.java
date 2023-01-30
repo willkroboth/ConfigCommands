@@ -23,10 +23,12 @@ import java.util.function.Function;
  * The main class for handling the ConfigCommands plugin
  */
 public class ConfigCommandsHandler {
-    // plugin instance
+    // Plugin instance
     private static ConfigCommands plugin;
 
-    // debug mode
+    //////////////////////////
+    // SECTION : DEBUG MODE //
+    //////////////////////////
     private static GlobalDebugValue debugMode;
 
     /**
@@ -53,7 +55,9 @@ public class ConfigCommandsHandler {
         debugMode.setDebug(debug);
     }
 
-    // Config file
+    /////////////////////////////
+    // SECTION : CONFIGURATION //
+    /////////////////////////////
 
     /**
      * @return The {@link FileConfiguration} object that holds ConfigCommand's config file.
@@ -76,7 +80,9 @@ public class ConfigCommandsHandler {
         plugin.reloadConfig();
     }
 
-    // NMS
+    ///////////////////
+    // SECTION : NMS //
+    ///////////////////
     private static NMS nms;
 
     /**
@@ -86,7 +92,9 @@ public class ConfigCommandsHandler {
         return nms;
     }
 
-    // logging
+    ///////////////////////
+    // SECTION : LOGGING //
+    ///////////////////////
     private static IndentedLogger logger;
 
     /**
@@ -186,7 +194,9 @@ public class ConfigCommandsHandler {
         logger.error(message, objects);
     }
 
-    // Reflection
+    //////////////////////////
+    // SECTION : REFLECTION //
+    //////////////////////////
     private static final Map<FieldKey, Field> fieldCache = new HashMap<>();
     private static final Function<FieldKey, Field> fieldKeyMapper = (key) -> {
         try {
@@ -247,15 +257,16 @@ public class ConfigCommandsHandler {
     private record MethodKey(Class<?> clazz, String name, Class<?>... parameterTypes) {
     }
 
-
-    // Enable tasks
+    ///////////////////////
+    // SECTION : STARTUP //
+    ///////////////////////
 
     /**
-     * Enables the ConfigCommands plugin.
+     * Loads the ConfigCommands plugin.
      *
      * @param plugin The {@link ConfigCommands} plugin object.
      */
-    public static void enable(ConfigCommands plugin) {
+    public static void onLoad(ConfigCommands plugin) {
         ConfigCommandsHandler.plugin = plugin;
 
         logger = new IndentedLogger(plugin.getLogger());
@@ -267,8 +278,13 @@ public class ConfigCommandsHandler {
         nms = VersionHandler.loadNMS();
         nms.initializeConsoleOpSender(Bukkit.getConsoleSender());
 
-        // TODO: Move to load method so ours always register first
         InternalArgument.registerFromJavaPlugin(plugin, "me.willkroboth.configcommands.internalarguments", RegisterMode.INTERNAL_ARGUMENTS);
+    }
+
+    /**
+     * Enables the ConfigCommands plugin.
+     */
+    public static void enable() {
         InternalArgument.createFunctionMaps();
 
         CommandTreeBuilder.registerCommandsFromConfig(getConfigFile().getConfigurationSection("commands"), debugMode);
