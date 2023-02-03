@@ -200,7 +200,7 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static String[] getInternalArguments(SuggestionInfo<CommandSender> info) {
-        String addOn = (String) info.previousArgs()[0];
+        String addOn = (String) info.previousArgs().get(0);
         if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
@@ -240,18 +240,18 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static String[] getFunctions(SuggestionInfo<CommandSender> info) {
-        String addOn = (String) info.previousArgs()[0];
+        String addOn = (String) info.previousArgs().get(0);
 
         if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
         List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
         List<String> names = InternalArgument.getNames(internalArguments);
-        String internalArgument = (String) info.previousArgs()[1];
+        String internalArgument = (String) info.previousArgs().get(1);
         if (!names.contains(internalArgument)) return new String[0];
         InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
 
-        String staticChoice = (String) info.previousArgs()[2];
+        String staticChoice = (String) info.previousArgs().get(2);
         if (staticChoice.equals("static")) {
             return InternalArgument.getStaticFunctionsFor(argument.getClass()).getNames();
         } else if (staticChoice.equals("nonStatic")) {
