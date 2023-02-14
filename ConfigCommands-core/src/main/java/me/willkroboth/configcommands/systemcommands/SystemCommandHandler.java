@@ -41,6 +41,7 @@ public abstract class SystemCommandHandler {
                 new HelpCommandHandler(),
                 new FunctionsCommandHandler(),
                 new BuildCommandHandler(),
+                new FunctionLineCommandHandler(),
                 new ReloadCommandHandler(),
                 new DebugCommandHandler()
         ));

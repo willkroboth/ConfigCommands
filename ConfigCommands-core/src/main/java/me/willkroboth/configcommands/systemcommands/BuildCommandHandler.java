@@ -1,5 +1,6 @@
 package me.willkroboth.configcommands.systemcommands;
 
+import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.executors.CommandArguments;
 import dev.jorel.commandapi.executors.ExecutorType;
@@ -339,6 +340,9 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         List<String> commandList = command.getStringList("executes");
 
         if (message.isBlank()) {
+            // Update requirements to let them know they can use /configcommands functionline
+            if(sender instanceof Player p) CommandAPI.updateRequirements(p);
+
             if (commandList.size() == 0) {
                 sender.sendMessage("No commands");
                 sender.sendMessage("Type a new command");
@@ -355,6 +359,9 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         } else if (message.equalsIgnoreCase("back")) {
             context = goBack(sender, 1, context);
             context.doNextStep(sender, "");
+
+            // Update requirements to let them know they can not use /configcommands functionline
+            if(sender instanceof Player p) CommandAPI.updateRequirements(p);
         } else if (message.matches("\\d+")) {
             int target = Integer.parseInt(message);
             if (0 <= target && target < commandList.size()) {
@@ -390,10 +397,36 @@ public class BuildCommandHandler extends SystemCommandHandler implements Listene
         } else if (message.equals("functions")) {
             FunctionsCommandHandler.addUser(sender, null);
             passToFunctionCommand.add(sender);
+
+            // Update requirements to let them know they can not use /configcommands functionline
+            if(sender instanceof Player p) CommandAPI.updateRequirements(p);
+        } else if (message.startsWith("/configcommands functionline")) {
+            String parsed = FunctionLineCommandHandler.parseCommand(message);
+
+            context = setContext(sender, context, parsed, BuildCommandHandler::addCommand);
+            context.doNextStep(sender, "");
+
+            // Update requirements to let them know they can not use /configcommands functionline
+            if(sender instanceof Player p) CommandAPI.updateRequirements(p);
         } else {
             context = setContext(sender, context, message, BuildCommandHandler::addCommand);
             context.doNextStep(sender, "");
+
+            // Update requirements to let them know they can not use /configcommands functionline
+            if(sender instanceof Player p) CommandAPI.updateRequirements(p);
         }
+    }
+
+    // Accessed by FunctionLineCommandHandler
+    protected static boolean canUseFunctionLine(CommandSender sender) {
+        CommandContext context = activeUsers.get(sender);
+        if(context == null) return false;
+
+        if(passToFunctionCommand.contains(sender)) return false;
+
+        // Put the lambda into a variable for Java to realize it is an object
+        CommandStep step = BuildCommandHandler::editExecutes;
+        return context.nextStep().equals(step);
     }
 
     private static void addCommand(CommandSender sender, String message, CommandContext context) {
