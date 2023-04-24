@@ -5,6 +5,7 @@ import me.willkroboth.configcommands.functions.InstanceFunction;
 import me.willkroboth.configcommands.functions.InstanceFunctionList;
 import me.willkroboth.configcommands.functions.Parameter;
 import me.willkroboth.configcommands.nms.OpSender;
+import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -97,7 +98,12 @@ public class InternalCommandSenderArgument extends InternalArgument {
 
                                     OpSender targetOpSender = ((InternalCommandSenderArgument) target).getOpSender();
                                     try {
-                                        targetOpSender.getServer().dispatchCommand(targetOpSender, command);
+                                        // Note: this used to say `targetOpSender.getServer().dispatchCommand...`
+                                        //  However, that didn't work for the ConsoleOpSender because it is a singleton
+                                        //  and holds an independent CommandMap that dosen't have commands registered to
+                                        //  it, causing command calls to be not found. Using Bukkit.getServer() is
+                                        //  instead is probably fine.
+                                        Bukkit.getServer().dispatchCommand(targetOpSender, command);
                                     } catch (CommandException e) {
                                         throw new CommandRunException(e);
                                     }
