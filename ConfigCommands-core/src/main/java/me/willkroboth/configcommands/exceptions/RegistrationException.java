@@ -15,5 +15,15 @@ public class RegistrationException extends Exception {
     public RegistrationException(String errorMessage) {
         super(errorMessage);
     }
+
+    /**
+     * Creates a new {@link RegistrationException}.
+     *
+     * @param errorMessage The reason why this exception was thrown.
+     * @param cause A {@link Throwable} that caused this exception
+     */
+    public RegistrationException(String errorMessage, Throwable cause) {
+        super(errorMessage, cause);
+    }
 }
 

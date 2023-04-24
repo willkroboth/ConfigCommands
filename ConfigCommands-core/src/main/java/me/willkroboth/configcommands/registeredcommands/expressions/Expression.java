@@ -1,5 +1,6 @@
 package me.willkroboth.configcommands.registeredcommands.expressions;
 
+import com.mojang.brigadier.StringReader;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.ParseException;
@@ -35,7 +36,10 @@ public abstract class Expression {
         return staticClassMap;
     }
 
-    // TODO: Extract to reduce nesting and increase understandability
+    //////////////////////////////////////////////////////////////////////////////////
+    // PARSE EXPRESSION                                                             //
+    // Decides if the String starts with a StringConstant, Variable, or StaticClass //
+    //////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Converts a String into an {@link Expression} object.
@@ -49,251 +53,372 @@ public abstract class Expression {
      */
     public static Expression parseExpression(String string, Map<String, Class<? extends InternalArgument>> argumentClasses,
                                              boolean localDebug) throws ParseException {
-        if (string.charAt(0) == '"' && string.charAt(string.length() - 1) == '"') {
-            // basic string for basic initialization
-            return new StringConstant(string.substring(1, string.length() - 1));
-        }
-        boolean isStringConstant = string.charAt(0) == '"';
-
-        // parsing variables
-        StringBuilder wordBuild = new StringBuilder();
-        int parseMode = isStringConstant ? -1 : 0;
-        // -1- reading string constant in function chain (until '"') - goes to 1
-        // 0 - reading target variable/static class (until '.') - goes to 1
-        // 1 - reading function (until '(') - goes to 2
-        // 2 - reading parameters (between ( ), may have multiple layers, separated by ', ',
-        //                          recursively calls to parse each section) - goes to 1
-        int parenthesisDepth = 0;
-
-        // output variables
-        Expression targetExpression = null;
-        InternalArgument target = null;
-        String function = "";
-        List<Expression> parameterExpressions = new ArrayList<>();
-
-        InternalArgument staticClass = null;
-        boolean isStaticClass = false;
-
-        if (localDebug) {
-            ConfigCommandsHandler.logNormal("Parsing expression: %s", string);
-            ConfigCommandsHandler.increaseIndentation();
-        }
+        ConfigCommandsHandler.logDebug(localDebug, "Parsing expression: %s", string);
+        ConfigCommandsHandler.increaseIndentation();
 
         try {
-            for (int i = 0; i < string.length(); i++) {
-                char c = string.charAt(i);
-                switch (parseMode) {
-                    case -1: // reading string constant
-                        if (c == '"') {
-                            if (i != 0) {
-                                //skip first "
-                                ConfigCommandsHandler.logDebug(localDebug, "String constant built as \"%s\"", wordBuild);
-                                targetExpression = new StringConstant(wordBuild.toString());
+            StringReader stringReader = new StringReader(string);
+            if(string.length() == 0) throw new ParseException(stringReader, "Cannot parse empty string!");
 
-                                // know at least one char after "constant"_, needs to be .,  then another
-                                if (string.charAt(i + 1) != '.')
-                                    throw new ParseException(string, "Invalid expression. Expected '.' after string constant, got '" + string.charAt(i + 1) + "'");
-                                if (i + 2 >= string.length())
-                                    throw new ParseException(string, "Expression ended early. Expected function after '\"constant\".'.");
-
-                                i += 1;
-                                parseMode = 1;
-                                wordBuild = new StringBuilder();
-                            }
-                        } else {
-                            wordBuild.append(c);
-                        }
-                        break;
-                    case 0: // reading variable/static class
-                        if (c == '.') {
-                            String word = wordBuild.toString();
-                            ConfigCommandsHandler.logDebug(localDebug, "Target built as \"%s\"", word);
-
-                            isStaticClass = staticClassMap.containsKey(word);
-                            if (isStaticClass) {
-                                staticClass = staticClassMap.get(word);
-                                ConfigCommandsHandler.logDebug(localDebug, "Target identified as a static class");
-
-                                if (i + 1 >= string.length())
-                                    throw new ParseException(string, "Expression ended early. Expected function after \"class.\".");
-                            } else {
-                                if (!(word.charAt(0) == '<' && word.charAt(word.length() - 1) == '>'))
-                                    throw new ParseException(string, "Target \"" + word + "\" Does not match constant class or variable format.");
-                                if (!argumentClasses.containsKey(word))
-                                    throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
-                                ConfigCommandsHandler.logDebug(localDebug, "Target identified as valid variable.");
-
-                                targetExpression = new Variable(word);
-                                if (i + 1 >= string.length())
-                                    throw new ParseException(string, "Expression ended early. Expected function after \"variable.\".");
-                            }
-                            parseMode = 1;
-                            wordBuild = new StringBuilder();
-                        } else {
-                            wordBuild.append(c);
-                        }
-                        break;
-                    case 1: // reading function name
-                        if (c == '(') {
-                            function = wordBuild.toString();
-                            ConfigCommandsHandler.logDebug(localDebug, "Function name built as \"%s\"", function);
-
-                            parseMode = 2;
-                            parenthesisDepth = 1;
-                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is 1");
-
-                            wordBuild = new StringBuilder();
-                        } else {
-                            wordBuild.append(c);
-                        }
-                        break;
-                    case 2: // reading parameters
-                        if (c == '(') {
-                            parenthesisDepth += 1;
-                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is %s", parenthesisDepth);
-                            wordBuild.append(c);
-                        } else if (c == ')') {
-                            parenthesisDepth -= 1;
-                            ConfigCommandsHandler.logDebug(localDebug, "parenthesisDepth is %s", parenthesisDepth);
-
-                            if (parenthesisDepth != 0) {
-                                wordBuild.append(c);
-                            } else {
-                                // Final parameter
-                                String word = wordBuild.toString();
-                                if (!word.isEmpty()) {
-                                    ConfigCommandsHandler.logDebug(localDebug, "Final parameter built as \"%s\"", word);
-
-                                    Expression parameter;
-                                    try {
-                                        parameter = parseExpression(word, argumentClasses, localDebug);
-                                    } catch (ParseException e) {
-                                        throw new ParseException(string, "\n" + e.getMessage());
-                                    }
-                                    ConfigCommandsHandler.logDebug(localDebug, "Parameter successfully parsed");
-
-                                    parameterExpressions.add(parameter);
-                                }
-                                wordBuild = new StringBuilder();
-
-                                // prepare and go to 1 to read a new function
-                                ConfigCommandsHandler.logDebug(localDebug, "Creating new FunctionCall expression");
-
-                                if (!isStaticClass) {
-                                    try {
-                                        assert targetExpression != null;
-                                        target = InternalArgument.getInternalArgument(targetExpression.getEvaluationType(argumentClasses));
-                                    } catch (IllegalArgumentException e) {
-                                        throw new ParseException(string, "Could not turn InternalArgument class returned by expression: \""
-                                                + targetExpression + "\" (" + targetExpression.getEvaluationType(argumentClasses) + ") into an object. " +
-                                                "This issue must be fixed in the plugin's code, so please contact the plugin's author.");
-                                    }
-
-                                    if (localDebug) {
-                                        ConfigCommandsHandler.logNormal("target is type " + target.getClass().getSimpleName());
-                                        ConfigCommandsHandler.logNormal("function is " + function);
-                                    }
-                                }
-
-                                List<Class<? extends InternalArgument>> parameters = new ArrayList<>();
-                                for (Expression parameterExpression : parameterExpressions) {
-                                    parameters.add(parameterExpression.getEvaluationType(argumentClasses));
-                                }
-                                if (localDebug) {
-                                    StringBuilder parametersString = new StringBuilder("[");
-                                    if (parameters.size() != 0) {
-                                        for (Class<? extends InternalArgument> parameter : parameters) {
-                                            parametersString.append(parameter.getSimpleName());
-                                            parametersString.append(", ");
-                                        }
-                                        parametersString.delete(parametersString.length() - 2, parametersString.length());
-                                    }
-                                    parametersString.append("]");
-                                    ConfigCommandsHandler.logNormal("parameter types are %s", parametersString);
-                                }
-
-                                if (isStaticClass) {
-                                    if (!staticClass.hasStaticFunction(function, parameters))
-                                        throw new ParseException(string, "Invalid static function \"" + function + "\" on " + staticClass + " with parameters " + parameters + ". Static function does not exist.");
-                                } else {
-                                    if (!target.hasInstanceFunction(function, parameters))
-                                        throw new ParseException(string, "Invalid function \"" + function + "\" on " + target + " with parameters " + parameters + ". Function does not exist.");
-                                }
-
-                                ConfigCommandsHandler.logDebug(localDebug, "target was found to have function");
-
-                                if (isStaticClass) {
-                                    targetExpression = new StaticFunctionCall(staticClass, function, parameterExpressions);
-                                    // if function is being chained, no longer using a static class name
-                                    isStaticClass = false;
-                                } else {
-                                    targetExpression = new InstanceFunctionCall(targetExpression, function, parameterExpressions);
-                                }
-
-                                function = "";
-                                parameterExpressions = new ArrayList<>();
-
-                                i++; // skip '.'
-                                if (i >= string.length()) {
-                                    ConfigCommandsHandler.logDebug(localDebug, "End of expression. The function call will be returned.");
-                                    return targetExpression;
-                                }
-                                if (string.charAt(i) != '.')
-                                    throw new ParseException(string, "Expected '.' or nothing at all after closing a function. Found '" + string.charAt(i) + "' instead.");
-                                parseMode = 1; // go back to reading a function, so they can be chained
-                            }
-                        } else if (parenthesisDepth == 1 && c == ',') {
-                            // new parameter
-                            String word = wordBuild.toString();
-                            ConfigCommandsHandler.logDebug(localDebug, "New parameter built as \"%s\"", word);
-
-                            Expression parameter;
-                            try {
-                                parameter = parseExpression(word, argumentClasses, localDebug);
-                            } catch (ParseException e) {
-                                throw new ParseException(string, "\n" + e.getMessage());
-                            }
-                            ConfigCommandsHandler.logDebug(localDebug, "Parameter successfully parsed");
-
-                            parameterExpressions.add(parameter);
-                            if (string.charAt(i + 1) == ' ') {
-                                i++; // skip ' ' if used to separate parameters
-                            }
-                            wordBuild = new StringBuilder();
-                        } else {
-                            wordBuild.append(c);
-                        }
-                }
-            }
-
-            ConfigCommandsHandler.logDebug(localDebug, "End of expression reached without returning anything.");
-            switch (parseMode) {
-                // reading string constant
-                case -1 ->
-                        throw new ParseException(string, "Expression ended early. Expected statement staring with \" to be closed by \"");
-                // reading variable
-                case 0 -> {
-                    String word = wordBuild.toString();
-                    // expression is just a variable name
-                    if (!(word.charAt(0) == '<' && word.charAt(word.length() - 1) == '>'))
-                        throw new ParseException(string, "Target \"" + word + "\" Does not match variable format.");
-                    if (!argumentClasses.containsKey(word))
-                        throw new ParseException(string, "Variable \"" + word + "\" dose not exist at this point. Must be declared in usage or earlier set command.");
-                    ConfigCommandsHandler.logDebug(localDebug, "Expression found to be a valid variable reference");
-                    targetExpression = new Variable(word);
-                    return targetExpression;
-                }
-                // reading function name
-                case 1 -> throw new ParseException(string, "Expression ended early. Expected ( after function name.");
-                // reading parameters
-                case 2 ->
-                        throw new ParseException(string, "Expression ended early. Expected all parenthesis to close.");
-            }
-            throw new ParseException(string, "Code reached invalid parseMode: " + parseMode);
+            if (stringReader.peek() == '"') return readStringConstant(stringReader, argumentClasses, localDebug);
+            if (stringReader.peek() == '<') return readVariable(stringReader, argumentClasses, localDebug);
+            return readStaticClass(stringReader, argumentClasses, localDebug);
         } finally {
-            if (localDebug) ConfigCommandsHandler.decreaseIndentation();
-
+            ConfigCommandsHandler.decreaseIndentation();
         }
+    }
+
+    /////////////////////////////////////////////////////
+    // READING                                         //
+    // Identifies start of an Expression String        //
+    // May return directly, or set up a function chain //
+    /////////////////////////////////////////////////////
+
+    private static Expression readStringConstant(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                 boolean localDebug) throws ParseException {
+        if (stringReader.read() != '"')
+            throw new IllegalStateException("Expression#readStringConstant was called, but the stringReader did not start with '\"'");
+
+        ConfigCommandsHandler.logDebug(localDebug, "Expression starts with '\"', reading StringConstant");
+        StringBuilder stringConstant = new StringBuilder();
+
+        boolean escaped = false;
+        while (stringReader.canRead()) {
+            char next = stringReader.read();
+
+            if (escaped) {
+                stringConstant.append(switch (next) {
+                    case 'n' -> '\n';
+                    case 't' -> '\t';
+                    case 'b' -> '\b';
+                    case 'r' -> '\r';
+                    case 'f' -> '\f';
+                    case '\'' -> '\'';
+                    case '\"' -> '\"';
+                    case '\\' -> '\\';
+                    default -> throw new ParseException(stringReader, "A character that cannot be escaped (" + next + ") was found after an unescaped '\\'.");
+                });
+                ConfigCommandsHandler.logDebug(localDebug, "Added escaped character %s", next);
+                escaped = false;
+                continue;
+            }
+            if (next == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (next == '\"') {
+                Expression expression = new StringConstant(stringConstant.toString());
+                ConfigCommandsHandler.logDebug(localDebug, "StringConstant built as %s", expression);
+
+                if (!stringReader.canRead()) {
+                    ConfigCommandsHandler.logDebug(localDebug, "Expression ended. StringConstant returned.");
+                    return expression;
+                }
+
+                if (stringReader.peek() == '.')
+                    return parseInstanceFunctionCall(expression, stringReader, argumentClasses, localDebug);
+
+                throw new ParseException(stringReader, "Found unexpected extra information after StringConstant. " +
+                        "StringConstant should have ended the statement (no more characters) or lead to a function (indicated by '.'). " +
+                        "Instead, found: " + stringReader.getRemaining());
+            }
+            stringConstant.append(next);
+        }
+        throw new ParseException(stringReader, "StringConstant was never closed. Expected unescaped '\"' to end the StringConstant.");
+    }
+
+    private static Expression readVariable(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                           boolean localDebug) throws ParseException {
+        if (stringReader.read() != '<')
+            throw new IllegalStateException("Expression#readVariable was called, but the stringReader did not start with '<'");
+
+        ConfigCommandsHandler.logDebug(localDebug, "Expression starts with '<', reading Variable");
+
+        int start = stringReader.getCursor();
+        while (stringReader.canRead()) {
+            char next = stringReader.read();
+
+            if (next == '>') {
+                int end = stringReader.getCursor();
+                // Make sure to include < > with these bounds.
+                String variable = stringReader.getString().substring(start-1, end);
+                ConfigCommandsHandler.logDebug(localDebug, "Variable name built as \"%s\"", variable);
+
+                if (!argumentClasses.containsKey(variable))
+                    throw new ParseException(stringReader, "Variable (" + variable + ") dose not exist at this point. Must be declared as an argument or defined by an earlier set command.");
+                ConfigCommandsHandler.logDebug(localDebug, "Name identified as valid variable.");
+
+                Expression expression = new Variable(variable);
+
+                if (!stringReader.canRead()) {
+                    ConfigCommandsHandler.logDebug(localDebug, "Expression ended. Variable returned.");
+                    return expression;
+                }
+
+                if (stringReader.peek() == '.')
+                    return parseInstanceFunctionCall(expression, stringReader, argumentClasses, localDebug);
+
+                throw new ParseException(stringReader, "Found unexpected extra information after Variable. " +
+                        "Variable should have ended the statement (no more characters) or lead to a function (indicated by '.'). " +
+                        "Instead, found: " + stringReader.getRemaining());
+            }
+        }
+        throw new ParseException(stringReader, "Variable was never closed. Expected '>' to end the Variable.");
+    }
+
+    private static Expression readStaticClass(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                              boolean localDebug) throws ParseException {
+        ConfigCommandsHandler.logDebug(localDebug, "Expression dose not start with '\"' (StringConstant) or '<' (Variable). Reading StaticClass.");
+
+        int start = stringReader.getCursor();
+        while (stringReader.canRead() && stringReader.peek() != '.') {
+            stringReader.skip();
+        }
+
+        int end = stringReader.getCursor();
+        String staticClass = stringReader.getString().substring(start, end);
+
+        ConfigCommandsHandler.logDebug(localDebug, "Static class built as \"%s\"", staticClass);
+
+        if (!staticClassMap.containsKey(staticClass))
+            throw new ParseException(stringReader, "Unknown StaticClass \"" + staticClass + "\"");
+
+        InternalArgument staticClassObject = staticClassMap.get(staticClass);
+        if (!stringReader.canRead()) {
+//            return new StaticClass(staticClassObject); // TODO: Figure this out
+            throw new ParseException(stringReader, "Independent StaticClass objects are not yet implemented");
+        } else {
+            return parseStaticFunctionCall(staticClassObject, stringReader, argumentClasses, localDebug);
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////
+    // FUNCTION CALLS                                                  //
+    // Read a name for the function, then the parameters between ( )   //
+    // Parameter strings are recursively parsed as expressions         //
+    // May end statement and return, or be chained to another function //
+    /////////////////////////////////////////////////////////////////////
+
+    private static String readFunctionName(StringReader stringReader, boolean localDebug) throws ParseException {
+        if (stringReader.read() != '.')
+            throw new IllegalStateException("Expression#readFunctionName was called, but the stringReader did not start with '.'");
+
+        ConfigCommandsHandler.logDebug(localDebug, "Found '.', reading function name");
+
+        int start = stringReader.getCursor();
+        while (stringReader.canRead() && stringReader.peek() != '(') {
+            stringReader.skip();
+        }
+
+        if (!stringReader.canRead())
+            throw new ParseException(stringReader, "Parameters never found. Expected function name to end with '('.");
+
+        int end = stringReader.getCursor();
+
+        String functionName = stringReader.getString().substring(start, end);
+        ConfigCommandsHandler.logDebug(localDebug, "Function name built as \"%s\"", functionName);
+        return functionName;
+    }
+
+    private static List<Expression> readParameters(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                   boolean localDebug) throws ParseException {
+        if (stringReader.read() != '(')
+            throw new IllegalStateException("Expression#readParameters was called, but the stringReader did not start with '('");
+
+        ConfigCommandsHandler.logDebug(localDebug, "Position %s, parenthesisDepth is 1", stringReader.getCursor() - 1);
+
+        List<Expression> parameters = new ArrayList<>();
+        int parenthesisDepth = 1;
+        int start = stringReader.getCursor();
+
+        while (stringReader.canRead()) {
+            char next = stringReader.peek();
+
+            if (next == '"') {
+                // Make sure to ignore ( ) inside StringConstants
+                ConfigCommandsHandler.logDebug(localDebug, "Found String at position %s, ignoring parenthesis", stringReader.getCursor() + 1);
+                skipOverString(stringReader);
+                ConfigCommandsHandler.logDebug(localDebug, "String ended at position %s", stringReader.getCursor());
+                continue;
+            }
+
+            if (next == '(') {
+                parenthesisDepth++;
+                ConfigCommandsHandler.logDebug(localDebug, "Position %s, parenthesisDepth is now %s", stringReader.getCursor(), parenthesisDepth);
+            }
+            if (next == ')') {
+                parenthesisDepth--;
+                ConfigCommandsHandler.logDebug(localDebug, "Position %s, parenthesisDepth is now %s", stringReader.getCursor(), parenthesisDepth);
+            }
+            stringReader.skip();
+
+            if (parenthesisDepth == 0 || (parenthesisDepth == 1 && next == ',')) {
+                // Ended a parameter
+                int end = stringReader.getCursor();
+                String parameter = stringReader.getString().substring(start, end - 1);
+
+                if(parameter.length() == 0) {
+                    if(parenthesisDepth != 0)
+                        throw new ParseException(stringReader, "Found empty parameter, which cannot be parsed. (Were there 2 commas in a row?)");
+                    else
+                        ConfigCommandsHandler.logDebug(localDebug, "Found 0 parameters");
+                } else {
+                    ConfigCommandsHandler.logDebug(localDebug, "New parameter: %s", parameter);
+
+                    Expression expression;
+                    try {
+                        expression = parseExpression(parameter, argumentClasses, localDebug);
+                    } catch (ParseException e) {
+                        throw new ParseException(stringReader, "\n" + e.getMessage());
+                    }
+                    ConfigCommandsHandler.logDebug(localDebug, "Parameter successfully parsed");
+
+                    parameters.add(expression);
+                }
+
+                if (parenthesisDepth == 0) {
+                    // Closed final parenthesis
+                    ConfigCommandsHandler.logDebug(localDebug, "Parameters closed");
+                    return parameters;
+                }
+
+                // There can be whitespace between parameters
+                stringReader.skipWhitespace();
+
+                start = stringReader.getCursor();
+            }
+        }
+        throw new ParseException(stringReader, "Parameters never closed. Expected " + parenthesisDepth + " more ')' to finish the statement.");
+    }
+
+    private static void skipOverString(StringReader stringReader) throws ParseException {
+        if (stringReader.read() != '"')
+            throw new IllegalStateException("Expression#skipOverString was called, but the stringReader did not start with '\"'");
+
+        boolean escaped = false;
+        while (stringReader.canRead()) {
+            char next = stringReader.read();
+
+            if (escaped) {
+                // We don't need to bother checking if this is a valid escape character, since that will happen when
+                //  reading it as a StringConstant. Here, we just need to make sure to properly consider how '"' may
+                //  be escaped, affecting when the String will end.
+                escaped = false;
+                continue;
+            }
+            if (next == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (next == '"') return;
+        }
+        throw new ParseException(stringReader, "String never closed. Expected unescaped '\"' to end the String.");
+    }
+
+    private static List<Class<? extends InternalArgument>> getParameterTypes(List<Expression> parameters,
+                                                                             Map<String, Class<? extends InternalArgument>> argumentClasses) {
+        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>(parameters.size());
+        for (Expression expression : parameters) {
+            parameterTypes.add(expression.getEvaluationType(argumentClasses));
+        }
+        return parameterTypes;
+    }
+
+    private static void logParametersString(List<Class<? extends InternalArgument>> parameters) {
+        StringBuilder parametersString = new StringBuilder("[");
+        if (parameters.size() != 0) {
+            for (Class<? extends InternalArgument> parameter : parameters) {
+                parametersString.append(parameter.getSimpleName());
+                parametersString.append(", ");
+            }
+            parametersString.delete(parametersString.length() - 2, parametersString.length());
+        }
+        parametersString.append("]");
+        ConfigCommandsHandler.logNormal("Parameter types: %s", parametersString);
+    }
+
+    private static Expression parseInstanceFunctionCall(Expression instanceExpression, StringReader stringReader,
+                                                        Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                        boolean localDebug) throws ParseException {
+        Class<? extends InternalArgument> targetClass = instanceExpression.getEvaluationType(argumentClasses);
+        ConfigCommandsHandler.logDebug(localDebug, "Target for the function call has class: %s", targetClass.getSimpleName());
+
+        InternalArgument targetClassObject;
+        try {
+            targetClassObject = InternalArgument.getInternalArgument(targetClass);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(stringReader, "Could not turn target class for the function call ("
+                    + targetClass.getSimpleName() + ") into an object. Please contact the author of the plugin that added " +
+                    "the " + targetClass.getSimpleName() + ", as this is probably something they need to fix.", e);
+        }
+
+        String function = readFunctionName(stringReader, localDebug);
+        List<Expression> parameters = readParameters(stringReader, argumentClasses, localDebug);
+        List<Class<? extends InternalArgument>> parameterTypes = getParameterTypes(parameters, argumentClasses);
+
+        if (localDebug) {
+            ConfigCommandsHandler.logNormal("TargetClass: %s", targetClassObject.getName());
+            ConfigCommandsHandler.logNormal("FunctionName: %s", function);
+            logParametersString(parameterTypes);
+        }
+
+
+        if (!targetClassObject.hasInstanceFunction(function, parameterTypes))
+            throw new ParseException(stringReader, "InstanceFunction on class " + targetClassObject.getName() +
+                    " with name \"" + function + "\" and parameterTypes: " + parameterTypes + " could not be found.");
+
+
+        ConfigCommandsHandler.logDebug(localDebug, "Found the defined function");
+
+
+        Expression expression = new InstanceFunctionCall(instanceExpression, function, parameters);
+
+        if (!stringReader.canRead()) {
+            ConfigCommandsHandler.logDebug(localDebug, "Expression ended. InstanceFunctionCall returned.");
+            return expression;
+        }
+
+        if (stringReader.peek() == '.')
+            return parseInstanceFunctionCall(expression, stringReader, argumentClasses, localDebug);
+
+        throw new ParseException(stringReader, "Found unexpected extra information after InstanceFunctionCall. " +
+                "InstanceFunctionCall should have ended the statement (no more characters) or lead to another function (indicated by '.'). " +
+                "Instead, found: " + stringReader.getRemaining());
+    }
+
+    private static Expression parseStaticFunctionCall(InternalArgument staticClass, StringReader stringReader,
+                                                      Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                      boolean localDebug) throws ParseException {
+        String function = readFunctionName(stringReader, localDebug);
+        List<Expression> parameters = readParameters(stringReader, argumentClasses, localDebug);
+        List<Class<? extends InternalArgument>> parameterTypes = getParameterTypes(parameters, argumentClasses);
+
+        if (localDebug) {
+            ConfigCommandsHandler.logNormal("StaticClass: %s", staticClass.getName());
+            ConfigCommandsHandler.logDebug("FunctionName: %s", function);
+            logParametersString(parameterTypes);
+        }
+
+        if (!staticClass.hasStaticFunction(function, parameterTypes))
+            throw new ParseException(stringReader, "Static function on class " + staticClass.getName() +
+                    " with name \"" + function + "\" and parameterTypes: " + parameterTypes + " could not be found.");
+
+
+        ConfigCommandsHandler.logDebug(localDebug, "Found the defined function");
+
+        Expression expression = new StaticFunctionCall(staticClass, function, parameters);
+
+        if (!stringReader.canRead()) {
+            ConfigCommandsHandler.logDebug(localDebug, "Expression ended. StaticFunctionCall returned.");
+            return expression;
+        }
+
+        if (stringReader.peek() == '.')
+            return parseInstanceFunctionCall(expression, stringReader, argumentClasses, localDebug);
+
+        throw new ParseException(stringReader, "Found unexpected extra information after StaticFunctionCall. " +
+                "StaticFunctionCall should have ended the statement (no more characters) or lead to another function (indicated by '.'). " +
+                "Instead, found: " + stringReader.getRemaining());
     }
 
     /**
