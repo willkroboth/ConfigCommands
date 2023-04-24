@@ -15,7 +15,7 @@
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
 
-        <project.version.CommandAPI>9.0.0-SNAPSHOT</project.version.CommandAPI>
+        <project.version.CommandAPI>9.0.0</project.version.CommandAPI>
     </properties>
 
     <packaging>pom</packaging>
