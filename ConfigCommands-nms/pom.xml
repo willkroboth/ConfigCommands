@@ -13,6 +13,7 @@
     <artifactId>ConfigCommands-nms</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>ConfigCommands-1_19_4</module>
         <module>ConfigCommands-1_19_3</module>
         <module>ConfigCommands-1_19_1</module>
         <module>ConfigCommands-1_19</module>
