@@ -23,7 +23,7 @@ public class IndentedCommandSenderMessenger extends IndentedStringHandler {
     /**
      * Sends one or multiple messages to the {@link CommandSender}, indenting each message by the set {@link IndentedStringHandler#indentation}.
      *
-     * @param messages A variadic array of Strings to sen to the {@link CommandSender}.
+     * @param messages A variadic array of Strings to send to the {@link CommandSender}.
      */
     public void sendMessage(String... messages) {
         for (String message : messages) {

@@ -181,14 +181,14 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static void chooseInternalArgument(CommandSender sender, String message, CommandContext context) {
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments((String) context.previousChoice());
+        List<InternalArgument<?>> internalArguments = InternalArgument.getPluginInternalArguments((String) context.previousChoice());
         if (message.isBlank()) {
             sender.sendMessage("Choose the InternalArgument you need help with.");
             sender.sendMessage(InternalArgument.getNames(internalArguments).toString());
         } else {
             List<String> names = InternalArgument.getNames(internalArguments);
             if (names.contains(message)) {
-                InternalArgument argument = internalArguments.get(names.indexOf(message));
+                InternalArgument<?> argument = internalArguments.get(names.indexOf(message));
 
                 context = setContext(sender, context, argument, FunctionsCommandHandler::chooseFunction);
 
@@ -200,24 +200,28 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static String[] getInternalArguments(SuggestionInfo<CommandSender> info) {
-        String addOn = (String) info.previousArgs().get(0);
+        String addOn = info.previousArgs().getUnchecked(0);
+        assert addOn != null;
+
         if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
+        List<InternalArgument<?>> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
         return InternalArgument.getNames(internalArguments).toArray(new String[0]);
     }
 
-    private static void chooseFunction(CommandSender sender, String message, CommandContext context) {
-        Class<? extends InternalArgument> clazz = ((InternalArgument) context.previousChoice()).getClass();
+    // Cast is totally safe, generics are silly
+    @SuppressWarnings("unchecked")
+    private static <T> void chooseFunction(CommandSender sender, String message, CommandContext context) {
+        Class<? extends InternalArgument<T>> clazz = ((InternalArgument<T>) context.previousChoice()).myClass();
         if (message.isBlank()) {
             sender.sendMessage("Choose the function you need help with.");
 
             sender.sendMessage("InstanceFunctions: " + Arrays.toString(InternalArgument.getInstanceFunctionsFor(clazz).getNames()));
             sender.sendMessage("StaticFunctions: " + Arrays.toString(InternalArgument.getStaticFunctionsFor(clazz).getNames()));
         } else {
-            InstanceFunctionList functions = InternalArgument.getInstanceFunctionsFor(clazz);
+            InstanceFunctionList<?> functions = InternalArgument.getInstanceFunctionsFor(clazz);
             if (functions.hasName(message)) {
-                InstanceFunction function = functions.getByName(message);
+                InstanceFunction<?> function = functions.getByName(message);
 
                 context = setContext(sender, context, function, FunctionsCommandHandler::displayInformation);
 
@@ -240,22 +244,27 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
     }
 
     private static String[] getFunctions(SuggestionInfo<CommandSender> info) {
-        String addOn = (String) info.previousArgs().get(0);
+        String addOn = info.previousArgs().getUnchecked(0);
+        assert addOn != null;
 
         if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) return new String[0];
 
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
+        List<InternalArgument<?>> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
         List<String> names = InternalArgument.getNames(internalArguments);
-        String internalArgument = (String) info.previousArgs().get(1);
-        if (!names.contains(internalArgument)) return new String[0];
-        InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
+        String internalArgument = info.previousArgs().getUnchecked(1);
+        assert internalArgument != null;
 
-        String staticChoice = (String) info.previousArgs().get(2);
+        if (!names.contains(internalArgument)) return new String[0];
+        InternalArgument<?> argument = internalArguments.get(names.indexOf(internalArgument));
+
+        String staticChoice = info.previousArgs().getUnchecked(2);
+        assert staticChoice != null;
+
         if (staticChoice.equals("static")) {
-            return InternalArgument.getStaticFunctionsFor(argument.getClass()).getNames();
-        } else if (staticChoice.equals("nonStatic")) {
-            return InternalArgument.getInstanceFunctionsFor(argument.getClass()).getNames();
+            return InternalArgument.getStaticFunctionsFor(argument.myClass()).getNames();
+        } else if (staticChoice.equals("instance")) {
+            return InternalArgument.getInstanceFunctionsFor(argument.myClass()).getNames();
         } else {
             return new String[0];
         }
@@ -263,10 +272,10 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
     private static void displayInformation(CommandSender sender, String message, CommandContext context) {
         if (message.isBlank()) {
-            InternalArgument argument = (InternalArgument) context.previousContext().previousChoice();
+            InternalArgument<?> argument = (InternalArgument<?>) context.previousContext().previousChoice();
             sender.sendMessage("Class: " + argument.getName());
 
-            FunctionBuilder<?> function = (FunctionBuilder<?>) context.previousChoice();
+            FunctionBuilder<?, ?> function = (FunctionBuilder<?, ?>) context.previousChoice();
             if (function instanceof InstanceFunction) {
                 sender.sendMessage("Instance function");
             } else if (function instanceof StaticFunction) {
@@ -281,27 +290,31 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
 
     private static void displayInformation(CommandSender sender, CommandArguments args) {
         String addOn = args.getUnchecked("addOn");
+        assert addOn != null;
 
         if (!InternalArgument.getPluginsNamesWithInternalArguments().contains(addOn)) {
             sender.sendMessage(ChatColor.RED + "Invalid command: AddOn \"" + addOn + "\" does not exist");
             return;
         }
 
-        List<InternalArgument> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
+        List<InternalArgument<?>> internalArguments = InternalArgument.getPluginInternalArguments(addOn);
 
         List<String> names = InternalArgument.getNames(internalArguments);
         String internalArgument = args.getUnchecked("internalArgument");
+        assert internalArgument != null;
+
         if (!names.contains(internalArgument)) {
             sender.sendMessage(ChatColor.RED + "Invalid command: InternalArgument \"" + internalArgument + "\" does not exist for the given AddOn");
             return;
         }
-        InternalArgument argument = internalArguments.get(names.indexOf(internalArgument));
+        InternalArgument<?> argument = internalArguments.get(names.indexOf(internalArgument));
 
         String staticChoice = args.getUnchecked(2);
+        assert staticChoice != null;
 
         if (staticChoice.equals("static")) {
             String functionName = args.getUnchecked("function");
-            StaticFunction function = InternalArgument.getStaticFunctionsFor(argument.getClass()).getByName(functionName);
+            StaticFunction function = InternalArgument.getStaticFunctionsFor(argument.myClass()).getByName(functionName);
             if (function == null) {
                 sender.sendMessage(ChatColor.RED + "Invalid command: StaticFunction \"" + functionName + "\" dose not exist for the given InternalArgument");
                 return;
@@ -312,14 +325,14 @@ public class FunctionsCommandHandler extends SystemCommandHandler implements Lis
             function.outputInformation(sender);
         } else if (staticChoice.equals("instance")) {
             String functionName = args.getUnchecked("function");
-            InstanceFunction function = InternalArgument.getInstanceFunctionsFor(argument.getClass()).getByName(functionName);
+            InstanceFunction<?> function = InternalArgument.getInstanceFunctionsFor(argument.myClass()).getByName(functionName);
             if (function == null) {
                 sender.sendMessage(ChatColor.RED + "Invalid command: InstanceFunction \"" + functionName + "\" dose not exist for the given InternalArgument");
                 return;
             }
 
             sender.sendMessage("Class: " + argument.getName());
-            sender.sendMessage("Nonstatic function");
+            sender.sendMessage("Instance function");
             function.outputInformation(sender);
         } else {
             sender.sendMessage(ChatColor.RED + "Invalid command: expected instance or static but found \"" + staticChoice + "\"");

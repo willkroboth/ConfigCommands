@@ -8,7 +8,7 @@ import me.willkroboth.configcommands.registeredcommands.CommandExecutorBuilder;
  * An exception thrown when an {@link InstanceFunction} or {@link StaticFunction} is
  * run by a {@link CommandExecutorBuilder} and encounters some exception.
  */
-public class CommandRunException extends RuntimeException {
+public class CommandRunException extends Exception {
     /**
      * @param message A message explaining why this exception was thrown
      */

@@ -8,5 +8,5 @@ import java.util.ArrayList;
  * it also contains various methods for searching for functions by name and
  * input parameters.
  */
-public class InstanceFunctionList extends FunctionList<InstanceFunction> {
+public class InstanceFunctionList<Target> extends FunctionList<InstanceFunction<Target>> {
 }

@@ -153,11 +153,11 @@ public class CommandTreeBuilder extends CommandTree {
 
         ConfigCommandsHandler.logNormal("Building CommandTree...");
 
-        Map<String, Class<? extends InternalArgument>> argumentClasses = getDefaultArgs();
+        Map<String, Class<? extends InternalArgument<?>>> argumentClasses = getDefaultArgs();
         if (sharedDebug.isDebug()) {
             ConfigCommandsHandler.logNormal("Default arguments available:");
             ConfigCommandsHandler.increaseIndentation();
-            for (Map.Entry<String, Class<? extends InternalArgument>> arg : argumentClasses.entrySet()) {
+            for (Map.Entry<String, Class<? extends InternalArgument<?>>> arg : argumentClasses.entrySet()) {
                 ConfigCommandsHandler.logNormal("%s: %s", arg.getKey(), arg.getValue().getSimpleName());
             }
             ConfigCommandsHandler.decreaseIndentation();
@@ -213,7 +213,7 @@ public class CommandTreeBuilder extends CommandTree {
      *
      * @return A map linking the names to the {@link InternalArgument} class used by each default argument.
      */
-    public static Map<String, Class<? extends InternalArgument>> getDefaultArgs() {
+    public static Map<String, Class<? extends InternalArgument<?>>> getDefaultArgs() {
         return new LinkedHashMap<>(Map.of(
                 "<sender>", InternalCommandSenderArgument.class,
                 "<lineIndex>", InternalIntegerArgument.class

@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.registeredcommands.functionlines;
 
 import me.willkroboth.configcommands.ConfigCommandsHandler;
+import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.functionsyntax.InvalidRunExpression;
 import me.willkroboth.configcommands.exceptions.ParseException;
 import me.willkroboth.configcommands.registeredcommands.CompilerState;
@@ -15,14 +16,14 @@ class RunExpression extends FunctionLine {
         String command = compilerState.getCommand().substring(3);
         ConfigCommandsHandler.logDebug(compilerState, "Do trimmed off to get: %s", command);
 
-        Expression expression = Expression.parseExpression(command, compilerState.getArgumentClasses(), compilerState.isDebug());
+        Expression<?> expression = Expression.parseExpression(command, compilerState.getArgumentClasses(), compilerState.isDebug());
 
         return new RunExpression(expression);
     }
 
-    private final Expression expression;
+    private final Expression<?> expression;
 
-    private RunExpression(Expression expression) {
+    private RunExpression(Expression<?> expression) {
         this.expression = expression;
     }
 
@@ -32,7 +33,7 @@ class RunExpression extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "Expression is %s", expression);
 
         ConfigCommandsHandler.increaseIndentation();

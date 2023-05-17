@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.registeredcommands.functionlines;
 
 import me.willkroboth.configcommands.ConfigCommandsHandler;
+import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.functionsyntax.InvalidSetVariable;
 import me.willkroboth.configcommands.exceptions.ParseException;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
@@ -16,7 +17,7 @@ class SetVariable extends FunctionLine {
     public static FunctionLine parse(CompilerState compilerState) throws InvalidSetVariable, ParseException {
         String[] parts = compilerState.getCommand().split(" = ");
         if (parts.length != 2)
-            throw new InvalidSetVariable(compilerState.getCommand(), "Invalid format. Must contain only one \" = \".");
+            throw new InvalidSetVariable(compilerState.getCommand(), "Invalid format. Must contain exactly one \" = \".");
 
         ConfigCommandsHandler.logDebug(compilerState, "Set split into: %s", Arrays.toString(parts));
 
@@ -27,13 +28,13 @@ class SetVariable extends FunctionLine {
         ConfigCommandsHandler.logDebug(compilerState, "Variable is " + variable);
 
         String rawExpression = parts[1];
-        Class<? extends InternalArgument> returnType;
+        Class<? extends InternalArgument<?>> returnType;
         boolean usingExpression = !rawExpression.startsWith("/");
         Object value;
         if (usingExpression) {
             // expression is code
             ConfigCommandsHandler.logDebug(compilerState, "Parsing \"%s\" as expression.", rawExpression);
-            Expression expression = Expression.parseExpression(rawExpression, compilerState.getArgumentClasses(), compilerState.isDebug());
+            Expression<?> expression = Expression.parseExpression(rawExpression, compilerState.getArgumentClasses(), compilerState.isDebug());
             returnType = expression.getEvaluationType(compilerState.getArgumentClasses());
 
             value = expression;
@@ -50,7 +51,7 @@ class SetVariable extends FunctionLine {
         }
 
         if (compilerState.hasVariable(variable)) {
-            Class<? extends InternalArgument> currentType = compilerState.getVariable(variable);
+            Class<? extends InternalArgument<?>> currentType = compilerState.getVariable(variable);
             if (!returnType.isAssignableFrom(currentType)) {
                 throw new InvalidSetVariable(compilerState.getCommand(), "Wrong type. Set variable(" + variable +
                         ") was previously made as " + currentType.getSimpleName() +
@@ -81,16 +82,16 @@ class SetVariable extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "Variable is %s", variableName);
         ConfigCommandsHandler.logDebug(interpreterState, "expressionType is %s", usingExpression ? "expression" : "command");
 
         if (usingExpression) {
-            Expression expression = (Expression) value;
+            Expression<?> expression = (Expression<?>) value;
             ConfigCommandsHandler.logDebug(interpreterState, "Expression is %s", expression);
 
             ConfigCommandsHandler.increaseIndentation();
-            InternalArgument result = expression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug());
+            InternalArgument<?> result = expression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug());
             ConfigCommandsHandler.decreaseIndentation();
 
             ConfigCommandsHandler.logDebug(interpreterState, "Variable will be set to: %s", result.getValue());

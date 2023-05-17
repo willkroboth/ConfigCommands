@@ -42,7 +42,7 @@ public class ArgumentTreeBuilder {
      * @return The CommandAPI {@link Argument} defined by the given data
      * @throws RegistrationException If there is an error reading the data for the command
      */
-    public static Argument<?> buildArgumentTree(String name, Map<String, Class<? extends InternalArgument>> argumentClasses,
+    public static Argument<?> buildArgumentTree(String name, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
                                ConfigurationSection tree, SharedDebugValue localDebug, List<String> argumentPath) throws RegistrationException {
         Argument<?> argument = getArgument(name, argumentClasses, tree, localDebug);
 
@@ -81,7 +81,7 @@ public class ArgumentTreeBuilder {
         return argument;
     }
 
-    private static Argument<?> getArgument(String name, Map<String, Class<? extends InternalArgument>> argumentClasses, ConfigurationSection tree, SharedDebugValue localDebug) throws IncorrectArgumentKey {
+    private static Argument<?> getArgument(String name, Map<String, Class<? extends InternalArgument<?>>> argumentClasses, ConfigurationSection tree, SharedDebugValue localDebug) throws IncorrectArgumentKey {
         String type = tree.getString("type");
 
         // Null type equals LiteralArgument

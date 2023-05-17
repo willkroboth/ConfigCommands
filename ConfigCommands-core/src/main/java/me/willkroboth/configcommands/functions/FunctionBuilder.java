@@ -1,12 +1,16 @@
 package me.willkroboth.configcommands.functions;
 
+import me.willkroboth.configcommands.functions.executions.Execution;
+import me.willkroboth.configcommands.functions.executions.Signature;
+import me.willkroboth.configcommands.functions.executions.SignatureMerge;
+import me.willkroboth.configcommands.functions.executions.SignatureEmpty;
+import me.willkroboth.configcommands.helperclasses.IndentedCommandSenderMessenger;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
 import me.willkroboth.configcommands.registeredcommands.expressions.Expression;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * A class for building most everything about a function that can be called in {@link Expression}s.
@@ -15,18 +19,16 @@ import java.util.function.Function;
  *
  * @param <Impl> The subclass that gets returned when chaining methods in the build process.
  */
-public abstract class FunctionBuilder<Impl extends FunctionBuilder<Impl>> {
+public abstract class FunctionBuilder<E extends Execution<?, ?>, Impl extends FunctionBuilder<E, Impl>> {
     // Cosmetic information
     private final String name;
     private final List<String> aliases = new ArrayList<>();
     private String description = null;
-    private String returnMessage = null;
     private final List<String> throwMessages = new ArrayList<>();
     private final List<String> examples = new ArrayList<>();
 
-    // Input-output information
-    private final List<Parameter[]> parameters = new ArrayList<>();
-    private Function<List<Class<? extends InternalArgument>>, Class<? extends InternalArgument>> returnTypeFunction;
+    // In-out information
+    private Signature<E> executions = new SignatureEmpty<>();
 
     // Building instance
     private final Impl instance;
@@ -39,7 +41,7 @@ public abstract class FunctionBuilder<Impl extends FunctionBuilder<Impl>> {
      * @param name The name used to call this function.
      */
     @SuppressWarnings("unchecked")
-    public FunctionBuilder(String name) {
+    protected FunctionBuilder(String name) {
         this.name = name;
         this.instance = (Impl) this;
     }
@@ -68,83 +70,9 @@ public abstract class FunctionBuilder<Impl extends FunctionBuilder<Impl>> {
         return instance;
     }
 
-    /**
-     * Adds parameters to this function. If this method is called again,
-     * both ways of calling the method will work, on for as many overloads are wanted.
-     *
-     * @param parameters An array of {@link Parameter} objects that define
-     *                   what needs to be passed in to run this function.
-     * @return The current function builder.
-     */
-    public Impl withParameters(Parameter... parameters) {
-        this.parameters.add(parameters);
-
-        return instance;
-    }
-
-    /**
-     * Sets the class this function returns when run.
-     *
-     * @param clazz An {@link InternalArgument} class object that this function should return when run.
-     * @return The current function builder.
-     */
-    public Impl returns(Class<? extends InternalArgument> clazz) {
-        this.returnTypeFunction = (parameters) -> clazz;
-
-        return instance;
-    }
-
-    /**
-     * Sets the class this function returns when run and gives a message that describes the returned value.
-     *
-     * @param clazz   An {@link InternalArgument} class object that this function should return when run
-     * @param message A String that describes what this function returns.
-     * @return The current function builder.
-     */
-    public Impl returns(Class<? extends InternalArgument> clazz, String message) {
-        this.returnTypeFunction = (parameters) -> clazz;
-        this.returnMessage = message;
-
-        return instance;
-    }
-
-    /**
-     * Gives a function that determines what class this function returns based on the parameters
-     * passed in. This can be used to make different parameters have a different return class.
-     *
-     * @param classFunction A function that inputs a list of {@link InternalArgument} class objects
-     *                      and returns a single {@link InternalArgument} class object this function
-     *                      should return when parameters with the classes defined by the list are input.
-     *                      This function should be defined for all lists of parameters give to this function
-     *                      using {@link FunctionBuilder#withParameters(Parameter...)}, as well
-     *                      as an empty list which is used when determining the class to display
-     *                      when the function's help is requested.
-     * @return The current function builder.
-     */
-    public Impl returns(Function<List<Class<? extends InternalArgument>>, Class<? extends InternalArgument>> classFunction) {
-        this.returnTypeFunction = classFunction;
-
-        return instance;
-    }
-
-    /**
-     * Gives a function that determines what class this function returns based on the parameters
-     * passed in and a message that describes the returned value. This can be used to make
-     * different parameters have a different return class.
-     *
-     * @param classFunction A function that inputs a list of {@link InternalArgument} class objects
-     *                      and returns a single {@link InternalArgument} class object this function
-     *                      should return when parameters with the classes defined by the list are input.
-     *                      This function should be defined for all lists of parameters give to this function
-     *                      using {@link FunctionBuilder#withParameters(Parameter...)}, as well
-     *                      as an empty list which is used when determining the class to display
-     *                      when the function's help is requested.
-     * @param message       A String that describes what this function returns.
-     * @return The current function builder.
-     */
-    public Impl returns(Function<List<Class<? extends InternalArgument>>, Class<? extends InternalArgument>> classFunction, String message) {
-        this.returnTypeFunction = classFunction;
-        this.returnMessage = message;
+    @SafeVarargs
+    public final Impl withExecutions(Signature<? extends E>... executions) {
+        this.executions = SignatureMerge.merge(this.executions, executions);
 
         return instance;
     }
@@ -190,23 +118,8 @@ public abstract class FunctionBuilder<Impl extends FunctionBuilder<Impl>> {
         return aliases;
     }
 
-    /**
-     * @return A List of the different {@link Parameter} combinations that can be used to call this function.
-     */
-    public List<Parameter[]> getParameters() {
-        return parameters;
-    }
-
-    /**
-     * Gives the class that this function returns when called using the given classes.
-     *
-     * @param parameterTypes A list of {@link InternalArgument} class objects that
-     *                       represent the type of objects being passed to this function.
-     * @return A {@link InternalArgument} class object that this function returns when
-     * given objects with the classes given in the {@code parameterTypes} list
-     */
-    public Class<? extends InternalArgument> getReturnType(List<Class<? extends InternalArgument>> parameterTypes) {
-        return returnTypeFunction.apply(parameterTypes);
+    public E findExecution(List<Class<? extends InternalArgument<?>>> parameterTypes) {
+        return executions.findExecution(parameterTypes);
     }
 
     /**
@@ -241,56 +154,39 @@ public abstract class FunctionBuilder<Impl extends FunctionBuilder<Impl>> {
      * @param sender The {@link CommandSender} to send the help message to.
      */
     public void outputInformation(CommandSender sender) {
-        sender.sendMessage("Function: " + name);
+        IndentedCommandSenderMessenger messenger = new IndentedCommandSenderMessenger(sender);
+
+        messenger.sendMessage("Function: " + name);
 
         if (aliases.size() != 0) {
-            sender.sendMessage("Aliases:");
+            messenger.sendMessage("Aliases:");
+            messenger.increaseIndentation();
             for (String alias : aliases) {
-                sender.sendMessage("  - " + alias);
+                sender.sendMessage("- " + alias);
             }
+            messenger.decreaseIndentation();
         }
 
-        if (description != null) sender.sendMessage("Description: " + description);
+        if (description != null) messenger.sendMessage("Description: " + description);
 
-        if (parameters.size() == 0) {
-            sender.sendMessage("No parameters");
-        } else if (parameters.size() == 1) {
-            sender.sendMessage("Parameters:");
-            for (Parameter parameter : parameters.get(0)) {
-                sender.sendMessage("  - " + parameter);
-            }
-        } else {
-            sender.sendMessage("Multiple input combinations available:");
-            for (Parameter[] parameterArray : parameters) {
-                if (parameterArray.length == 0) {
-                    sender.sendMessage("  No parameters");
-                    continue;
-                }
-                sender.sendMessage("  Parameters:");
-                for (Parameter parameter : parameterArray) {
-                    sender.sendMessage("    - " + parameter);
-                }
-            }
-        }
-
-        if (returnMessage == null) {
-            sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())));
-        } else {
-            sender.sendMessage("Returns: " + InternalArgument.getNameForType(returnTypeFunction.apply(List.of())) + " - " + returnMessage);
-        }
+        executions.printExecutions(messenger);
 
         if (throwMessages.size() != 0) {
             sender.sendMessage("Throws:");
+            messenger.increaseIndentation();
             for (String throwMessage : throwMessages) {
-                sender.sendMessage("  - " + throwMessage);
+                sender.sendMessage("- " + throwMessage);
             }
+            messenger.decreaseIndentation();
         }
 
         if (examples.size() != 0) {
             sender.sendMessage("Examples:");
+            messenger.increaseIndentation();
             for (String example : examples) {
-                sender.sendMessage("  - " + example);
+                sender.sendMessage("- " + example);
             }
+            messenger.decreaseIndentation();
         }
     }
 }

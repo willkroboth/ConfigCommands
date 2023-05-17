@@ -28,17 +28,17 @@ class BranchIf extends FunctionLine {
 
         String booleanString = parts[0];
         ConfigCommandsHandler.logDebug(compilerState, "booleanExpression is: %s", booleanString);
-        Expression booleanExpression =
+        Expression<?> booleanExpression =
                 Expression.parseExpression(booleanString, compilerState.getArgumentClasses(), compilerState.isDebug());
         ConfigCommandsHandler.logDebug(compilerState, "booleanExpression parsed to: %s", booleanExpression);
-        Class<? extends InternalArgument> returnType = booleanExpression.getEvaluationType(compilerState.getArgumentClasses());
+        Class<? extends InternalArgument<?>> returnType = booleanExpression.getEvaluationType(compilerState.getArgumentClasses());
         if (!returnType.isAssignableFrom(InternalBooleanArgument.class))
             throw new InvalidIfCommand(command, "Invalid booleanExpression. Must return InternalBooleanArgument, but instead returns " + returnType.getSimpleName());
         ConfigCommandsHandler.logDebug(compilerState, "booleanExpression correctly returns a boolean");
 
         String indexString = parts[1];
         ConfigCommandsHandler.logDebug("indexExpression is: %s", indexString);
-        Expression indexExpression =
+        Expression<?> indexExpression =
                 Expression.parseExpression(indexString, compilerState.getArgumentClasses(), compilerState.isDebug());
         ConfigCommandsHandler.logDebug(compilerState, "indexExpression parsed to: %s", indexExpression);
         returnType = indexExpression.getEvaluationType(compilerState.getArgumentClasses());
@@ -51,13 +51,15 @@ class BranchIf extends FunctionLine {
             throw new InvalidIfCommand(command, "Invalid indexExpression. Must return InternalIntegerArgument or InternalStringArgument, but instead returns " + returnType.getSimpleName());
         }
 
-        return new BranchIf(booleanExpression, indexExpression);
+        // TODO: Do we really need to do this unchecked cast? We did check
+        //  `booleanExpression.getEvaluationType(compilerState.getArgumentClasses()).isAssignableFrom(InternalBooleanArgument.class)`
+        return new BranchIf((Expression<Boolean>) booleanExpression, indexExpression);
     }
 
-    private final Expression booleanExpression;
-    private final Expression indexExpression;
+    private final Expression<Boolean> booleanExpression;
+    private final Expression<?> indexExpression;
 
-    private BranchIf(Expression booleanExpression, Expression indexExpression) {
+    private BranchIf(Expression<Boolean> booleanExpression, Expression<?> indexExpression) {
         this.booleanExpression = booleanExpression;
         this.indexExpression = indexExpression;
     }
@@ -68,14 +70,13 @@ class BranchIf extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "BooleanExpression is: %s", booleanExpression);
         ConfigCommandsHandler.logDebug(interpreterState, "IndexExpression is: %s", indexExpression);
 
         ConfigCommandsHandler.logDebug(interpreterState, "Evaluating BooleanExpression");
         ConfigCommandsHandler.increaseIndentation();
-        boolean result = (boolean)
-                booleanExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue();
+        boolean result = booleanExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue();
         ConfigCommandsHandler.decreaseIndentation();
         ConfigCommandsHandler.logDebug(interpreterState, "Boolean evaluated to %s", result);
 
@@ -83,8 +84,7 @@ class BranchIf extends FunctionLine {
         if (result) {
             ConfigCommandsHandler.logDebug(interpreterState, "Evaluating IndexExpression");
             ConfigCommandsHandler.increaseIndentation();
-            Object value =
-                    indexExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue();
+            Object value = indexExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue();
             if (value instanceof Integer i) {
                 returnIndex = i;
             } else {

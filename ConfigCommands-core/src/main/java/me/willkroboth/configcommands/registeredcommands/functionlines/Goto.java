@@ -20,10 +20,10 @@ class Goto extends FunctionLine {
         ConfigCommandsHandler.logDebug(compilerState, "Goto trimmed off to get: %s", indexString);
 
         ConfigCommandsHandler.logDebug(compilerState, "indexExpression is: %s", indexString);
-        Expression indexExpression =
+        Expression<?> indexExpression =
                 Expression.parseExpression(indexString, compilerState.getArgumentClasses(), compilerState.isDebug());
         ConfigCommandsHandler.logDebug(compilerState, "indexExpression parsed to: %s", indexExpression);
-        Class<? extends InternalArgument> returnType = indexExpression.getEvaluationType(compilerState.getArgumentClasses());
+        Class<? extends InternalArgument<?>> returnType = indexExpression.getEvaluationType(compilerState.getArgumentClasses());
 
         if (returnType.isAssignableFrom(InternalIntegerArgument.class)) {
             ConfigCommandsHandler.logDebug(compilerState, "indexExpression correctly returns an integer");
@@ -36,9 +36,9 @@ class Goto extends FunctionLine {
         return new Goto(indexExpression);
     }
 
-    private final Expression indexExpression;
+    private final Expression<?> indexExpression;
 
-    private Goto(Expression indexExpression) {
+    private Goto(Expression<?> indexExpression) {
         this.indexExpression = indexExpression;
     }
 
@@ -48,7 +48,7 @@ class Goto extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "IndexExpression is: %s", indexExpression);
         ConfigCommandsHandler.increaseIndentation();
         Object value = indexExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue();

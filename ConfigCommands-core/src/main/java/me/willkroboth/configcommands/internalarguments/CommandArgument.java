@@ -16,7 +16,7 @@ import java.util.Map;
  * An interface that can be attached to a {@link InternalArgument} to indicate it can
  * be added as an argument of a command, and to add the functionality to make that possible.
  */
-public interface CommandArgument {
+public interface CommandArgument<T> {
     /**
      * The String to use when declaring an {@link ArgumentTreeBuilder} will use this class as its argument type
      * (See {@link ArgumentTreeBuilder#buildArgumentTree(String, Map, ConfigurationSection, SharedDebugValue, List)} tree type).
@@ -33,11 +33,11 @@ public interface CommandArgument {
      * @param argumentInfo The argumentInfo object
      * @param clazz        The class the argumentInfo object should have
      * @param arg          The name of the argument, used when creating the exception's message.
-     * @param <T>          The type to cast argumentInfo to
+     * @param <C>          The type to cast argumentInfo to
      * @return argumentInfo cast to the given class
      * @throws IncorrectArgumentKey If the argumentInfo object is not of the specified class
      */
-    default <T> T assertArgumentInfoClass(@NotNull Object argumentInfo, Class<? extends T> clazz, String arg) throws IncorrectArgumentKey {
+    default <C> C assertArgumentInfoClass(@NotNull Object argumentInfo, Class<? extends C> clazz, String arg) throws IncorrectArgumentKey {
         if (clazz.isAssignableFrom(argumentInfo.getClass())) return clazz.cast(argumentInfo);
         throw new IncorrectArgumentKey(arg, "argumentInfo", "Expected argumentInfo to be a " + clazz.getSimpleName());
     }
@@ -54,7 +54,7 @@ public interface CommandArgument {
      * @return A new {@link Argument} to add to the command for this argument.
      * @throws IncorrectArgumentKey If the value on a key for this argument is incorrect.
      */
-    Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey;
+    Argument<T> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey;
 
     /**
      * Handles editing an argumentInfo object in the config file when using {@code /configcommands build}.
@@ -94,5 +94,5 @@ public interface CommandArgument {
      *
      * @return The class of this argument.
      */
-    Class<? extends InternalArgument> myClass();
+    Class<? extends InternalArgument<T>> myClass();
 }

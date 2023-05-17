@@ -4,6 +4,8 @@ import dev.jorel.commandapi.arguments.Argument;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.IncorrectArgumentKey;
 import me.willkroboth.configcommands.functions.*;
+import me.willkroboth.configcommands.functions.executions.InstanceExecution;
+import me.willkroboth.configcommands.functions.executions.StaticExecution;
 import me.willkroboth.configcommands.registeredcommands.expressions.Expression;
 import me.willkroboth.configcommands.registeredcommands.functionlines.FunctionLine;
 import org.bukkit.command.CommandSender;
@@ -22,11 +24,12 @@ import static org.reflections.scanners.Scanners.SubTypes;
 /**
  * A class that represents objects inside the {@link FunctionLine} and {@link Expression} system.
  * They hold an internal value ({@link InternalArgument#setValue(Object)} and {@link InternalArgument#getValue()}),
- * perform instance and static functions ({@link InternalArgument#runInstanceFunction(String, List)}
- * and {@link InternalArgument#runStaticFunction(String, List)}), and may be added as arguments to a command if
+ * have instance and static functions ({@link InternalArgument#getInstanceExecution(String, List)}
+ * and {@link InternalArgument#getStaticExecution(String, List)}) , and may be added as arguments to a command if
  * they implement {@link CommandArgument}.
  */
-public abstract class InternalArgument implements FunctionCreator {
+@SuppressWarnings("unused")
+public abstract class InternalArgument<T> extends SafeFunctionCreator<T> {
     ////////////////////////////////
     // SECTION : CREATING CLASSES //
     ////////////////////////////////
@@ -43,7 +46,7 @@ public abstract class InternalArgument implements FunctionCreator {
      *
      * @param value The new value for this {@link InternalArgument}.
      */
-    public InternalArgument(Object value) {
+    public InternalArgument(T value) {
         setValue(value);
     }
 
@@ -54,7 +57,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link InternalArgument} clazz object.
      * @return The {@link InternalArgument} object.
      */
-    public static InternalArgument getInternalArgument(Class<? extends InternalArgument> clazz) {
+    public static InternalArgument<?> getInternalArgument(Class<? extends InternalArgument<?>> clazz) {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
@@ -69,7 +72,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link FunctionAdder} clazz object.
      * @return The {@link FunctionAdder} object.
      */
-    private static FunctionAdder getFunctionAdder(Class<? extends FunctionAdder> clazz) {
+    private static FunctionAdder<?> getFunctionAdder(Class<? extends FunctionAdder<?>> clazz) {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
@@ -78,11 +81,17 @@ public abstract class InternalArgument implements FunctionCreator {
         }
     }
 
+    // Reflections returns generic sets that totally can be converted, Java just doesn't like it
+    @SuppressWarnings("unchecked")
+    private static <T> Set<T> whyGenerics(Set<?> set) {
+        return (Set<T>) set;
+    }
+
     /////////////////////////////////////
     // SECTION : PROVIDING INFORMATION //
     /////////////////////////////////////
 
-    private static final Map<String, List<InternalArgument>> pluginToInternalArguments = new HashMap<>();
+    private static final Map<String, List<InternalArgument<?>>> pluginToInternalArguments = new HashMap<>();
 
     public static Set<String> getPluginsNamesWithInternalArguments() {
         return pluginToInternalArguments.keySet();
@@ -95,7 +104,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param pluginName The name of the plugin to get {@link InternalArgument} objects for.
      * @return The list of {@link InternalArgument} objects "belonging" to the plugin.
      */
-    public static List<InternalArgument> getPluginInternalArguments(String pluginName) {
+    public static List<InternalArgument<?>> getPluginInternalArguments(String pluginName) {
         return pluginToInternalArguments.get(pluginName.toLowerCase(Locale.ROOT));
     }
 
@@ -105,9 +114,9 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param internalArguments The list of {@link InternalArgument} objects to transform.
      * @return A list of the names of each {@link InternalArgument} given by {@link InternalArgument#getName()}.
      */
-    public static List<String> getNames(List<InternalArgument> internalArguments) {
+    public static List<String> getNames(List<InternalArgument<?>> internalArguments) {
         List<String> names = new ArrayList<>(internalArguments.size());
-        for (InternalArgument internalArgument : internalArguments) {
+        for (InternalArgument<?> internalArgument : internalArguments) {
             names.add(internalArgument.getName());
         }
         return names;
@@ -116,7 +125,7 @@ public abstract class InternalArgument implements FunctionCreator {
     /**
      * @return The list of {@link InternalArgument} class objects that have been registered.
      */
-    public static List<Class<? extends InternalArgument>> getRegisteredInternalArguments() {
+    public static List<Class<? extends InternalArgument<?>>> getRegisteredInternalArguments() {
         return foundClasses;
     }
 
@@ -131,7 +140,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param type The {@link InternalArgument} class object to get a type for.
      * @return The name of the given {@link InternalArgument} type.
      */
-    public static String getNameForType(Class<? extends InternalArgument> type) {
+    public static <T> String getNameForType(Class<? extends InternalArgument<T>> type) {
         if (type.equals(InternalArgument.class)) return "Any";
         if (type.equals(InternalVoidArgument.class)) return "Nothing";
         return getInternalArgument(type).getName();
@@ -141,18 +150,13 @@ public abstract class InternalArgument implements FunctionCreator {
     // SECTION : REGISTERING SUBCLASSES //
     //////////////////////////////////////
 
-    // Reflections returns unparameterized sets that totally can be converted, Java just doesn't like it
-    private static <T> Set<T> convertSet(Set<?> set) {
-        return (Set<T>) set;
-    }
-
     private static final List<Runnable> registerProcesses = new ArrayList<>();
 
-    private static final List<Class<? extends InternalArgument>> foundClasses = new ArrayList<>();
-    private static final Map<String, CommandArgument> typeMap = new HashMap<>();
+    private static final List<Class<? extends InternalArgument<?>>> foundClasses = new ArrayList<>();
+    private static final Map<String, CommandArgument<?>> typeMap = new HashMap<>();
 
-    private static final Map<Class<? extends InternalArgument>, InstanceFunctionList> instanceFunctions = new HashMap<>();
-    private static final Map<Class<? extends InternalArgument>, StaticFunctionList> staticFunctions = new HashMap<>();
+    private static final Map<Class<? extends InternalArgument<?>>, InstanceFunctionList<?>> instanceFunctions = new HashMap<>();
+    private static final Map<Class<? extends InternalArgument<?>>, StaticFunctionList> staticFunctions = new HashMap<>();
 
     // Public methods that schedule register processes
     public static void registerFromJavaPlugin(JavaPlugin plugin, String packageName) {
@@ -180,39 +184,39 @@ public abstract class InternalArgument implements FunctionCreator {
 
                 ConfigCommandsHandler.logDebug("InternalArguments found:\n\t%s", internalArguments.toString().replace(", ", ",\n\t"));
 
-                registerInternalArgumentSet(convertSet(internalArguments), pluginName);
+                registerInternalArgumentSet(whyGenerics(internalArguments), pluginName);
             }
             if(registerMode == RegisterMode.All || registerMode == RegisterMode.FUNCTION_ADDERS) {
                 Set<Class<?>> functionAdders = reflections.get(SubTypes.of(FunctionAdder.class).asClass(classLoader));
 
                 ConfigCommandsHandler.logDebug("FunctionAdders found:\n\t%s", functionAdders.toString().replace(", ", ",\n\t"));
 
-                registerFunctionAdderSet(convertSet(functionAdders), pluginName);
+                registerFunctionAdderSet(whyGenerics(functionAdders), pluginName);
             }
         });
     }
 
-    public static void registerFromInternalArgumentClassSet(Set<Class<? extends InternalArgument>> classes, String pluginName) {
+    public static void registerFromInternalArgumentClassSet(Set<Class<? extends InternalArgument<?>>> classes, String pluginName) {
         registerProcesses.add(() -> registerInternalArgumentSet(classes, pluginName));
     }
 
-    public static void registerFromFunctionAdderClassSet(Set<Class<? extends FunctionAdder>> classes, String pluginName) {
+    public static void registerFromFunctionAdderClassSet(Set<Class<? extends FunctionAdder<?>>> classes, String pluginName) {
         registerProcesses.add(() -> registerFunctionAdderSet(classes, pluginName));
     }
 
     // Private methods to actually register classes
-    private static void registerInternalArgumentSet(Set<Class<? extends InternalArgument>> classes, String pluginName) {
+    private static void registerInternalArgumentSet(Set<Class<? extends InternalArgument<?>>> classes, String pluginName) {
         pluginName = pluginName.toLowerCase();
-        for (Class<? extends InternalArgument> clazz : classes) {
+        for (Class<? extends InternalArgument<?>> clazz : classes) {
             registerInternalArgument(clazz, pluginName);
         }
         ConfigCommandsHandler.logDebug("All classes registered");
     }
 
-    private static void registerInternalArgument(Class<? extends InternalArgument> clazz, String pluginName) {
+    private static void registerInternalArgument(Class<? extends InternalArgument<?>> clazz, String pluginName) {
         if (clazz.isAssignableFrom(InternalVoidArgument.class)) return;
 
-        InternalArgument object;
+        InternalArgument<?> object;
         try {
             object = getInternalArgument(clazz);
         } catch (IllegalArgumentException e) {
@@ -228,24 +232,25 @@ public abstract class InternalArgument implements FunctionCreator {
         Expression.addToStaticClassMap(object);
         foundClasses.add(clazz);
 
-        if (object instanceof CommandArgument ca) {
+        if (object instanceof CommandArgument<?> ca) {
             ConfigCommandsHandler.logDebug("%s can be added to commands", clazz.getSimpleName());
             typeMap.put(ca.getTypeTag(), ca);
         }
     }
 
-    private static void registerFunctionAdderSet(Set<Class<? extends FunctionAdder>> classes, String pluginName) {
+    private static void registerFunctionAdderSet(Set<Class<? extends FunctionAdder<?>>> classes, String pluginName) {
         pluginName = pluginName.toLowerCase();
-        for (Class<? extends FunctionAdder> clazz : classes) {
+        for (Class<? extends FunctionAdder<?>> clazz : classes) {
             registerFunctionAdder(clazz, pluginName);
         }
         ConfigCommandsHandler.logDebug("All classes registered");
     }
 
-    private static void registerFunctionAdder(Class<? extends FunctionAdder> clazz, String pluginName) {
-        FunctionAdder object;
+    @SuppressWarnings("unchecked") // Just some silly stuff to make Java behave
+    private static <T> void registerFunctionAdder(Class<? extends FunctionAdder<?>> clazz, String pluginName) {
+        FunctionAdder<T> object;
         try {
-            object = getFunctionAdder(clazz);
+            object = (FunctionAdder<T>) getFunctionAdder(clazz);
         } catch (IllegalArgumentException e) {
             ConfigCommandsHandler.logError("Error when registering FunctionAdder: %s", clazz.getSimpleName());
             ConfigCommandsHandler.logError(e.getMessage());
@@ -253,8 +258,8 @@ public abstract class InternalArgument implements FunctionCreator {
             return;
         }
 
-        Class<? extends InternalArgument> classToAddTo = object.getClassToAddTo();
-        InternalArgument subObject;
+        Class<? extends InternalArgument<T>> classToAddTo = object.getClassToAddTo();
+        InternalArgument<?> subObject;
         try {
             subObject = getInternalArgument(classToAddTo);
         } catch (IllegalArgumentException e) {
@@ -283,8 +288,8 @@ public abstract class InternalArgument implements FunctionCreator {
         ConfigCommandsHandler.logNormal("");
         ConfigCommandsHandler.logNormal("Initializing function maps");
         ConfigCommandsHandler.increaseIndentation();
-        for (Class<? extends InternalArgument> clazz : foundClasses) {
-            InternalArgument object = getInternalArgument(clazz);
+        for (Class<? extends InternalArgument<?>> clazz : foundClasses) {
+            InternalArgument<?> object = getInternalArgument(clazz);
 
             ConfigCommandsHandler.logDebug(object.toString());
             try {
@@ -316,7 +321,7 @@ public abstract class InternalArgument implements FunctionCreator {
     /////////////////////////
 
     // Creating function maps
-    private static final Map<Class<? extends InternalArgument>, InstanceFunctionList> addedInstanceFunctions = new HashMap<>();
+    private static final Map<Class<? extends InternalArgument<?>>, InstanceFunctionList<?>> addedInstanceFunctions = new HashMap<>();
 
     /**
      * Builds the {@link InstanceFunction} objects that can be run for this {@link InternalArgument}. The default
@@ -327,14 +332,14 @@ public abstract class InternalArgument implements FunctionCreator {
      *
      * @return An {@link InstanceFunctionList} that holds the {@link InstanceFunction} objects that can be run for this {@link InternalArgument}.
      */
-    public InstanceFunctionList getInstanceFunctions() {
+    public InstanceFunctionList<T> getInstanceFunctions() {
         return merge(InternalArgument.getAddedInstanceFunctions(myClass()),
                 functions(
-                        new InstanceFunction("forCommand")
-                                .returns(InternalStringArgument.class, "The String that represents this argument in a command")
-                                .executes((target, parameters) -> {
-                                    return new InternalStringArgument(target.forCommand());
-                                })
+                        instanceFunction("forCommand")
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalStringArgument.class, "The String that represents this argument in a command")
+                                        .executes(t -> new InternalStringArgument(t.forCommand()))
+                                )
                 )
         );
     }
@@ -346,8 +351,10 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link InternalArgument} class object to get the {@link InstanceFunctionList} for.
      * @return The {@link InstanceFunctionList} created for the given class.
      */
-    public static InstanceFunctionList getInstanceFunctionsFor(Class<? extends InternalArgument> clazz) {
-        return instanceFunctions.get(clazz);
+    // The cast should be safe because only InstanceFunctionList<T> should be created for Class<? extends InternalArgument<T>>
+    @SuppressWarnings("unchecked")
+    public static <T> InstanceFunctionList<T> getInstanceFunctionsFor(Class<? extends InternalArgument<T>> clazz) {
+        return (InstanceFunctionList<T>) instanceFunctions.get(clazz);
     }
 
     /**
@@ -358,9 +365,12 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz          The {@link InternalArgument} class to add the functions to.
      * @param functionsToAdd An {@link InstanceFunctionList} containing the functions to add.
      */
-    public static void addInstanceFunctions(Class<? extends InternalArgument> clazz, InstanceFunctionList functionsToAdd) {
+    // The cast should be safe because only InstanceFunctionList<T> should be added for Class<? extends InternalArgument<T>>
+    @SuppressWarnings("unchecked")
+    public static <T> void addInstanceFunctions(Class<? extends InternalArgument<T>> clazz, InstanceFunctionList<T> functionsToAdd) {
         if (functionsToAdd == null) return;
-        addedInstanceFunctions.computeIfAbsent(clazz, (key) -> new InstanceFunctionList()).addAll(functionsToAdd);
+        InstanceFunctionList<T> list = (InstanceFunctionList<T>) addedInstanceFunctions.computeIfAbsent(clazz, (key) -> new InstanceFunctionList<T>());
+        list.addAll(functionsToAdd);
     }
 
     /**
@@ -370,11 +380,13 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link InternalArgument} class to get functions for.
      * @return An {@link InstanceFunctionList} holding all the {@link InstanceFunction}s added to the given {@link InternalArgument}.
      */
-    private static InstanceFunctionList getAddedInstanceFunctions(Class<? extends InternalArgument> clazz) {
-        return addedInstanceFunctions.getOrDefault(clazz, new InstanceFunctionList());
+    // The cast should be safe because only InstanceFunctionList<T> should be created for Class<? extends InternalArgument<T>>
+    @SuppressWarnings("unchecked")
+    private static <T> InstanceFunctionList<T> getAddedInstanceFunctions(Class<? extends InternalArgument<T>> clazz) {
+        return (InstanceFunctionList<T>) addedInstanceFunctions.getOrDefault(clazz, new InstanceFunctionList<T>());
     }
 
-    private static final Map<Class<? extends InternalArgument>, StaticFunctionList> addedStaticFunctions = new HashMap<>();
+    private static final Map<Class<? extends InternalArgument<?>>, StaticFunctionList> addedStaticFunctions = new HashMap<>();
 
     /**
      * Builds the {@link StaticFunction} objects that can be run for this {@link InternalArgument}. The default
@@ -396,7 +408,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link InternalArgument} class object to get the {@link StaticFunctionList} for.
      * @return The {@link StaticFunctionList} created for the given class.
      */
-    public static StaticFunctionList getStaticFunctionsFor(Class<? extends InternalArgument> clazz) {
+    public static StaticFunctionList getStaticFunctionsFor(Class<? extends InternalArgument<?>> clazz) {
         return staticFunctions.get(clazz);
     }
 
@@ -408,7 +420,7 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz          The {@link InternalArgument} class to add the functions to.
      * @param functionsToAdd An {@link StaticFunctionList} containing the functions to add.
      */
-    public static void addStaticFunctions(Class<? extends InternalArgument> clazz, StaticFunctionList functionsToAdd) {
+    public static void addStaticFunctions(Class<? extends InternalArgument<?>> clazz, StaticFunctionList functionsToAdd) {
         if (functionsToAdd == null) return;
         addedStaticFunctions.computeIfAbsent(clazz, (key) -> new StaticFunctionList()).addAll(functionsToAdd);
     }
@@ -420,88 +432,37 @@ public abstract class InternalArgument implements FunctionCreator {
      * @param clazz The {@link InternalArgument} class to get functions for.
      * @return An {@link StaticFunctionList} holding all the {@link StaticFunction}s added to the given {@link InternalArgument}.
      */
-    private static StaticFunctionList getAddedStaticFunctions(Class<? extends InternalArgument> clazz) {
+    private static StaticFunctionList getAddedStaticFunctions(Class<? extends InternalArgument<?>> clazz) {
         return addedStaticFunctions.getOrDefault(clazz, new StaticFunctionList());
     }
 
     // Instance methods for checking for and running functions
-
-    /**
-     * Checks if this {@link InternalArgument} has an {@link InstanceFunction} with the given signature.
-     *
-     * @param function       The name of the {@link InstanceFunction} to search for.
-     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
-     * @return True if an {@link InstanceFunction} with the given name and accepting the given parameters belonging
-     * to this {@link InternalArgument} is found, and false otherwise.
-     */
-    public final boolean hasInstanceFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
-        return instanceFunctions.get(myClass()).hasFunction(function, parameterTypes);
+//    /**
+//     * Returns an {@link InstanceFunction} belonging to this {@link InternalArgument} with the given signature.
+//     *
+//     * @param function       The name of the {@link InstanceFunction} to search for.
+//     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
+//     * @return A {@link InstanceFunction} with the given name and parameters, or null if one cannot be found.
+//     */
+    // The cast should be safe because only InstanceFunctionList<T> should be created for Class<? extends InternalArgument<T>>
+    @SuppressWarnings("unchecked")
+    public final InstanceExecution<T, ?> getInstanceExecution(String function, List<Class<? extends InternalArgument<?>>> parameterTypes) {
+        InstanceFunction<T> instanceFunction = ((InstanceFunctionList<T>) instanceFunctions.get(myClass())).getByName(function);
+        if (instanceFunction == null) return null;
+        return instanceFunction.findExecution(parameterTypes);
     }
 
-    /**
-     * Checks if this {@link InternalArgument} has an {@link StaticFunction} with the given signature.
-     *
-     * @param function       The name of the {@link StaticFunction} to search for.
-     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
-     * @return True if an {@link StaticFunction} with the given name and accepting the given parameters belonging
-     * to this {@link InternalArgument} is found, and false otherwise.
-     */
-    public final boolean hasStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
-        return staticFunctions.get(myClass()).hasFunction(function, parameterTypes);
-    }
-
-    /**
-     * Gets the class that running the {@link InstanceFunction} with the given signature would return.
-     *
-     * @param function       The name of the {@link InstanceFunction} to search for.
-     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
-     * @return The {@link InternalArgument} class of the Object that would be returned if the given {@link InstanceFunction} was run.
-     */
-    public final Class<? extends InternalArgument> getReturnTypeForInstanceFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
-        return instanceFunctions.get(myClass()).getFunction(function, parameterTypes).getReturnType(parameterTypes);
-    }
-
-    /**
-     * Gets the class that running the {@link StaticFunction} with the given signature would return.
-     *
-     * @param function       The name of the {@link StaticFunction} to search for.
-     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
-     * @return The {@link InternalArgument} class of the Object that would be returned if the given {@link StaticFunction} was run.
-     */
-    public final Class<? extends InternalArgument> getReturnTypeForStaticFunction(String function, List<Class<? extends InternalArgument>> parameterTypes) {
-        return staticFunctions.get(myClass()).getFunction(function, parameterTypes).getReturnType(parameterTypes);
-    }
-
-    /**
-     * Runs the given {@link InstanceFunction}.
-     *
-     * @param function   The name of the {@link InstanceFunction} to run.
-     * @param parameters A List of {@link InternalArgument} objects that are the parameters of the function.
-     * @return An {@link InternalArgument} that is the result of running the given function.
-     */
-    public final InternalArgument runInstanceFunction(String function, List<InternalArgument> parameters) {
-        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
-        for (InternalArgument p : parameters) {
-            parameterTypes.add(p.getClass());
-        }
-
-        return instanceFunctions.get(myClass()).getFunction(function, parameterTypes).run(this, parameters);
-    }
-
-    /**
-     * Runs the given {@link StaticFunction}.
-     *
-     * @param function   The name of the {@link StaticFunction} to run.
-     * @param parameters A List of {@link InternalArgument} objects that are the parameters of the function.
-     * @return An {@link InternalArgument} that is the result of running the given function.
-     */
-    public final InternalArgument runStaticFunction(String function, List<InternalArgument> parameters) {
-        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>();
-        for (InternalArgument p : parameters) {
-            parameterTypes.add(p.getClass());
-        }
-
-        return staticFunctions.get(myClass()).getFunction(function, parameterTypes).run(parameters);
+//    /**
+//     * Returns an {@link StaticFunction} belonging to this {@link InternalArgument} with the given signature.
+//     *
+//     * @param function       The name of the {@link StaticFunction} to search for.
+//     * @param parameterTypes A List of {@link InternalArgument} class objects that are being input.
+//     * @return A {@link StaticFunction} with the given name and parameters, or null if one cannot be found.
+//     */
+    public final StaticExecution<?> getStaticExecution(String function, List<Class<? extends InternalArgument<?>>> parameterTypes) {
+        StaticFunction staticFunction = staticFunctions.get(myClass()).getByName(function);
+        if(staticFunction == null) return null;
+        return staticFunction.findExecution(parameterTypes);
     }
 
     ////////////////////////////////////////////
@@ -550,12 +511,12 @@ public abstract class InternalArgument implements FunctionCreator {
      * @throws IncorrectArgumentKey If a key describing the argument is incorrect.
      */
     public static Argument<?> convertArgumentInformation(String name, String type,
-                                                         Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                                         Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
                                                          Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         if (!typeMap.containsKey(type))
             throw new IncorrectArgumentKey(name, "type", "\"" + type + "\" is not a recognized type that can be added to a command.");
 
-        CommandArgument object = typeMap.get(type);
+        CommandArgument<?> object = typeMap.get(type);
         String argumentName = formatArgumentName(name);
         argumentClasses.put(argumentName, object.myClass());
         ConfigCommandsHandler.logDebug(localDebug, "Argument %s available as %s", argumentName, object.getClass().getSimpleName());
@@ -615,19 +576,19 @@ public abstract class InternalArgument implements FunctionCreator {
      *
      * @param arg The new value for this {@link InternalArgument}.
      */
-    public abstract void setValue(Object arg);
+    public abstract void setValue(T arg);
 
     /**
      * @return The current value held by this {@link InternalArgument}.
      */
-    public abstract Object getValue();
+    public abstract T getValue();
 
     /**
      * Sets the internal value of this {@link InternalArgument} to the value stored by the given {@link InternalArgument}.
      *
      * @param arg The {@link InternalArgument} holding the new value for this {@link InternalArgument}.
      */
-    public abstract void setValue(InternalArgument arg);
+    public abstract void setValue(InternalArgument<T> arg);
 
     /**
      * @return A String that represents the value of this {@link InternalArgument} best in a command.
@@ -635,15 +596,26 @@ public abstract class InternalArgument implements FunctionCreator {
     public abstract String forCommand();
 
     // Class related methods
+    // The cast is safe, and totally works at runtime, generics are just kinda weird
+    public static <T> Class<? extends InternalArgument<T>> any() {
+        return sillyCast();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T sillyCast() {
+        return (T) InternalArgument.class;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
-    public Class<? extends InternalArgument> myClass() {
-        return getClass();
+    public Class<? extends InternalArgument<T>> myClass() {
+        return (Class<? extends InternalArgument<T>>) getClass();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj == null) return false;
-        if (!(obj instanceof InternalArgument argument)) return false;
+        if (!(obj instanceof InternalArgument<?> argument)) return false;
         return argument.getValue().equals(getValue());
     }
 

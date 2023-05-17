@@ -108,7 +108,7 @@ public class CompilerState implements DebuggableState {
      * A map from names to the {@link InternalArgument} class objects for
      * each argument variable currently available.
      */
-    private final Map<String, Class<? extends InternalArgument>> argumentClasses;
+    private final Map<String, Class<? extends InternalArgument<?>>> argumentClasses;
 
     /**
      * Adds an argument to the {@link CompilerState#argumentClasses} map.
@@ -117,7 +117,7 @@ public class CompilerState implements DebuggableState {
      * @param clazz The {@link InternalArgument} class object that represents the type of the argument.
      * @return This CompilerState object.
      */
-    public CompilerState addArgument(String name, Class<? extends InternalArgument> clazz) {
+    public CompilerState addArgument(String name, Class<? extends InternalArgument<?>> clazz) {
         argumentClasses.put(name, clazz);
         return this;
     }
@@ -129,7 +129,7 @@ public class CompilerState implements DebuggableState {
      *                  class objects for each of the arguments that should be added.
      * @return This CompilerState object.
      */
-    public CompilerState addArguments(Map<String, Class<? extends InternalArgument>> arguments) {
+    public CompilerState addArguments(Map<String, Class<? extends InternalArgument<?>>> arguments) {
         argumentClasses.putAll(arguments);
         return this;
     }
@@ -137,7 +137,7 @@ public class CompilerState implements DebuggableState {
     /**
      * @return The value of {@link CompilerState#argumentClasses}.
      */
-    public Map<String, Class<? extends InternalArgument>> getArgumentClasses() {
+    public Map<String, Class<? extends InternalArgument<?>>> getArgumentClasses() {
         return argumentClasses;
     }
 
@@ -161,7 +161,7 @@ public class CompilerState implements DebuggableState {
      * have a value for that key.
      */
     @Nullable
-    public Class<? extends InternalArgument> getVariable(String name) {
+    public Class<? extends InternalArgument<?>> getVariable(String name) {
         return argumentClasses.get(name);
     }
 

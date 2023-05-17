@@ -39,7 +39,7 @@ public class CommandExecutorBuilder implements CommandExecutor {
      * @param localDebug      The {@link SharedDebugValue} being used for this command.
      * @throws RegistrationException If there is an error while parsing the functions
      */
-    public CommandExecutorBuilder(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
+    public CommandExecutorBuilder(List<String> executes, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
                                   ExecutorType type, SharedDebugValue localDebug) throws RegistrationException {
         defaultState = FunctionLine.parseExecutes(executes, new LinkedHashMap<>(argumentClasses), localDebug);
         interpreterStateStack = new Stack<>();

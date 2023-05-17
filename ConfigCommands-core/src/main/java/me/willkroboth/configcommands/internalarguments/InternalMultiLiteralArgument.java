@@ -5,9 +5,8 @@ import dev.jorel.commandapi.arguments.MultiLiteralArgument;
 import dev.jorel.commandapi.exceptions.BadLiteralException;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.IncorrectArgumentKey;
-import me.willkroboth.configcommands.functions.InstanceFunction;
+import me.willkroboth.configcommands.functions.executions.InstanceExecution;
 import me.willkroboth.configcommands.functions.InstanceFunctionList;
-import me.willkroboth.configcommands.functions.Parameter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -19,7 +18,7 @@ import java.util.List;
 /**
  * An {@link InternalArgument} that represents a CommandAPI {@link MultiLiteralArgument}.
  */
-public class InternalMultiLiteralArgument extends InternalArgument implements CommandArgument {
+public class InternalMultiLiteralArgument extends InternalArgument<String> implements CommandArgument<String> {
     private String value;
 
     /**
@@ -29,7 +28,7 @@ public class InternalMultiLiteralArgument extends InternalArgument implements Co
     }
 
     @Override
-    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+    public Argument<String> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         if (argumentInfo == null)
             throw new IncorrectArgumentKey(name, "argumentInfo", "MultiLiteralArgument requires the literals it should use to be listed under argumentInfo");
         List<String> literals = assertArgumentInfoClass(argumentInfo, List.class, name);
@@ -109,18 +108,18 @@ public class InternalMultiLiteralArgument extends InternalArgument implements Co
     }
 
     @Override
-    public void setValue(Object arg) {
-        value = (String) arg;
+    public void setValue(String arg) {
+        value = arg;
     }
 
     @Override
-    public Object getValue() {
+    public String getValue() {
         return value;
     }
 
     @Override
-    public void setValue(InternalArgument arg) {
-        value = (String) arg.getValue();
+    public void setValue(InternalArgument<String> arg) {
+        value = arg.getValue();
     }
 
     @Override
@@ -128,29 +127,23 @@ public class InternalMultiLiteralArgument extends InternalArgument implements Co
         return value;
     }
 
-    private String getLiteral(InternalArgument target) {
-        return (String) target.getValue();
-    }
-
     @Override
-    public InstanceFunctionList getInstanceFunctions() {
-        return merge(
-                super.getInstanceFunctions(),
+    public InstanceFunctionList<String> getInstanceFunctions() {
+        return merge(super.getInstanceFunctions(),
                 functions(
-                        new InstanceFunction("getValue")
+                        instanceFunction("getValue")
                                 .withDescription("Gets the String this MultiLiteral was set to")
-                                .withParameters()
-                                .returns(InternalStringArgument.class)
-                                .executes(((target, parameters) -> {
-                                    return new InternalStringArgument(getLiteral(target));
-                                })),
-                        new InstanceFunction("equals")
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalStringArgument.class)
+                                        .executes(literal -> new InternalStringArgument(literal.getValue()))
+                                ),
+                        instanceFunction("equals")
                                 .withDescription("Checks if this MultiLiteral was set to the given string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "string", "The string to check against"))
-                                .returns(InternalBooleanArgument.class, "True if this MultiLiteral was set to the given string, and false otherwise")
-                                .executes(((target, parameters) -> {
-                                    return new InternalBooleanArgument(getLiteral(target).equals(getLiteral(parameters.get(0))));
-                                }))
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "string", "The string to check against"))
+                                        .returns(InternalBooleanArgument.class, "True if this MultiLiteral was set to the given string, and false otherwise")
+                                        .executes((literal, value) -> new InternalBooleanArgument(literal.getValue().equals(value.getValue())))
+                                )
                 )
         );
     }

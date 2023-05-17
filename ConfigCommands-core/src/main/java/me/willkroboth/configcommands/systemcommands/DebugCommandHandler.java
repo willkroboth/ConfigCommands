@@ -101,6 +101,7 @@ public class DebugCommandHandler extends SystemCommandHandler {
         return (sender, args) -> {
             ConfigCommandsHandler.reloadConfigFile();
             String key = args.getUnchecked(0);
+            assert key != null;
 
             ConfigurationSection commands = ConfigCommandsHandler.getConfigFile().getConfigurationSection("commands");
             if (commands == null || !commands.getKeys(false).contains(key))

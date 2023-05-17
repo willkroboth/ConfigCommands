@@ -15,6 +15,12 @@ import java.util.*;
  * InterpreterState object to make it easy to modify multiple variables at the same time.
  */
 public class InterpreterState implements DebuggableState {
+    // Just some silly casting
+    @SuppressWarnings("unchecked")
+    private static <T> void setArgument(InternalArgument<T> argument, Object object) {
+        argument.setValue((T) object);
+    }
+
     /**
      * Creates a new {@link InterpreterState} with internal variables set to the default values, those being:
      * <pre>
@@ -125,11 +131,11 @@ public class InterpreterState implements DebuggableState {
     /**
      * A map from name to {@link InternalArgument} object for each variable available in this function.
      */
-    private final Map<String, InternalArgument> argumentVariables;
+    private final Map<String, InternalArgument<?>> argumentVariables;
     /**
      * A map from name to {@link InternalArgument} class for each variable available in this function.
      */
-    private Map<String, Class<? extends InternalArgument>> argumentClasses;
+    private Map<String, Class<? extends InternalArgument<?>>> argumentClasses;
 
     /**
      * Sets the {@link InterpreterState#argumentClasses} variable.
@@ -137,7 +143,7 @@ public class InterpreterState implements DebuggableState {
      * @param argumentClasses A map from name to {@link InternalArgument} class for each variable available in this function.
      * @return This InterpreterState object.
      */
-    public InterpreterState setArgumentClasses(Map<String, Class<? extends InternalArgument>> argumentClasses) {
+    public InterpreterState setArgumentClasses(Map<String, Class<? extends InternalArgument<?>>> argumentClasses) {
         this.argumentClasses = argumentClasses;
         return this;
     }
@@ -151,13 +157,13 @@ public class InterpreterState implements DebuggableState {
     public InterpreterState setUpVariablesMap(Object[] args) {
         int i = 0;
         int numDefaultArgs = CommandTreeBuilder.getDefaultArgs().size();
-        for (Map.Entry<String, Class<? extends InternalArgument>> toAdd : argumentClasses.entrySet()) {
+        for (Map.Entry<String, Class<? extends InternalArgument<?>>> toAdd : argumentClasses.entrySet()) {
             argumentVariables.put(toAdd.getKey(), InternalArgument.getInternalArgument(toAdd.getValue()));
 
             ConfigCommandsHandler.logDebug(localDebug, "Added argument %s with class %s", toAdd.getKey(), toAdd.getValue().getSimpleName());
 
             if (i >= numDefaultArgs && i - numDefaultArgs < args.length) {
-                argumentVariables.get(toAdd.getKey()).setValue(args[i - numDefaultArgs]);
+                setArgument(argumentVariables.get(toAdd.getKey()), args[i - numDefaultArgs]);
                 ConfigCommandsHandler.logDebug(localDebug, "%s set to %s", toAdd.getKey(), args[i - numDefaultArgs]);
             }
             i++;
@@ -172,7 +178,7 @@ public class InterpreterState implements DebuggableState {
      * @param object The {@link InternalArgument} that holds the value for the variable.
      * @return This InterpreterState object.
      */
-    public InterpreterState addArgument(String name, InternalArgument object) {
+    public InterpreterState addArgument(String name, InternalArgument<?> object) {
         argumentVariables.put(name, object);
         return this;
     }
@@ -183,7 +189,7 @@ public class InterpreterState implements DebuggableState {
      * @param arguments A map from name to {@link InterpreterState} object for each variable to add to the map.
      * @return This InterpreterState object.
      */
-    public InterpreterState addArguments(Map<String, InternalArgument> arguments) {
+    public InterpreterState addArguments(Map<String, InternalArgument<?>> arguments) {
         argumentVariables.putAll(arguments);
         return this;
     }
@@ -195,8 +201,8 @@ public class InterpreterState implements DebuggableState {
      * @param value An {@link InternalArgument} holding the value of the new value for the variable.
      * @return This InterpreterState object.
      */
-    public InterpreterState setVariable(String name, InternalArgument value) {
-        argumentVariables.get(name).setValue(value);
+    public InterpreterState setVariable(String name, InternalArgument<?> value) {
+        setArgument(argumentVariables.get(name), value.getValue());
         return this;
     }
 
@@ -208,14 +214,14 @@ public class InterpreterState implements DebuggableState {
      * @return This InterpreterState object.
      */
     public InterpreterState setVariable(String name, Object value) {
-        argumentVariables.get(name).setValue(value);
+        setArgument(argumentVariables.get(name), value);
         return this;
     }
 
     /**
      * @return The {@link InterpreterState#argumentVariables} map.
      */
-    public Map<String, InternalArgument> getArgumentVariables() {
+    public Map<String, InternalArgument<?>> getArgumentVariables() {
         return argumentVariables;
     }
 
@@ -235,7 +241,7 @@ public class InterpreterState implements DebuggableState {
      * @param name The name of the variable to look for.
      * @return The {@link InternalArgument} value mapped to in the {@link InterpreterState#argumentVariables} map.
      */
-    public InternalArgument getVariable(String name) {
+    public InternalArgument<?> getVariable(String name) {
         return argumentVariables.get(name);
     }
 

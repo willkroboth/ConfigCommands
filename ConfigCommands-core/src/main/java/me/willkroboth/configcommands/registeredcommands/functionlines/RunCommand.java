@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.registeredcommands.functionlines;
 
 import me.willkroboth.configcommands.ConfigCommandsHandler;
+import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
 import me.willkroboth.configcommands.internalarguments.InternalCommandSenderArgument;
 import me.willkroboth.configcommands.internalarguments.InternalStringArgument;
@@ -80,13 +81,13 @@ class RunCommand extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         runCommandGetResult(commandSections, interpreterState);
 
         return interpreterState.nextIndex();
     }
 
-    public static String runCommandGetResult(List<String> commandSections, InterpreterState interpreterState) {
+    public static String runCommandGetResult(List<String> commandSections, InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "Command has parts: %s", commandSections);
 
         StringBuilder command = new StringBuilder();
@@ -102,16 +103,18 @@ class RunCommand extends FunctionLine {
         ConfigCommandsHandler.logDebug(interpreterState, "Command built as: %s", command);
 
         InternalCommandSenderArgument sender = (InternalCommandSenderArgument) interpreterState.getVariable("<sender>");
-        List<InternalArgument> commandParameter = Collections.singletonList(new InternalStringArgument(command.toString()));
+        List<InternalArgument<?>> commandParameter = Collections.singletonList(new InternalStringArgument(command.toString()));
         try {
             ConfigCommandsHandler.increaseIndentation();
-            String result = (String) sender.runInstanceFunction("dispatchCommand", commandParameter).getValue();
+            String result = (String) sender.getInstanceExecution("dispatchCommand", List.of(InternalStringArgument.class))
+                    .getRun().run(sender, commandParameter).getValue();
             ConfigCommandsHandler.decreaseIndentation();
             ConfigCommandsHandler.logDebug(interpreterState, "Command result: \"%s\"", result);
             return result;
         } catch (CommandException e) {
-            List<InternalArgument> messageParameter = Collections.singletonList(new InternalStringArgument("Invalid command: " + command));
-            sender.runInstanceFunction("sendMessage", messageParameter);
+            List<InternalArgument<?>> messageParameter = Collections.singletonList(new InternalStringArgument("Invalid command: " + command));
+            sender.getInstanceExecution("sendMessage", List.of(InternalStringArgument.class))
+                    .getRun().run(sender, messageParameter);
             throw e;
         }
     }

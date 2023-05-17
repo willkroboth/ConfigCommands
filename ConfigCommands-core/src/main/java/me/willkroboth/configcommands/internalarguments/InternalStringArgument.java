@@ -7,9 +7,8 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.IncorrectArgumentKey;
-import me.willkroboth.configcommands.functions.InstanceFunction;
 import me.willkroboth.configcommands.functions.InstanceFunctionList;
-import me.willkroboth.configcommands.functions.Parameter;
+import me.willkroboth.configcommands.functions.executions.InstanceExecution;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +19,7 @@ import java.util.List;
 /**
  * An {@link InternalArgument} that represents a Java {@link String}.
  */
-public class InternalStringArgument extends InternalArgument implements CommandArgument {
+public class InternalStringArgument extends InternalArgument<String> implements CommandArgument<String> {
     private String value;
 
     /**
@@ -39,7 +38,7 @@ public class InternalStringArgument extends InternalArgument implements CommandA
     }
 
     @Override
-    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+    public Argument<String> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         if (argumentInfo == null) return new StringArgument(name);
         ConfigurationSection info = assertArgumentInfoClass(argumentInfo, ConfigurationSection.class, name);
         String type = info.getString("subtype");
@@ -112,18 +111,18 @@ public class InternalStringArgument extends InternalArgument implements CommandA
     }
 
     @Override
-    public void setValue(Object arg) {
-        value = (String) arg;
+    public void setValue(String arg) {
+        value = arg;
     }
 
     @Override
-    public Object getValue() {
+    public String getValue() {
         return value;
     }
 
     @Override
-    public void setValue(InternalArgument arg) {
-        value = (String) arg.getValue();
+    public void setValue(InternalArgument<String> arg) {
+        value = arg.getValue();
     }
 
     @Override
@@ -131,105 +130,95 @@ public class InternalStringArgument extends InternalArgument implements CommandA
         return value;
     }
 
-    private String getString(InternalArgument target) {
-        return (String) target.getValue();
-    }
-
-    private int getInt(InternalArgument target) {
-        return (int) target.getValue();
-    }
-
     @Override
-    public InstanceFunctionList getInstanceFunctions() {
-        return merge(
-                super.getInstanceFunctions(),
+    public InstanceFunctionList<String> getInstanceFunctions() {
+        return merge(super.getInstanceFunctions(),
                 functions(
-                        new InstanceFunction("charAt")
+                        instanceFunction("charAt")
                                 .withDescription("Gets the character at the given index")
-                                .withParameters(new Parameter(InternalIntegerArgument.class, "index", "The index of the character"))
-                                .returns(InternalStringArgument.class)
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalIntegerArgument.class, "index", "The index of the character"))
+                                        .returns(InternalStringArgument.class)
+                                        .executes((string, index) -> {
+                                            try {
+                                                return new InternalStringArgument(String.valueOf(string.getValue().charAt(index.getValue())));
+                                            } catch (IndexOutOfBoundsException e) {
+                                                throw new CommandRunException(e);
+                                            }
+                                        })
+                                )
                                 .throwsException(
                                         "IndexOutOfBoundsException when index < 0 or index >= <string>.length()"
                                 )
-                                .executes((target, parameters) -> {
-                                    try {
-                                        return new InternalStringArgument("" + getString(target).charAt(getInt(parameters.get(0))));
-                                    } catch (IndexOutOfBoundsException e) {
-                                        throw new CommandRunException(e);
-                                    }
-                                })
                                 .withExamples(
                                         "do \"Hello\".charAt(Integer.(\"0\")) -> \"H\"",
                                         "do \"Hello\".charAt(Integer.(\"4\")) -> \"o\"",
                                         "do \"Hello\".charAt(Integer.(\"5\")) -> IndexOutOfBounds"
                                 ),
-                        new InstanceFunction("contains")
+                        instanceFunction("contains")
                                 .withDescription("Checks if this string contains the given string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
-                                .returns(InternalBooleanArgument.class, "True if the other string can be found inside this string, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).contains(getString(parameters.get(0))));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to look for"))
+                                        .returns(InternalBooleanArgument.class, "True if the other string can be found inside this string, and false otherwise")
+                                        .executes((string, other) -> new InternalBooleanArgument(string.getValue().contains(other.getValue())))
+                                )
                                 .withExamples(
                                         "do \"therein\".contains(\"the\") -> True",
                                         "do \"therein\".contains(\"here\") -> True",
                                         "do \"therein\".contains(\"in\") -> True",
                                         "do \"therein\".contains(\"over\") -> False"
                                 ),
-                        new InstanceFunction("endsWith")
+                        instanceFunction("endsWith")
                                 .withDescription("Checks if this string ends with the given string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
-                                .returns(InternalBooleanArgument.class, "True if the other string can be found at the end of this string, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).endsWith(getString(parameters.get(0))));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to look for"))
+                                        .returns(InternalBooleanArgument.class, "True if the other string can be found at the end of this string, and false otherwise")
+                                        .executes((string, other) -> new InternalBooleanArgument(string.getValue().endsWith(other.getValue())))
+                                )
                                 .withExamples(
                                         "do \"therein\".endsWith(\"in\") -> True",
                                         "do \"therein\".endsWith(\"rein\") -> True",
                                         "do \"therein\".endsWith(\"the\") -> False"
                                 ),
-                        new InstanceFunction("equals")
+                        instanceFunction("equals")
                                 .withDescription("Checks if this string is equal to another string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to check against"))
-                                .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).equals(getString(parameters.get(0))));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to check against"))
+                                        .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, and false otherwise")
+                                        .executes((string, other) -> new InternalBooleanArgument(string.getValue().equals(other.getValue())))
+                                )
                                 .withExamples(
                                         "do \"Hello\".equals(\"Hello\") -> True",
                                         "do \"Hello\".equals(\"Hi\") -> False",
                                         "do \"Hello\".equals(\"hElLo\") -> False"
                                 ),
-                        new InstanceFunction("equalsIgnoreCase")
+                        instanceFunction("equalsIgnoreCase")
                                 .withDescription("Checks if this string is equal to another string, ignoring differences in case")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to check against"))
-                                .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, ignoring case, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).equalsIgnoreCase(getString(parameters.get(0))));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to check against"))
+                                        .returns(InternalBooleanArgument.class, "True if the other string is identical to this string, ignoring case, and false otherwise")
+                                        .executes((string, other) -> new InternalBooleanArgument(string.getValue().equalsIgnoreCase(other.getValue())))
+                                )
                                 .withExamples(
                                         "do \"Hello\".equals(\"Hello\") -> True",
                                         "do \"Hello\".equals(\"hElLo\") -> True",
                                         "do \"Hello\".equals(\"Hi\") -> False"
                                 ),
-                        new InstanceFunction("indexOf")
+                        instanceFunction("indexOf")
                                 .withDescription("Gets the index of a another string within this string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
-                                .withParameters(
-                                        new Parameter(InternalStringArgument.class, "other", "The string to look for"),
-                                        new Parameter(InternalIntegerArgument.class, "start index", "The index to start the search from")
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to look for"))
+                                        .returns(InternalIntegerArgument.class, "The index of the first occurrence of the other string in this string, or -1 if it is not present.")
+                                        .executes((string, other) -> new InternalIntegerArgument(string.getValue().indexOf(other.getValue()))), InstanceExecution
+
+                                        .withParameters(
+                                                parameter(InternalStringArgument.class, "other", "The string to look for"),
+                                                parameter(InternalIntegerArgument.class, "start index", "The index to start the search from")
+                                        )
+                                        .returns(InternalIntegerArgument.class, "The index of the first occurrence of the other string in this string, " +
+                                                "or -1 if it is not present. Only the part of the string at or after the start index is considered")
+                                        .executes((string, other, start) -> new InternalIntegerArgument(string.getValue().indexOf(other.getValue(), start.getValue())))
                                 )
-                                .returns(InternalIntegerArgument.class, "The index of the first occurrence of the other string in this string, " +
-                                        "or -1 if it is not present. If a start index is given, only the part of the string at or after that index is considered")
-                                .executes((target, parameters) -> {
-                                    int result;
-                                    if (parameters.size() == 1) {
-                                        result = getString(target).indexOf(getString(parameters.get(0)));
-                                    } else {
-                                        result = getString(target).indexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
-                                    }
-                                    return new InternalIntegerArgument(result);
-                                })
                                 .withExamples(
                                         "do \"therein\".indexOf(\"rein\") -> 3",
                                         "do \"therein\".indexOf(\"in\") -> 5",
@@ -238,42 +227,38 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".indexOf(\"over\") -> -1",
                                         "do \"therein\".indexOf(\"e\", Integer.(\"5\")) -> -1"
                                 ),
-                        new InstanceFunction("isEmpty")
+                        instanceFunction("isEmpty")
                                 .withDescription("Checks if this string has anything in it")
-                                .returns(InternalBooleanArgument.class, "True if <string>.length() equals 0, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).isEmpty());
-                                }),
-                        new InstanceFunction("join")
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalBooleanArgument.class, "True if <string>.length() equals 0, and false otherwise")
+                                        .executes(string -> new InternalBooleanArgument(string.getValue().isEmpty()))
+                                ),
+                        instanceFunction("join")
                                 .withDescription("Adds another object onto the end of this string")
-                                .withParameters(new Parameter(InternalArgument.class, "other",
-                                        "The object to add. Automatically converted to a string using the forCommand method."))
-                                .returns(InternalStringArgument.class, "A new string that starts with this string and ends with the other object")
-                                .executes((target, parameters) -> {
-                                    return new InternalStringArgument(getString(target) + parameters.get(0).forCommand());
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalArgument.any(), "other", "The object to add. Automatically converted to a string using the forCommand method."))
+                                        .returns(InternalStringArgument.class, "A new string that starts with this string and ends with the other object")
+                                        .executes((string, other) -> new InternalStringArgument(string.getValue() + other.forCommand()))
+                                )
                                 .withExamples(
                                         "do \"Hello\".join(\"World\") -> \"HelloWorld\"",
                                         "do \"Count: \".join(Integer.()) -> \"Count: 0\""
                                 ),
-                        new InstanceFunction("lastIndexOf")
+                        instanceFunction("lastIndexOf")
                                 .withDescription("Gets the index of another string within this string, starting from the end")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
-                                .withParameters(
-                                        new Parameter(InternalStringArgument.class, "other", "The string to look for"),
-                                        new Parameter(InternalIntegerArgument.class, "start index", "The index to start from")
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to look for"))
+                                        .returns(InternalIntegerArgument.class, "The index of the last occurrence of the other string in this string, or -1 if it is not present.")
+                                        .executes((string, other) -> new InternalIntegerArgument(string.getValue().lastIndexOf(other.getValue()))), InstanceExecution
+
+                                        .withParameters(
+                                                parameter(InternalStringArgument.class, "other", "The string to look for"),
+                                                parameter(InternalIntegerArgument.class, "start index", "The index to start the search from")
+                                        )
+                                        .returns(InternalIntegerArgument.class, "The index of the last occurrence of the other string in this string, " +
+                                                "or -1 if it is not present. Only the part of the string at or before the start index is considered")
+                                        .executes((string, other, start) -> new InternalIntegerArgument(string.getValue().lastIndexOf(other.getValue(), start.getValue())))
                                 )
-                                .returns(InternalIntegerArgument.class, "The index of the last occurrence of the other string in this string, " +
-                                        "or -1 if it is not present. If a start index is given, only the part of the string at or before that index is considered")
-                                .executes((target, parameters) -> {
-                                    int result;
-                                    if (parameters.size() == 1) {
-                                        result = getString(target).lastIndexOf(getString(parameters.get(0)));
-                                    } else {
-                                        result = getString(target).lastIndexOf(getString(parameters.get(0)), getInt(parameters.get(1)));
-                                    }
-                                    return new InternalIntegerArgument(result);
-                                })
                                 .withExamples(
                                         "do \"therein\".lastIndexOf(\"rein\") -> 3",
                                         "do \"therein\".lastIndexOf(\"in\") -> 5",
@@ -282,86 +267,93 @@ public class InternalStringArgument extends InternalArgument implements CommandA
                                         "do \"therein\".lastIndexOf(\"over\") -> -1",
                                         "do \"therein\".lastIndexOf(\"e\", Integer.(\"1\")) -> -1"
                                 ),
-                        new InstanceFunction("length")
-                                .returns(InternalIntegerArgument.class, "The number of characters in this string")
-                                .executes((target, parameters) -> {
-                                    return new InternalIntegerArgument(getString(target).length());
-                                })
+                        instanceFunction("length")
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalIntegerArgument.class, "The number of characters in this string")
+                                        .executes(string -> new InternalIntegerArgument(string.getValue().length()))
+                                )
                                 .withExamples(
                                         "do \"Hello\".length() -> 5",
                                         "do \"therein\".length() -> 7",
                                         "do \"\".length() -> 0"
                                 ),
-                        new InstanceFunction("replace")
+                        instanceFunction("replace")
                                 .withDescription("Replaces all instances of a string within this string with a new string")
-                                .withParameters(
-                                        new Parameter(InternalStringArgument.class, "pattern", "The string to look for"),
-                                        new Parameter(InternalStringArgument.class, "replacement", "The string to insert")
+                                .withExecutions(InstanceExecution
+                                        .withParameters(
+                                                parameter(InternalStringArgument.class, "pattern", "The string to look for"),
+                                                parameter(InternalStringArgument.class, "replacement", "The string to insert")
+                                        )
+                                        .returns(InternalStringArgument.class, "A new string with every instance of the pattern string replaced with the replacement string")
+                                        .executes((string, pattern, replacement) -> new InternalStringArgument(string.getValue().replace(pattern.getValue(), replacement.getValue())))
                                 )
-                                .returns(InternalStringArgument.class, "A new string with every instance of the pattern string replaced with the replacement string")
-                                .executes((target, parameters) -> {
-                                    return new InternalStringArgument(getString(target).replace(getString(parameters.get(0)), getString(parameters.get(1))));
-                                })
                                 .withExamples(
                                         "do \"mississippi\".replace(\"is\", \"ab\") -> \"mabsabsippi\"",
                                         "do \"mississippi\".replace(\"ss\", \"\") -> \"miiippi\"",
                                         "do \"aaa\".replace(\"aa\", \"b\") -> \"ba\"",
                                         "do \"aaa\".replace(\"\", \"b\") -> \"ababab\""
                                 ),
-                        new InstanceFunction("startsWith")
+                        instanceFunction("startsWith")
                                 .withDescription("Checks if this string starts with the given string")
-                                .withParameters(new Parameter(InternalStringArgument.class, "other", "The string to look for"))
-                                .returns(InternalBooleanArgument.class, "True if the other string can be found at the start of this string, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getString(target).startsWith(getString(parameters.get(0))));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalStringArgument.class, "other", "The string to look for"))
+                                        .returns(InternalBooleanArgument.class, "True if the other string can be found at the start of this string, and false otherwise")
+                                        .executes((string, other) -> new InternalBooleanArgument(string.getValue().startsWith(other.getValue())))
+                                )
                                 .withExamples(
                                         "do \"therein\".startsWith(\"the\") -> True",
                                         "do \"therein\".startsWith(\"there\") -> True",
                                         "do \"therein\".startsWith(\"rein\") -> False"
                                 ),
-                        new InstanceFunction("substring")
+                        instanceFunction("substring")
                                 .withDescription("Creates a new string from part of this string")
-                                .withParameters(new Parameter(InternalIntegerArgument.class, "start", "The index to start from"))
-                                .withParameters(
-                                        new Parameter(InternalIntegerArgument.class, "start", "The index to start from"),
-                                        new Parameter(InternalIntegerArgument.class, "end", "The index to stop at")
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalIntegerArgument.class, "start", "The index to start from"))
+                                        .returns(InternalStringArgument.class, "A new string that contains all of the characters in this string at or after the start index")
+                                        .executes((string, start) -> {
+                                            try {
+                                                return new InternalStringArgument(string.getValue().substring(start.getValue()));
+                                            } catch (IndexOutOfBoundsException e) {
+                                                throw new CommandRunException(e);
+                                            }
+                                        }), InstanceExecution
+
+                                        .withParameters(
+                                                parameter(InternalIntegerArgument.class, "start", "The index to start from"),
+                                                parameter(InternalIntegerArgument.class, "end", "The index to stop at")
+                                        )
+                                        .returns(InternalStringArgument.class, "A new string that contains all the characters in this string at or after the " +
+                                                "start index and before but not at the end index.")
+                                        .executes((string, start, end) -> {
+                                            try {
+                                                return new InternalStringArgument(string.getValue().substring(start.getValue(), end.getValue()));
+                                            } catch (IndexOutOfBoundsException e) {
+                                                throw new CommandRunException(e);
+                                            }
+                                        })
                                 )
-                                .returns(InternalStringArgument.class, "A new string that contains all the characters in this string at or after the " +
-                                        "start index and before but not at the end index. When the end index is not given, it defaults to <string>.length()")
                                 .throwsException(
                                         "IndexOutOfBoundsException when start < 0, end > <string>.length(), or start > end"
                                 )
-                                .executes((target, parameters) -> {
-                                    String result;
-                                    try {
-                                        if (parameters.size() == 1) {
-                                            result = getString(target).substring(getInt(parameters.get(0)));
-                                        } else {
-                                            result = getString(target).substring(getInt(parameters.get(0)), getInt(parameters.get(1)));
-                                        }
-                                    } catch (IndexOutOfBoundsException e) {
-                                        throw new CommandRunException(e);
-                                    }
-                                    return new InternalStringArgument(result);
-                                })
                                 .withExamples(
                                         "do \"therein\".substring(Integer.(\"3\")) -> \"rein\"",
                                         "do \"therein\".substring(Integer.(\"1\"), Integer.(\"5\")) -> \"here\"",
-                                        "do \"therein\".substring(Integer.(\"-1\"), Integer.(\"8\") -> IndexOutOfBounds because start (-1) < 0 and end (8) > <string>.length (7)",
+                                        "do \"therein\".substring(Integer.(\"-1\"), Integer.(\"8\") -> IndexOutOfBounds because start (-1) < 0 and end (8) > <string>.length() (7)",
                                         "do \"therein\".substring(Integer.(\"5\"), Integer.(\"1\")) -> IndexOutOfBounds because start (5) > end (1)"
                                 ),
-                        new InstanceFunction("toInt")
+                        instanceFunction("toInt")
                                 .withDescription("Turns this string into an Integer")
-                                .returns(InternalIntegerArgument.class, "The number this string represents in base 10")
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalIntegerArgument.class, "The number this string represents in base 10")
+                                        .executes(string -> {
+                                            try {
+                                                return new InternalIntegerArgument(Integer.parseInt(string.getValue()));
+                                            } catch (NumberFormatException e) {
+                                                throw new CommandRunException(e);
+                                            }
+                                        })
+                                )
                                 .throwsException("NumberFormatException when this string cannot be interpreted as an Integer")
-                                .executes((target, parameters) -> {
-                                    try {
-                                        return new InternalIntegerArgument(Integer.parseInt(getString(target)));
-                                    } catch (NumberFormatException e) {
-                                        throw new CommandRunException(e);
-                                    }
-                                })
                                 .withExamples(
                                         "\"10\".toInt() -> 10",
                                         "\"-5\".toInt() -> -5",

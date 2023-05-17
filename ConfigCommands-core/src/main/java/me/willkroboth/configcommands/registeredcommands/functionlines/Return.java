@@ -1,9 +1,11 @@
 package me.willkroboth.configcommands.registeredcommands.functionlines;
 
 import me.willkroboth.configcommands.ConfigCommandsHandler;
+import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.functionsyntax.InvalidReturnCommand;
 import me.willkroboth.configcommands.exceptions.ParseException;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
+import me.willkroboth.configcommands.internalarguments.InternalCommandSenderArgument;
 import me.willkroboth.configcommands.internalarguments.InternalStringArgument;
 import me.willkroboth.configcommands.registeredcommands.CompilerState;
 import me.willkroboth.configcommands.registeredcommands.expressions.Expression;
@@ -21,16 +23,16 @@ class Return extends FunctionLine {
         ConfigCommandsHandler.logDebug(compilerState, "Return trimmed off to get: %s", returnString);
 
         ConfigCommandsHandler.logDebug(compilerState, "returnExpression is: %s", returnString);
-        Expression returnExpression =
+        Expression<?> returnExpression =
                 Expression.parseExpression(returnString, compilerState.getArgumentClasses(), compilerState.isDebug());
         ConfigCommandsHandler.logDebug(compilerState, "returnExpression parsed to: %s", returnExpression);
 
         return new Return(returnExpression);
     }
 
-    private final Expression returnExpression;
+    private final Expression<?> returnExpression;
 
-    private Return(Expression returnExpression) {
+    private Return(Expression<?> returnExpression) {
         this.returnExpression = returnExpression;
     }
 
@@ -40,16 +42,17 @@ class Return extends FunctionLine {
     }
 
     @Override
-    public int run(InterpreterState interpreterState) {
+    public int run(InterpreterState interpreterState) throws CommandRunException {
         ConfigCommandsHandler.logDebug(interpreterState, "Expression is " + returnExpression);
         ConfigCommandsHandler.increaseIndentation();
-        String returnValue =
-                returnExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue().toString();
+        String returnValue = returnExpression.evaluate(interpreterState.getArgumentVariables(), interpreterState.isDebug()).getValue().toString();
         ConfigCommandsHandler.decreaseIndentation();
 
         ConfigCommandsHandler.logDebug(interpreterState, "Return value is \"" + returnValue + "\"");
-        List<InternalArgument> messageParameter = Collections.singletonList(new InternalStringArgument(returnValue));
-        interpreterState.getVariable("<sender>").runInstanceFunction("sendMessage", messageParameter);
+        List<InternalArgument<?>> messageParameter = Collections.singletonList(new InternalStringArgument(returnValue));
+        InternalCommandSenderArgument sender = (InternalCommandSenderArgument) interpreterState.getVariable("<sender>");
+
+        sender.getInstanceExecution("sendMessage", Collections.singletonList(InternalStringArgument.class)).getRun().run(sender, messageParameter);
 
         return -1;
     }

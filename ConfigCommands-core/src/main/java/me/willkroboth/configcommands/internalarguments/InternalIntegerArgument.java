@@ -5,8 +5,7 @@ import dev.jorel.commandapi.arguments.IntegerArgument;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.IncorrectArgumentKey;
-import me.willkroboth.configcommands.functions.Parameter;
-import me.willkroboth.configcommands.functions.StaticFunction;
+import me.willkroboth.configcommands.functions.executions.StaticExecution;
 import me.willkroboth.configcommands.functions.StaticFunctionList;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An {@link InternalArgument} that represents a Java {@link Integer}.
  */
-public class InternalIntegerArgument extends InternalArgument implements CommandArgument {
+public class InternalIntegerArgument extends InternalArgument<Integer> implements CommandArgument<Integer> {
     private int value;
 
     /**
@@ -34,7 +33,7 @@ public class InternalIntegerArgument extends InternalArgument implements Command
     }
 
     @Override
-    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
+    public Argument<Integer> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) throws IncorrectArgumentKey {
         int min = Integer.MIN_VALUE;
         int max = Integer.MAX_VALUE;
         if (argumentInfo != null) {
@@ -143,53 +142,55 @@ public class InternalIntegerArgument extends InternalArgument implements Command
     }
 
     @Override
-    public void setValue(Object arg) {
-        value = (int) arg;
+    public void setValue(Integer arg) {
+        value = arg;
     }
 
     @Override
-    public Object getValue() {
+    public Integer getValue() {
         return value;
     }
 
     @Override
-    public void setValue(InternalArgument arg) {
-        value = (int) arg.getValue();
+    public void setValue(InternalArgument<Integer> arg) {
+        value = arg.getValue();
     }
 
     @Override
     public String forCommand() {
-        return "" + value;
+        return String.valueOf(value);
     }
 
     @Override
     public StaticFunctionList getStaticFunctions() {
         return merge(super.getStaticFunctions(),
                 functions(
-                        new StaticFunction("new")
+                        staticFunction("new")
                                 .withAliases("")
                                 .withDescription("Creates a new Integer")
-                                .withParameters()
-                                .withParameters(new Parameter(InternalStringArgument.class, "value", "The value for the new Integer"))
-                                .returns(InternalIntegerArgument.class, "An Integer containing the given value, or 0 if no value is given")
-                                .throwsException("NumberFormatException if the given value cannot be interpreted as an Integer")
-                                .executes(parameters -> {
-                                    int result = 0;
-                                    if (parameters.size() == 1) {
-                                        try {
-                                            result = Integer.parseInt((String) parameters.get(0).getValue());
-                                        } catch (NumberFormatException e) {
-                                            throw new CommandRunException(e);
-                                        }
-                                    }
+                                .withExecutions(StaticExecution
+                                        .returns(InternalIntegerArgument.class, "An Integer with the value 0")
+                                        .executes(() -> new InternalIntegerArgument(0)), StaticExecution
 
-                                    return new InternalIntegerArgument(result);
-                                })
+                                        .withParameters(parameter(InternalStringArgument.class, "value", "The value for the new Integer"))
+                                        .returns(InternalIntegerArgument.class, "An Integer containing the given value")
+                                        .executes((value) -> {
+                                            int result;
+                                            try {
+                                                result = Integer.parseInt(value.getValue());
+                                            } catch (NumberFormatException e) {
+                                                throw new CommandRunException(e);
+                                            }
+                                            return new InternalIntegerArgument(result);
+                                        })
+                                )
+                                .throwsException("NumberFormatException if the given value cannot be interpreted as an Integer")
                                 .withExamples(
                                         "Integer.new(\"10\") -> 10",
                                         "Integer.(\"-5\") -> -5",
                                         "Integer.new() -> 0",
-                                        "Integer.(\"Hello\") -> NumberFormatException"
+                                        "Integer.(\"Hello\") -> NumberFormatException",
+                                        "Integer.(\"3.1\") -> NumberFormatException"
                                 )
                 )
         );

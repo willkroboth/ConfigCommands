@@ -1,6 +1,7 @@
 package me.willkroboth.configcommands.registeredcommands.functionlines;
 
 import me.willkroboth.configcommands.ConfigCommandsHandler;
+import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.RegistrationException;
 import me.willkroboth.configcommands.helperclasses.SharedDebugValue;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
@@ -26,7 +27,7 @@ public abstract class FunctionLine {
      * @return An {@link InterpreterState} object that can be used to execute the function represented by the inputs.
      * @throws RegistrationException If a line in the executes list cannot be turned into a {@link FunctionLine}.
      */
-    public static InterpreterState parseExecutes(List<String> executes, Map<String, Class<? extends InternalArgument>> argumentClasses,
+    public static InterpreterState parseExecutes(List<String> executes, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
                                                  SharedDebugValue localDebug) throws RegistrationException {
         CompilerState compilerState = new CompilerState().addCommands(executes).addArguments(argumentClasses).setDebug(localDebug);
         InterpreterState out = new InterpreterState().setDebug(localDebug);
@@ -84,5 +85,5 @@ public abstract class FunctionLine {
      *                         this {@link FunctionLine} is a part of.
      * @return An int representing the next line that should be run according to the rules of this {@link FunctionLine}.
      */
-    public abstract int run(InterpreterState interpreterState);
+    public abstract int run(InterpreterState interpreterState) throws CommandRunException;
 }

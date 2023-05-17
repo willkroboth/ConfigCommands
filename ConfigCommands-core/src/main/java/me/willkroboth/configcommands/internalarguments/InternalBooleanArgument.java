@@ -3,6 +3,8 @@ package me.willkroboth.configcommands.internalarguments;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.BooleanArgument;
 import me.willkroboth.configcommands.functions.*;
+import me.willkroboth.configcommands.functions.executions.InstanceExecution;
+import me.willkroboth.configcommands.functions.executions.StaticExecution;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An {@link InternalArgument} that represents a Java {@link Boolean}.
  */
-public class InternalBooleanArgument extends InternalArgument implements CommandArgument {
+public class InternalBooleanArgument extends InternalArgument<Boolean> implements CommandArgument<Boolean> {
     private boolean value;
 
     /**
@@ -29,7 +31,7 @@ public class InternalBooleanArgument extends InternalArgument implements Command
     }
 
     @Override
-    public Argument<?> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) {
+    public Argument<Boolean> createArgument(String name, @Nullable Object argumentInfo, boolean localDebug) {
         return new BooleanArgument(name);
     }
 
@@ -45,66 +47,62 @@ public class InternalBooleanArgument extends InternalArgument implements Command
     }
 
     @Override
-    public void setValue(Object arg) {
-        value = (boolean) arg;
+    public void setValue(Boolean arg) {
+        value = arg;
     }
 
     @Override
-    public Object getValue() {
+    public Boolean getValue() {
         return value;
     }
 
     @Override
-    public void setValue(InternalArgument arg) {
-        value = (boolean) arg.getValue();
+    public void setValue(InternalArgument<Boolean> arg) {
+        value = arg.getValue();
     }
 
     @Override
     public String forCommand() {
-        return "" + value;
-    }
-
-    private boolean getBoolean(InternalArgument argument) {
-        return (boolean) argument.getValue();
+        return String.valueOf(value);
     }
 
     @Override
-    public InstanceFunctionList getInstanceFunctions() {
+    public InstanceFunctionList<Boolean> getInstanceFunctions() {
         return merge(super.getInstanceFunctions(),
                 functions(
-                        new InstanceFunction("and")
+                        instanceFunction("and")
                                 .withAliases("&&")
                                 .withDescription("Performs the logical and operation with another Boolean")
-                                .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
-                                .returns(InternalBooleanArgument.class, "True if this and the other boolean are true, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getBoolean(target) && getBoolean(parameters.get(0)));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
+                                        .returns(InternalBooleanArgument.class, "True if this and the other boolean are true, and false otherwise")
+                                        .executes((a, b) -> new InternalBooleanArgument(a.getValue() && b.getValue()))
+                                )
                                 .withExamples(
                                         "do Boolean.(\"true\").and(Boolean.(\"true\")) -> True",
                                         "do Boolean.(\"false\").and(Boolean.(\"true\")) -> False",
                                         "do Boolean.(\"true\").&&(Boolean.(\"false\")) -> False",
                                         "do Boolean.(\"false\").&&(Boolean.(\"false\")) -> False"
                                 ),
-                        new InstanceFunction("not")
+                        instanceFunction("not")
                                 .withAliases("!")
                                 .withDescription("Performs the logical not operation on this Boolean")
-                                .returns(InternalBooleanArgument.class, "True if this Boolean is true, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(!getBoolean(target));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .returns(InternalBooleanArgument.class, "True if this Boolean is true, and false otherwise")
+                                        .executes((a) -> new InternalBooleanArgument(!a.getValue()))
+                                )
                                 .withExamples(
                                         "Boolean.(\"true\").not() -> False",
                                         "Boolean.(\"false\").!() -> True"
                                 ),
-                        new InstanceFunction("or")
+                        instanceFunction("or")
                                 .withAliases("||")
                                 .withDescription("Performs the logical or operation with another Boolean")
-                                .withParameters(new Parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
-                                .returns(InternalBooleanArgument.class, "True if this or the other Boolean is true, and false otherwise")
-                                .executes((target, parameters) -> {
-                                    return new InternalBooleanArgument(getBoolean(target) || getBoolean(parameters.get(0)));
-                                })
+                                .withExecutions(InstanceExecution
+                                        .withParameters(parameter(InternalBooleanArgument.class, "other", "the other Boolean"))
+                                        .returns(InternalBooleanArgument.class, "True if this or the other Boolean is true, and false otherwise")
+                                        .executes((a, b) -> new InternalBooleanArgument(a.getValue() || b.getValue()))
+                                )
                                 .withExamples(
                                         "do Boolean.(\"true\").or(Boolean.(\"true\")) -> True",
                                         "do Boolean.(\"false\").or(Boolean.(\"true\")) -> True",
@@ -119,16 +117,17 @@ public class InternalBooleanArgument extends InternalArgument implements Command
     public StaticFunctionList getStaticFunctions() {
         return merge(super.getStaticFunctions(),
                 functions(
-                        new StaticFunction("new")
+                        staticFunction("new")
                                 .withAliases("")
                                 .withDescription("Creates a new Boolean with the given value")
-                                .withParameters()
-                                .withParameters(new Parameter(InternalStringArgument.class, "value", "the value for the Boolean"))
-                                .returns(InternalBooleanArgument.class, "True if the value string equals \"true\", ignoring case, and false if it is not equal or not given")
-                                .executes(parameters -> {
-                                    if (parameters.size() == 0) return new InternalBooleanArgument(false);
-                                    return new InternalBooleanArgument(Boolean.parseBoolean((String) parameters.get(0).getValue()));
-                                })
+                                .withExecutions(StaticExecution
+                                        .returns(InternalBooleanArgument.class, "A boolean with the value false because no value was given")
+                                        .executes(() -> new InternalBooleanArgument(false)), StaticExecution
+
+                                        .withParameters(parameter(InternalStringArgument.class, "value", "the value for the Boolean"))
+                                        .returns(InternalBooleanArgument.class, "True if the value string equals \"true\", ignoring case, and false otherwise")
+                                        .executes((value) -> new InternalBooleanArgument(Boolean.parseBoolean(value.getValue())))
+                                )
                                 .withExamples(
                                         "Boolean.new(\"true\") -> True",
                                         "Boolean.new(\"false\") -> False",

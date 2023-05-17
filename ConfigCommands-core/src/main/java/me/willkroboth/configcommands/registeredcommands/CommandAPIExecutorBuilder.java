@@ -65,7 +65,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender,
      * @throws RegistrationException If there is an error reading the data for the command
      */
     public CommandAPIExecutorBuilder(ConfigurationSection executable, List<String> argumentPath,
-                                     Map<String, Class<? extends InternalArgument>> argumentClasses, SharedDebugValue localDebug) throws RegistrationException {
+                                     Map<String, Class<? extends InternalArgument<?>>> argumentClasses, SharedDebugValue localDebug) throws RegistrationException {
         boolean canExecute = false;
         ConfigCommandsHandler.increaseIndentation();
         for (ExecutorInformation executor : executors) {
@@ -86,7 +86,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender,
     }
 
     private boolean generateExecutor(String name, List<String> executes, ExecutorType type,
-                                     Map<String, Class<? extends InternalArgument>> argumentClasses,
+                                     Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
                                      SharedDebugValue localDebug) throws RegistrationException {
         if (executes.size() == 0) return false;
 
@@ -100,7 +100,7 @@ public class CommandAPIExecutorBuilder extends CommandAPIExecutor<CommandSender,
 
     // Stored information for reloading executor
     private final List<String> argumentPath;
-    private final Map<String, Class<? extends InternalArgument>> argumentClasses;
+    private final Map<String, Class<? extends InternalArgument<?>>> argumentClasses;
     private final SharedDebugValue localDebug;
 
     /**

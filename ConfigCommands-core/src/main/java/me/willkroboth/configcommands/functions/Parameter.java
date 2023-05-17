@@ -3,11 +3,11 @@ package me.willkroboth.configcommands.functions;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
 
 /**
- * A class that represents a parameter of a function, used for {@link FunctionBuilder#withParameters(Parameter...)}.
+ * A class that represents a parameter of a function.
  */
-public class Parameter {
+public class Parameter<T> {
     // Input type
-    private final Class<? extends InternalArgument> type;
+    private final Class<? extends InternalArgument<T>> type;
 
     // Cosmetic information
     private final String typeString;
@@ -21,7 +21,7 @@ public class Parameter {
      *
      * @param type The {@link InternalArgument} class that this {@link Parameter} accepts, as well as all subclasses.
      */
-    public Parameter(Class<? extends InternalArgument> type) {
+    public Parameter(Class<? extends InternalArgument<T>> type) {
         this.type = type;
         this.typeString = InternalArgument.getNameForType(type);
     }
@@ -33,7 +33,7 @@ public class Parameter {
      * @param name A string that describes the name of this parameter, useful as a reference when describing what the
      *             function that includes this {@link Parameter} dose.
      */
-    public Parameter(Class<? extends InternalArgument> type, String name) {
+    public Parameter(Class<? extends InternalArgument<T>> type, String name) {
         this.type = type;
         this.typeString = InternalArgument.getNameForType(type);
         this.name = name;
@@ -47,7 +47,7 @@ public class Parameter {
      *                         function that includes this {@link Parameter} dose.
      * @param parameterMessage A message that describes this {@link Parameter}.
      */
-    public Parameter(Class<? extends InternalArgument> type, String name, String parameterMessage) {
+    public Parameter(Class<? extends InternalArgument<T>> type, String name, String parameterMessage) {
         this.type = type;
         this.typeString = InternalArgument.getNameForType(type);
         this.name = name;
@@ -60,7 +60,7 @@ public class Parameter {
      * @return The {@link InternalArgument} class that this {@link Parameter} accepts. This {@link Parameter}
      * will accept this class and any subclass.
      */
-    public Class<? extends InternalArgument> getType() {
+    public Class<? extends InternalArgument<T>> getType() {
         return type;
     }
 

@@ -4,6 +4,8 @@ import com.mojang.brigadier.StringReader;
 import me.willkroboth.configcommands.ConfigCommandsHandler;
 import me.willkroboth.configcommands.exceptions.CommandRunException;
 import me.willkroboth.configcommands.exceptions.ParseException;
+import me.willkroboth.configcommands.functions.executions.InstanceExecution;
+import me.willkroboth.configcommands.functions.executions.StaticExecution;
 import me.willkroboth.configcommands.internalarguments.InternalArgument;
 
 import java.util.ArrayList;
@@ -15,8 +17,8 @@ import java.util.Map;
  * A class that represents a string expression that compiles to something that transforms
  * {@link InternalArgument} variables to something else.
  */
-public abstract class Expression {
-    private final static Map<String, InternalArgument> staticClassMap = new HashMap<>();
+public abstract class Expression<Return> {
+    private final static Map<String, InternalArgument<?>> staticClassMap = new HashMap<>();
 
     /**
      * Adds an entry to the map that links names to {@link InternalArgument} objects,
@@ -25,14 +27,14 @@ public abstract class Expression {
      * @param object The {@link InternalArgument} object to add to the static class map.
      *               {@link InternalArgument#getName()} is used as the key, and the object is the value.
      */
-    public static void addToStaticClassMap(InternalArgument object) {
+    public static void addToStaticClassMap(InternalArgument<?> object) {
         staticClassMap.put(object.getName(), object);
     }
 
     /**
      * @return The map from name to object used to find static functions from a String.
      */
-    public static Map<String, InternalArgument> getStaticClassMap() {
+    public static Map<String, InternalArgument<?>> getStaticClassMap() {
         return staticClassMap;
     }
 
@@ -51,14 +53,14 @@ public abstract class Expression {
      * @return The {@link Expression} object parsed from the String.
      * @throws ParseException If the String is improperly formatted and cannot be parsed into a {@link Expression}.
      */
-    public static Expression parseExpression(String string, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                             boolean localDebug) throws ParseException {
+    public static Expression<?> parseExpression(String string, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                boolean localDebug) throws ParseException {
         ConfigCommandsHandler.logDebug(localDebug, "Parsing expression: %s", string);
         ConfigCommandsHandler.increaseIndentation();
 
         try {
             StringReader stringReader = new StringReader(string);
-            if(string.length() == 0) throw new ParseException(stringReader, "Cannot parse empty string!");
+            if (string.length() == 0) throw new ParseException(stringReader, "Cannot parse empty string!");
 
             if (stringReader.peek() == '"') return readStringConstant(stringReader, argumentClasses, localDebug);
             if (stringReader.peek() == '<') return readVariable(stringReader, argumentClasses, localDebug);
@@ -74,8 +76,8 @@ public abstract class Expression {
     // May return directly, or set up a function chain //
     /////////////////////////////////////////////////////
 
-    private static Expression readStringConstant(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                                 boolean localDebug) throws ParseException {
+    private static Expression<?> readStringConstant(StringReader stringReader, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                    boolean localDebug) throws ParseException {
         if (stringReader.read() != '"')
             throw new IllegalStateException("Expression#readStringConstant was called, but the stringReader did not start with '\"'");
 
@@ -107,7 +109,7 @@ public abstract class Expression {
                 continue;
             }
             if (next == '\"') {
-                Expression expression = new StringConstant(stringConstant.toString());
+                Expression<?> expression = new StringConstant(stringConstant.toString());
                 ConfigCommandsHandler.logDebug(localDebug, "StringConstant built as %s", expression);
 
                 if (!stringReader.canRead()) {
@@ -127,8 +129,8 @@ public abstract class Expression {
         throw new ParseException(stringReader, "StringConstant was never closed. Expected unescaped '\"' to end the StringConstant.");
     }
 
-    private static Expression readVariable(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                           boolean localDebug) throws ParseException {
+    private static Expression<?> readVariable(StringReader stringReader, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                              boolean localDebug) throws ParseException {
         if (stringReader.read() != '<')
             throw new IllegalStateException("Expression#readVariable was called, but the stringReader did not start with '<'");
 
@@ -141,14 +143,14 @@ public abstract class Expression {
             if (next == '>') {
                 int end = stringReader.getCursor();
                 // Make sure to include < > with these bounds.
-                String variable = stringReader.getString().substring(start-1, end);
+                String variable = stringReader.getString().substring(start - 1, end);
                 ConfigCommandsHandler.logDebug(localDebug, "Variable name built as \"%s\"", variable);
 
                 if (!argumentClasses.containsKey(variable))
                     throw new ParseException(stringReader, "Variable (" + variable + ") dose not exist at this point. Must be declared as an argument or defined by an earlier set command.");
                 ConfigCommandsHandler.logDebug(localDebug, "Name identified as valid variable.");
 
-                Expression expression = new Variable(variable);
+                Expression<?> expression = new Variable<>(variable);
 
                 if (!stringReader.canRead()) {
                     ConfigCommandsHandler.logDebug(localDebug, "Expression ended. Variable returned.");
@@ -166,8 +168,8 @@ public abstract class Expression {
         throw new ParseException(stringReader, "Variable was never closed. Expected '>' to end the Variable.");
     }
 
-    private static Expression readStaticClass(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                              boolean localDebug) throws ParseException {
+    private static Expression<?> readStaticClass(StringReader stringReader, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                 boolean localDebug) throws ParseException {
         ConfigCommandsHandler.logDebug(localDebug, "Expression dose not start with '\"' (StringConstant) or '<' (Variable). Reading StaticClass.");
 
         int start = stringReader.getCursor();
@@ -183,7 +185,7 @@ public abstract class Expression {
         if (!staticClassMap.containsKey(staticClass))
             throw new ParseException(stringReader, "Unknown StaticClass \"" + staticClass + "\"");
 
-        InternalArgument staticClassObject = staticClassMap.get(staticClass);
+        InternalArgument<?> staticClassObject = staticClassMap.get(staticClass);
         if (!stringReader.canRead()) {
 //            return new StaticClass(staticClassObject); // TODO: Figure this out
             throw new ParseException(stringReader, "Independent StaticClass objects are not yet implemented");
@@ -220,14 +222,14 @@ public abstract class Expression {
         return functionName;
     }
 
-    private static List<Expression> readParameters(StringReader stringReader, Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                                   boolean localDebug) throws ParseException {
+    private static List<Expression<?>> readParameters(StringReader stringReader, Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                      boolean localDebug) throws ParseException {
         if (stringReader.read() != '(')
             throw new IllegalStateException("Expression#readParameters was called, but the stringReader did not start with '('");
 
         ConfigCommandsHandler.logDebug(localDebug, "Position %s, parenthesisDepth is 1", stringReader.getCursor() - 1);
 
-        List<Expression> parameters = new ArrayList<>();
+        List<Expression<?>> parameters = new ArrayList<>();
         int parenthesisDepth = 1;
         int start = stringReader.getCursor();
 
@@ -257,15 +259,15 @@ public abstract class Expression {
                 int end = stringReader.getCursor();
                 String parameter = stringReader.getString().substring(start, end - 1);
 
-                if(parameter.length() == 0) {
-                    if(parenthesisDepth != 0)
+                if (parameter.length() == 0) {
+                    if (parenthesisDepth != 0)
                         throw new ParseException(stringReader, "Found empty parameter, which cannot be parsed. (Were there 2 commas in a row?)");
                     else
                         ConfigCommandsHandler.logDebug(localDebug, "Found 0 parameters");
                 } else {
                     ConfigCommandsHandler.logDebug(localDebug, "New parameter: %s", parameter);
 
-                    Expression expression;
+                    Expression<?> expression;
                     try {
                         expression = parseExpression(parameter, argumentClasses, localDebug);
                     } catch (ParseException e) {
@@ -315,19 +317,19 @@ public abstract class Expression {
         throw new ParseException(stringReader, "String never closed. Expected unescaped '\"' to end the String.");
     }
 
-    private static List<Class<? extends InternalArgument>> getParameterTypes(List<Expression> parameters,
-                                                                             Map<String, Class<? extends InternalArgument>> argumentClasses) {
-        List<Class<? extends InternalArgument>> parameterTypes = new ArrayList<>(parameters.size());
-        for (Expression expression : parameters) {
+    private static List<Class<? extends InternalArgument<?>>> getParameterTypes(List<Expression<?>> parameters,
+                                                                                Map<String, Class<? extends InternalArgument<?>>> argumentClasses) {
+        List<Class<? extends InternalArgument<?>>> parameterTypes = new ArrayList<>(parameters.size());
+        for (Expression<?> expression : parameters) {
             parameterTypes.add(expression.getEvaluationType(argumentClasses));
         }
         return parameterTypes;
     }
 
-    private static void logParametersString(List<Class<? extends InternalArgument>> parameters) {
+    private static void logParametersString(List<Class<? extends InternalArgument<?>>> parameters) {
         StringBuilder parametersString = new StringBuilder("[");
         if (parameters.size() != 0) {
-            for (Class<? extends InternalArgument> parameter : parameters) {
+            for (Class<? extends InternalArgument<?>> parameter : parameters) {
                 parametersString.append(parameter.getSimpleName());
                 parametersString.append(", ");
             }
@@ -337,15 +339,17 @@ public abstract class Expression {
         ConfigCommandsHandler.logNormal("Parameter types: %s", parametersString);
     }
 
-    private static Expression parseInstanceFunctionCall(Expression instanceExpression, StringReader stringReader,
-                                                        Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                                        boolean localDebug) throws ParseException {
-        Class<? extends InternalArgument> targetClass = instanceExpression.getEvaluationType(argumentClasses);
+    // The cast is safe
+    @SuppressWarnings("unchecked")
+    private static <Target> Expression<?> parseInstanceFunctionCall(Expression<Target> instanceExpression, StringReader stringReader,
+                                                           Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                           boolean localDebug) throws ParseException {
+        Class<? extends InternalArgument<Target>> targetClass = instanceExpression.getEvaluationType(argumentClasses);
         ConfigCommandsHandler.logDebug(localDebug, "Target for the function call has class: %s", targetClass.getSimpleName());
 
-        InternalArgument targetClassObject;
+        InternalArgument<Target> targetClassObject;
         try {
-            targetClassObject = InternalArgument.getInternalArgument(targetClass);
+            targetClassObject = (InternalArgument<Target>) InternalArgument.getInternalArgument(targetClass);
         } catch (IllegalArgumentException e) {
             throw new ParseException(stringReader, "Could not turn target class for the function call ("
                     + targetClass.getSimpleName() + ") into an object. Please contact the author of the plugin that added " +
@@ -353,8 +357,8 @@ public abstract class Expression {
         }
 
         String function = readFunctionName(stringReader, localDebug);
-        List<Expression> parameters = readParameters(stringReader, argumentClasses, localDebug);
-        List<Class<? extends InternalArgument>> parameterTypes = getParameterTypes(parameters, argumentClasses);
+        List<Expression<?>> parameters = readParameters(stringReader, argumentClasses, localDebug);
+        List<Class<? extends InternalArgument<?>>> parameterTypes = getParameterTypes(parameters, argumentClasses);
 
         if (localDebug) {
             ConfigCommandsHandler.logNormal("TargetClass: %s", targetClassObject.getName());
@@ -362,8 +366,10 @@ public abstract class Expression {
             logParametersString(parameterTypes);
         }
 
+        InstanceExecution<Target, ?> instanceFunction = targetClassObject.getInstanceExecution(function, parameterTypes);
 
-        if (!targetClassObject.hasInstanceFunction(function, parameterTypes))
+
+        if (instanceFunction == null)
             throw new ParseException(stringReader, "InstanceFunction on class " + targetClassObject.getName() +
                     " with name \"" + function + "\" and parameterTypes: " + parameterTypes + " could not be found.");
 
@@ -371,7 +377,7 @@ public abstract class Expression {
         ConfigCommandsHandler.logDebug(localDebug, "Found the defined function");
 
 
-        Expression expression = new InstanceFunctionCall(instanceExpression, function, parameters);
+        Expression<?> expression = new InstanceFunctionCall<>(instanceExpression, instanceFunction, parameters);
 
         if (!stringReader.canRead()) {
             ConfigCommandsHandler.logDebug(localDebug, "Expression ended. InstanceFunctionCall returned.");
@@ -386,12 +392,12 @@ public abstract class Expression {
                 "Instead, found: " + stringReader.getRemaining());
     }
 
-    private static Expression parseStaticFunctionCall(InternalArgument staticClass, StringReader stringReader,
-                                                      Map<String, Class<? extends InternalArgument>> argumentClasses,
-                                                      boolean localDebug) throws ParseException {
+    private static Expression<?> parseStaticFunctionCall(InternalArgument<?> staticClass, StringReader stringReader,
+                                                         Map<String, Class<? extends InternalArgument<?>>> argumentClasses,
+                                                         boolean localDebug) throws ParseException {
         String function = readFunctionName(stringReader, localDebug);
-        List<Expression> parameters = readParameters(stringReader, argumentClasses, localDebug);
-        List<Class<? extends InternalArgument>> parameterTypes = getParameterTypes(parameters, argumentClasses);
+        List<Expression<?>> parameters = readParameters(stringReader, argumentClasses, localDebug);
+        List<Class<? extends InternalArgument<?>>> parameterTypes = getParameterTypes(parameters, argumentClasses);
 
         if (localDebug) {
             ConfigCommandsHandler.logNormal("StaticClass: %s", staticClass.getName());
@@ -399,14 +405,16 @@ public abstract class Expression {
             logParametersString(parameterTypes);
         }
 
-        if (!staticClass.hasStaticFunction(function, parameterTypes))
+        StaticExecution<?> staticFunction = staticClass.getStaticExecution(function, parameterTypes);
+
+        if (staticFunction == null)
             throw new ParseException(stringReader, "Static function on class " + staticClass.getName() +
                     " with name \"" + function + "\" and parameterTypes: " + parameterTypes + " could not be found.");
 
 
         ConfigCommandsHandler.logDebug(localDebug, "Found the defined function");
 
-        Expression expression = new StaticFunctionCall(staticClass, function, parameters);
+        Expression<?> expression = new StaticFunctionCall<>(staticClass.getName(), staticFunction, parameters);
 
         if (!stringReader.canRead()) {
             ConfigCommandsHandler.logDebug(localDebug, "Expression ended. StaticFunctionCall returned.");
@@ -432,7 +440,7 @@ public abstract class Expression {
      * @return A {@link InternalArgument} class object that this {@link Expression} will return
      * given inputs with the input classes.
      */
-    public abstract Class<? extends InternalArgument> getEvaluationType(Map<String, Class<? extends InternalArgument>> argumentClasses);
+    public abstract Class<? extends InternalArgument<Return>> getEvaluationType(Map<String, Class<? extends InternalArgument<?>>> argumentClasses);
 
     /**
      * Gives the result of running this {@link Expression} based on the values of some given variables.
@@ -443,6 +451,6 @@ public abstract class Expression {
      * @return A {@link InternalArgument} object that was the result of evaluating the {@link Expression}.
      * @throws CommandRunException If evaluating this {@link Expression} causes an exception.
      */
-    public abstract InternalArgument evaluate(Map<String, InternalArgument> argumentVariables,
-                                              boolean localDebug) throws CommandRunException;
+    public abstract InternalArgument<Return> evaluate(Map<String, InternalArgument<?>> argumentVariables,
+                                                      boolean localDebug) throws CommandRunException;
 }

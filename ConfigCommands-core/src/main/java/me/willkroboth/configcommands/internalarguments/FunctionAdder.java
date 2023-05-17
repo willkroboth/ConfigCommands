@@ -2,6 +2,7 @@ package me.willkroboth.configcommands.internalarguments;
 
 import me.willkroboth.configcommands.functions.FunctionCreator;
 import me.willkroboth.configcommands.functions.InstanceFunctionList;
+import me.willkroboth.configcommands.functions.SafeFunctionCreator;
 import me.willkroboth.configcommands.functions.StaticFunctionList;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,15 +10,15 @@ import org.jetbrains.annotations.Nullable;
  * A class used to add functions to an existing {@link InternalArgument}.
  * This class extends {@link FunctionAdder} to make it easier to build these functions.
  */
-public abstract class FunctionAdder implements FunctionCreator {
+public abstract class FunctionAdder<T> extends SafeFunctionCreator<T> {
     /**
      * @return The {@link InternalArgument} class object of the {@link InternalArgument} this {@link FunctionAdder}
      * is adding functions to.
      */
-    public abstract Class<? extends InternalArgument> getClassToAddTo();
+    public abstract Class<? extends InternalArgument<T>> getClassToAddTo();
 
     @Override
-    public Class<? extends InternalArgument> myClass() {
+    public Class<? extends InternalArgument<T>> myClass() {
         return getClassToAddTo();
     }
 
@@ -27,7 +28,7 @@ public abstract class FunctionAdder implements FunctionCreator {
      * no functions to add.
      */
     @Nullable
-    public InstanceFunctionList getAddedFunctions() {
+    public InstanceFunctionList<T> getAddedFunctions() {
         return null;
     }
 
