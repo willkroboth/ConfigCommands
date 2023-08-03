@@ -16,6 +16,12 @@
         <!-- Version implementations -->
         <dependency>
             <groupId>me.willkroboth</groupId>
+            <artifactId>ConfigCommands-1_20</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>me.willkroboth</groupId>
             <artifactId>ConfigCommands-1_19_4</artifactId>
             <version>${project.version}</version>
         </dependency>

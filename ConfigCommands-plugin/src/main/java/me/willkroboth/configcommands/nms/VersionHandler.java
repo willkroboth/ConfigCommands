@@ -10,6 +10,7 @@ import me.willkroboth.configcommands.nms.v1_19.NMS_1_19;
 import me.willkroboth.configcommands.nms.v1_19_1.NMS1_19_1;
 import me.willkroboth.configcommands.nms.v1_19_3.NMS1_19_3;
 import me.willkroboth.configcommands.nms.v1_19_4.NMS1_19_4;
+import me.willkroboth.configcommands.nms.v1_20.NMS1_20;
 import org.bukkit.Bukkit;
 
 /**
@@ -26,13 +27,14 @@ public interface VersionHandler {
         String version;
         if (useLatest) {
             ConfigCommandsHandler.logDebug("Defaulting to latest NMS");
-            version = "1.19.4";
+            version = "1.20.1";
         } else {
             String bukkit = Bukkit.getServer().toString();
             version = bukkit.substring(bukkit.indexOf("minecraftVersion") + 17, bukkit.length() - 1);
         }
         ConfigCommandsHandler.logDebug("Loading NMS for version %s", version);
         return switch (version) {
+            case "1.20", "1.20.1" -> new NMS1_20();
             case "1.19.4" -> new NMS1_19_4();
             case "1.19.3" -> new NMS1_19_3();
             case "1.19.1", "1.19.2" -> new NMS1_19_1();

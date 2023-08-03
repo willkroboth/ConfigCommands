@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
 /**
- * {@link NMS} implementation for Minecraft version 1.19.3
+ * {@link NMS} implementation for Minecraft version 1.19.4
  */
 public class NMS1_19_4 implements NMS {
     @Override
