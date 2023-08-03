@@ -16,10 +16,4 @@ public interface NMS {
      * @return An {@link OpSender} wrapping the given {@link CommandSender}.
      */
     OpSender makeOpSender(CommandSender sender);
-
-    /**
-     * Initializes the shared ConsoleOpSender
-     * @param source The base {@link ConsoleCommandSender} to wrap
-     */
-    void initializeConsoleOpSender(ConsoleCommandSender source);
 }

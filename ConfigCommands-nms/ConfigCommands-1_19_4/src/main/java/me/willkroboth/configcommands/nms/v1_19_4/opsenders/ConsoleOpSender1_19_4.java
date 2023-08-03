@@ -6,7 +6,6 @@ import net.minecraft.server.Services;
 import net.minecraft.server.WorldStem;
 import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.map.MapPalette;
 import org.bukkit.potion.Potion;
 import org.bukkit.Bukkit;
@@ -18,21 +17,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.19.4.
  */
 public class ConsoleOpSender1_19_4 extends CraftConsoleCommandSender implements OpSender1_19_4 {
-    private static ConsoleOpSender1_19_4 instance;
-
-    public static void initializeInstance(ConsoleCommandSender source) {
-        instance = new ConsoleOpSender1_19_4((CraftConsoleCommandSender) source);
-    }
-
-    public static ConsoleOpSender1_19_4 getInstance() {
-        return instance;
-    }
-
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
@@ -65,6 +56,13 @@ public class ConsoleOpSender1_19_4 extends CraftConsoleCommandSender implements 
             Object oldColorCache = colorCacheField.get(null);
             colorCacheField.set(null, null);
 
+            // When CraftServer's constructor calls Bukkit#setServer, it logs the running version
+            // We don't want that, but luckily we can just disable the Logger
+            // https://stackoverflow.com/a/50537708
+            Logger logger = Logger.getLogger("Minecraft");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.OFF);
+
             // Construct a new CraftServer
             server = new CraftServer(new DedicatedServerOpWrapper(craftServer.getServer(), this), players);
 
@@ -72,6 +70,9 @@ public class ConsoleOpSender1_19_4 extends CraftConsoleCommandSender implements 
             serverField.set(null, oldServer);
             brewerField.set(null, oldBrewer);
             colorCacheField.set(null, oldColorCache);
+
+            // Re enable the logger
+            logger.setLevel(oldLevel);
         } catch (IllegalAccessException | RuntimeException e) {
             ConfigCommandsHandler.logError("Could not create ConsoleOpSender!");
             throw new RuntimeException(e);

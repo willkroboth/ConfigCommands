@@ -7,7 +7,6 @@ import net.minecraft.server.v1_16_R3.DedicatedServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.command.CraftConsoleCommandSender;
 import org.bukkit.potion.Potion;
@@ -15,24 +14,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.16.5.
  */
 public class ConsoleOpSender1_16_5 extends CraftConsoleCommandSender implements OpSender1_16_5 {
-    private static ConsoleOpSender1_16_5 instance;
-
-    public static void initializeInstance(ConsoleCommandSender source) {
-        instance = new ConsoleOpSender1_16_5((CraftConsoleCommandSender) source);
-    }
-
-    // TODO: Once ConsoleOpSenders can be created without the message getting logged in the console, remove this
-    //  and all other methods facilitating creating one ConsoleOpSender (all versions)
-    public static ConsoleOpSender1_16_5 getInstance() {
-        return instance;
-    }
-
-
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
@@ -60,12 +48,22 @@ public class ConsoleOpSender1_16_5 extends CraftConsoleCommandSender implements 
             Object oldBrewer = serverField.get(null);
             brewerField.set(null, null);
 
-            // TODO: Figure out how to remove logged messages triggered by constructor (all versions)
+            // When CraftServer's constructor calls Bukkit#setServer, it logs the running version
+            // We don't want that, but luckily we can just disable the Logger
+            // https://stackoverflow.com/a/50537708
+            Logger logger = Logger.getLogger("Minecraft");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.OFF);
+
+            // Construct a new CraftServer
             server = new CraftServer(new DedicatedServerOpWrapper(craftServer.getServer(), this), players);
 
             // Reset singleton to the correct old values
             serverField.set(null, oldServer);
             brewerField.set(null, oldBrewer);
+
+            // Re enable the logger
+            logger.setLevel(oldLevel);
         } catch (IllegalAccessException | RuntimeException e) {
             ConfigCommandsHandler.logError("Could not create ConsoleOpSender!");
             throw new RuntimeException(e);

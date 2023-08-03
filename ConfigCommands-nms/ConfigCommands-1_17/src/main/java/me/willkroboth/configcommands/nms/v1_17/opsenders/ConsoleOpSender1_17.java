@@ -7,7 +7,6 @@ import net.minecraft.server.dedicated.DedicatedServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_17_R1.command.CraftConsoleCommandSender;
 import org.bukkit.potion.Potion;
@@ -15,21 +14,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.17 and 1.17.1.
  */
 public class ConsoleOpSender1_17 extends CraftConsoleCommandSender implements OpSender1_17 {
-    private static ConsoleOpSender1_17 instance;
-
-    public static void initializeInstance(ConsoleCommandSender source) {
-        instance = new ConsoleOpSender1_17((CraftConsoleCommandSender) source);
-    }
-
-    public static ConsoleOpSender1_17 getInstance() {
-        return instance;
-    }
-
     // listener created through ((CraftServer)sender.getServer()).getServer().createCommandSourceStack();
     private final CraftConsoleCommandSender c;
     private final CraftServer server;
@@ -57,11 +48,22 @@ public class ConsoleOpSender1_17 extends CraftConsoleCommandSender implements Op
             Object oldBrewer = serverField.get(null);
             brewerField.set(null, null);
 
+            // When CraftServer's constructor calls Bukkit#setServer, it logs the running version
+            // We don't want that, but luckily we can just disable the Logger
+            // https://stackoverflow.com/a/50537708
+            Logger logger = Logger.getLogger("Minecraft");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.OFF);
+
+            // Construct a new CraftServer
             server = new CraftServer(new DedicatedServerOpWrapper(craftServer.getServer(), this), players);
 
             // Reset singleton to the correct old values
             serverField.set(null, oldServer);
             brewerField.set(null, oldBrewer);
+
+            // Re enable the logger
+            logger.setLevel(oldLevel);
         } catch (IllegalAccessException | RuntimeException e) {
             ConfigCommandsHandler.logError("Could not create ConsoleOpSender!");
             throw new RuntimeException(e);

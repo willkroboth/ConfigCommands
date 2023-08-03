@@ -34,8 +34,7 @@ public interface OpSender1_16_5 extends OpSender, ICommandListener {
         if (sender instanceof CraftMinecartCommand m)
             return new MinecartOpSender1_16_5(m);
         if (sender instanceof CraftConsoleCommandSender c)
-//            return new ConsoleOpSender1_16_5(c);
-            return ConsoleOpSender1_16_5.getInstance();
+            return new ConsoleOpSender1_16_5(c);
         if (sender instanceof ProxiedNativeCommandSender p)
             return new ProxyOpSender1_16_5(p);
         if (sender instanceof NativeProxyCommandSender p)

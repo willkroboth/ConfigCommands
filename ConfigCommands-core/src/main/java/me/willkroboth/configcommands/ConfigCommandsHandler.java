@@ -276,7 +276,6 @@ public class ConfigCommandsHandler {
         logDebug("Debug mode on! More information will be shown.");
 
         nms = VersionHandler.loadNMS();
-        nms.initializeConsoleOpSender(Bukkit.getConsoleSender());
 
         InternalArgument.registerFromJavaPlugin(plugin, "me.willkroboth.configcommands.internalarguments", RegisterMode.INTERNAL_ARGUMENTS);
     }

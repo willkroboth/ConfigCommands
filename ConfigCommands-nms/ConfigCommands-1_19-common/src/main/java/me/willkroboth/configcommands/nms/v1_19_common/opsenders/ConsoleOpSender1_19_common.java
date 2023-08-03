@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A common {@link org.bukkit.command.ConsoleCommandSender} OpSender for Minecraft 1.19, 1.19.1, and 1.19.2.
@@ -53,12 +55,23 @@ public abstract class ConsoleOpSender1_19_common extends CraftConsoleCommandSend
             Object oldColorCache = colorCacheField.get(null);
             colorCacheField.set(null, null);
 
+            // When CraftServer's constructor calls Bukkit#setServer, it logs the running version
+            // We don't want that, but luckily we can just disable the Logger
+            // https://stackoverflow.com/a/50537708
+            Logger logger = Logger.getLogger("Minecraft");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.OFF);
+
+            // Construct a new CraftServer
             server = new CraftServer(new DedicatedServerOpWrapper(craftServer.getServer(), this), players);
 
             // Reset singleton to the correct old values
             serverField.set(null, oldServer);
             brewerField.set(null, oldBrewer);
             colorCacheField.set(null, oldColorCache);
+
+            // Re enable the logger
+            logger.setLevel(oldLevel);
         } catch (IllegalAccessException | RuntimeException e) {
             ConfigCommandsHandler.logError("Could not create ConsoleOpSender!");
             throw new RuntimeException(e);
